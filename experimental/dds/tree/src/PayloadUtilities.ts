@@ -6,7 +6,7 @@
 import { compareArrays } from '@fluidframework/core-utils/internal';
 import { compareFluidHandles, isFluidHandle } from '@fluidframework/runtime-utils';
 
-import { Payload } from './persisted-types/index.js';
+import type { Payload } from './persisted-types/index.js';
 
 /**
  * @returns true if two `Payloads` are identical.
@@ -84,13 +84,13 @@ export function comparePayloads(a: Payload, b: Payload): boolean {
 	}
 
 	// make sure objects with numeric keys (or no keys) compare unequal to arrays.
-	if (a instanceof Array !== b instanceof Array) {
+	if (Array.isArray(a) !== Array.isArray(b)) {
 		return false;
 	}
 
 	// Fluid Serialization (like Json) orders object fields arbitrarily, so reordering fields is not considered considered a change.
 	// Therefor the keys arrays must be sorted here.
-	if (!(a instanceof Array)) {
+	if (!Array.isArray(a)) {
 		aKeys.sort();
 		bKeys.sort();
 	}

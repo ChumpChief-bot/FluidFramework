@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from "assert";
+import { strict as assert } from "node:assert";
 
 import {
 	MockContainerRuntimeFactory,
@@ -128,7 +128,7 @@ describe("SharedDelta", () => {
 					actual1,
 					actual2,
 					`doc.text must converge (doc1: '${actual1}', doc2: '${actual2}'${
-						expected !== undefined ? ` expected: '${expected}'` : ""
+						expected === undefined ? "" : ` expected: '${expected}'`
 					})`,
 				);
 

@@ -5,39 +5,35 @@
 
 import { bufferToString } from '@fluid-internal/client-utils';
 import { AttachState } from '@fluidframework/container-definitions';
-import { ITelemetryBaseProperties } from '@fluidframework/core-interfaces';
+import type { ITelemetryBaseProperties } from '@fluidframework/core-interfaces';
 import { assert } from '@fluidframework/core-utils/internal';
-import {
+import type {
 	IChannelAttributes,
 	IChannelFactory,
 	IFluidDataStoreRuntime,
 	IChannelServices,
 	IChannelStorageService,
 } from '@fluidframework/datastore-definitions/internal';
-import {
-	ISummaryTreeWithStats,
-	ITelemetryContext,
-	type IRuntimeMessageCollection,
-	type ISequencedMessageEnvelope,
+import type { ISummaryTreeWithStats, ITelemetryContext } from '@fluidframework/runtime-definitions/internal';
+import type {
+	IRuntimeMessageCollection,
+	ISequencedMessageEnvelope,
 } from '@fluidframework/runtime-definitions/internal';
-import {
-	IFluidSerializer,
-	ISharedObjectEvents,
-	SharedObject,
-	createSingleBlobSummary,
-} from '@fluidframework/shared-object-base/internal';
-import {
+import type { IFluidSerializer, ISharedObjectEvents } from '@fluidframework/shared-object-base/internal';
+import { SharedObject, createSingleBlobSummary } from '@fluidframework/shared-object-base/internal';
+import type {
 	IEventSampler,
 	ITelemetryLoggerPropertyBags,
 	ITelemetryLoggerExt,
-	PerformanceEvent,
-	createChildLogger,
-	createSampledLogger,
 } from '@fluidframework/telemetry-utils/internal';
+import { PerformanceEvent, createChildLogger, createSampledLogger } from '@fluidframework/telemetry-utils/internal';
 
-import { BuildNode, BuildTreeNode, Change, ChangeType } from './ChangeTypes.js';
-import { RestOrArray, copyPropertyIfDefined, fail, unwrapRestOrArray } from './Common.js';
-import { EditHandle, EditLog, OrderedEditSet } from './EditLog.js';
+import type { BuildNode, BuildTreeNode, Change } from './ChangeTypes.js';
+import { ChangeType } from './ChangeTypes.js';
+import type { RestOrArray } from './Common.js';
+import { copyPropertyIfDefined, fail, unwrapRestOrArray } from './Common.js';
+import type { EditHandle, OrderedEditSet } from './EditLog.js';
+import { EditLog } from './EditLog.js';
 import {
 	areRevisionViewsSemanticallyEqual,
 	convertTreeNodes,
@@ -50,7 +46,7 @@ import {
 import { SharedTreeDiagnosticEvent, SharedTreeEvent } from './EventTypes.js';
 import { revert } from './HistoryEditFactory.js';
 import { convertEditIds } from './IdConversion.js';
-import {
+import type {
 	AttributionId,
 	DetachedSequenceId,
 	EditId,
@@ -58,48 +54,52 @@ import {
 	OpSpaceNodeId,
 	SessionId,
 	StableNodeId,
-	isDetachedSequenceId,
 } from './Identifiers.js';
+import { isDetachedSequenceId } from './Identifiers.js';
 import { initialTree } from './InitialTree.js';
-import {
-	CachingLogViewer,
+import type {
 	EditCacheEntry,
 	EditStatusCallback,
 	LogViewer,
 	SequencedEditResult,
 	SequencedEditResultCallback,
 } from './LogViewer.js';
-import { NodeIdContext, NodeIdNormalizer, getNodeIdContext } from './NodeIdUtilities.js';
-import { ReconciliationPath } from './ReconciliationPath.js';
+import { CachingLogViewer } from './LogViewer.js';
+import type { NodeIdContext, NodeIdNormalizer } from './NodeIdUtilities.js';
+import { getNodeIdContext } from './NodeIdUtilities.js';
+import type { ReconciliationPath } from './ReconciliationPath.js';
 import { RevisionView } from './RevisionView.js';
 import { SharedTreeEncoder_0_0_2, SharedTreeEncoder_0_1_1 } from './SharedTreeEncoder.js';
 import { MutableStringInterner } from './StringInterner.js';
-import { SummaryContents, serialize } from './Summary.js';
+import type { SummaryContents } from './Summary.js';
+import { serialize } from './Summary.js';
 import { deserialize, getSummaryStatistics } from './SummaryBackCompatibility.js';
-import { TransactionInternal } from './TransactionInternal.js';
+import type { TransactionInternal } from './TransactionInternal.js';
 import { nilUuid } from './UuidUtilities.js';
 import { IdCompressor, createSessionId } from './id-compressor/index.js';
-import {
+import type {
 	BuildNodeInternal,
 	ChangeInternal,
 	ChangeNode,
-	ChangeTypeInternal,
 	ConstraintInternal,
 	DetachInternal,
 	Edit,
 	EditLogSummary,
-	EditStatus,
 	InternalizedChange,
 	SharedTreeEditOp,
 	SharedTreeEditOp_0_0_2,
 	SharedTreeOp,
-	SharedTreeOpType,
 	SharedTreeOp_0_0_2,
 	SharedTreeSummary,
 	SharedTreeSummaryBase,
 	SharedTreeSummary_0_0_2,
 	TreeNode,
 	TreeNodeSequence,
+} from './persisted-types/index.js';
+import {
+	ChangeTypeInternal,
+	EditStatus,
+	SharedTreeOpType,
 	WriteFormat,
 	ghostSessionId,
 	reservedIdCount,
@@ -267,12 +267,15 @@ export class SharedTreeFactory implements IChannelFactory {
 	private createSharedTree(runtime: IFluidDataStoreRuntime, id: string): SharedTree {
 		const [writeFormat] = this.args;
 		switch (writeFormat) {
-			case WriteFormat.v0_0_2:
+			case WriteFormat.v0_0_2: {
 				return new SharedTree(runtime, id, ...(this.args as SharedTreeArgs<WriteFormat.v0_0_2>));
-			case WriteFormat.v0_1_1:
+			}
+			case WriteFormat.v0_1_1: {
 				return new SharedTree(runtime, id, ...(this.args as SharedTreeArgs<WriteFormat.v0_1_1>));
-			default:
+			}
+			default: {
 				fail('Unknown write format');
+			}
 		}
 	}
 }
@@ -431,8 +434,9 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 	 */
 	public get attributionId(): AttributionId {
 		switch (this.writeFormat) {
-			case WriteFormat.v0_0_2:
+			case WriteFormat.v0_0_2: {
 				return nilUuid;
+			}
 			default: {
 				const { attributionId } = this.idCompressor;
 				if (attributionId === ghostSessionId) {
@@ -713,8 +717,9 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 	 */
 	public attributeNodeId(id: NodeId): AttributionId {
 		switch (this.writeFormat) {
-			case WriteFormat.v0_0_2:
+			case WriteFormat.v0_0_2: {
 				return nilUuid;
+			}
 			default: {
 				const attributionId = this.idCompressor.attributeId(id);
 				if (attributionId === ghostSessionId) {
@@ -800,9 +805,10 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 	private generateSummary(): SharedTreeSummaryBase {
 		try {
 			switch (this.writeFormat) {
-				case WriteFormat.v0_0_2:
+				case WriteFormat.v0_0_2: {
 					return this.encoder_0_0_2.encodeSummary(this.editLog, this.currentView, this);
-				case WriteFormat.v0_1_1:
+				}
+				case WriteFormat.v0_1_1: {
 					return this.encoder_0_1_1.encodeSummary(
 						this.editLog,
 						this.currentView,
@@ -811,8 +817,10 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 						this.interner,
 						this.idCompressor.serialize(false)
 					);
-				default:
+				}
+				default: {
 					fail('Unknown version');
+				}
 			}
 		} catch (error) {
 			this.logger?.sendErrorEvent({
@@ -850,9 +858,10 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 
 		let convertedSummary: SummaryContents;
 		switch (loadedSummaryVersion) {
-			case WriteFormat.v0_0_2:
+			case WriteFormat.v0_0_2: {
 				convertedSummary = this.encoder_0_0_2.decodeSummary(summary as SharedTreeSummary_0_0_2, this.attributionId);
 				break;
+			}
 			case WriteFormat.v0_1_1: {
 				const typedSummary = summary as SharedTreeSummary;
 				// See comment in factory constructor--ensure we write a consistent type of summary as how the document began.
@@ -865,8 +874,9 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 				convertedSummary = this.encoder_0_1_1.decodeSummary(summary as SharedTreeSummary, this.attributionId);
 				break;
 			}
-			default:
+			default: {
 				fail('Unknown version');
+			}
 		}
 
 		const { editHistory, currentTree, idCompressor, interner } = convertedSummary;
@@ -894,12 +904,15 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 
 	private static eventFromEditResult(editStatus: EditStatus): SharedTreeDiagnosticEvent {
 		switch (editStatus) {
-			case EditStatus.Applied:
+			case EditStatus.Applied: {
 				return SharedTreeDiagnosticEvent.AppliedEdit;
-			case EditStatus.Invalid:
+			}
+			case EditStatus.Invalid: {
 				return SharedTreeDiagnosticEvent.DroppedInvalidEdit;
-			default:
+			}
+			default: {
 				return SharedTreeDiagnosticEvent.DroppedMalformedEdit;
+			}
 		}
 	}
 
@@ -1069,12 +1082,15 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 	private parseSequencedEdit(op: SharedTreeEditOp | SharedTreeEditOp_0_0_2): Edit<ChangeInternal> {
 		// TODO:Type Safety: Improve type safety around op sending/parsing (e.g. discriminated union over version field somehow)
 		switch (op.version) {
-			case WriteFormat.v0_0_2:
+			case WriteFormat.v0_0_2: {
 				return this.encoder_0_0_2.decodeEditOp(op, (x) => x, this);
-			case WriteFormat.v0_1_1:
+			}
+			case WriteFormat.v0_1_1: {
 				return this.encoder_0_1_1.decodeEditOp(op, (x) => x, this.idNormalizer, this.interner);
-			default:
+			}
+			default: {
 				fail('Unknown op version');
+			}
 		}
 	}
 
@@ -1253,12 +1269,13 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 	 */
 	public internalizeChange(change: Change): ChangeInternal {
 		switch (change.type) {
-			case ChangeType.Insert:
+			case ChangeType.Insert: {
 				return {
 					source: change.source as DetachedSequenceId,
 					destination: deepCloneStablePlace(change.destination),
 					type: ChangeTypeInternal.Insert,
 				};
+			}
 			case ChangeType.Detach: {
 				const detach: DetachInternal = {
 					source: deepCloneStableRange(change.source),
@@ -1294,12 +1311,13 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 					};
 				}
 			}
-			case ChangeType.SetValue:
+			case ChangeType.SetValue: {
 				return {
 					nodeToModify: change.nodeToModify,
 					payload: change.payload,
 					type: ChangeTypeInternal.SetValue,
 				};
+			}
 			case ChangeType.Constraint: {
 				const constraint: ConstraintInternal = {
 					effect: change.effect,
@@ -1313,8 +1331,9 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 				copyPropertyIfDefined(change, constraint, 'parentNode');
 				return constraint;
 			}
-			default:
+			default: {
 				fail('unexpected change type');
+			}
 		}
 	}
 
@@ -1369,10 +1388,11 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 		// Ops will be submitted again when attached (see loadSummary())
 		if (this.isAttached()) {
 			switch (this.writeFormat) {
-				case WriteFormat.v0_0_2:
+				case WriteFormat.v0_0_2: {
 					this.submitOp(this.encoder_0_0_2.encodeEditOp(edit, (x) => x, this));
 					break;
-				case WriteFormat.v0_1_1:
+				}
+				case WriteFormat.v0_1_1: {
 					this.submitOp(
 						this.encoder_0_1_1.encodeEditOp(
 							edit,
@@ -1383,8 +1403,10 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 						)
 					);
 					break;
-				default:
+				}
+				default: {
 					fail('Unknown version');
+				}
 			}
 		}
 	}
@@ -1419,19 +1441,22 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 			case SharedTreeOpType.Edit: {
 				let stashedEdit: Edit<ChangeInternal> | undefined;
 				switch (this.writeFormat) {
-					case WriteFormat.v0_0_2:
+					case WriteFormat.v0_0_2: {
 						switch (sharedTreeOp.version) {
 							case WriteFormat.v0_0_2: {
 								stashedEdit = this.parseSequencedEdit(sharedTreeOp);
 								break;
 							}
-							case WriteFormat.v0_1_1:
+							case WriteFormat.v0_1_1: {
 								fail('Received stashed op 0.1.1 before upgrade');
-							default:
+							}
+							default: {
 								fail('Unknown version');
+							}
 						}
 						break;
-					case WriteFormat.v0_1_1:
+					}
+					case WriteFormat.v0_1_1: {
 						switch (sharedTreeOp.version) {
 							case WriteFormat.v0_0_2: {
 								// Use the IDs from the stashed ops as overrides for the equivalent new ops
@@ -1469,12 +1494,15 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 								stashedEdit = this.encoder_0_1_1.decodeEditOp(sharedTreeOp, (x) => x, normalizer, this.interner);
 								break;
 							}
-							default:
+							default: {
 								fail('Unknown version');
+							}
 						}
 						break;
-					default:
+					}
+					default: {
 						fail('Unknown version');
+					}
 				}
 				this.applyEditInternal(stashedEdit);
 				return;
@@ -1482,29 +1510,33 @@ export class SharedTree extends SharedObject<ISharedTreeEvents> implements NodeI
 			// Handle and update ops are only acknowledged by the client that generated them upon sequencing--no local changes necessary.
 			case SharedTreeOpType.Handle:
 			case SharedTreeOpType.Update:
-			case SharedTreeOpType.NoOp:
+			case SharedTreeOpType.NoOp: {
 				return;
-			default:
+			}
+			default: {
 				fail('Unrecognized op');
+			}
 		}
 	}
 
 	protected reSubmitCore(op: unknown, localOpMetadata?: StashedLocalOpMetadata): void {
 		const sharedTreeOp = op as SharedTreeOp | SharedTreeOp_0_0_2;
 		switch (sharedTreeOp.type) {
-			case SharedTreeOpType.Edit:
+			case SharedTreeOpType.Edit: {
 				if (compareSummaryFormatVersions(sharedTreeOp.version, this.writeFormat) > 0) {
 					fail('Attempted to resubmit op of version newer than current version');
-				} else if (localOpMetadata?.transformedEdit !== undefined) {
-					// Optimization: stashed 0.0.2 ops require no transformation in 0.0.2; don't re-encode
-					if (this.writeFormat !== WriteFormat.v0_0_2 || sharedTreeOp.version !== WriteFormat.v0_0_2) {
-						this.submitEditOp(localOpMetadata.transformedEdit);
-						return;
-					}
+				} else if (
+					localOpMetadata?.transformedEdit !== undefined && // Optimization: stashed 0.0.2 ops require no transformation in 0.0.2; don't re-encode
+					(this.writeFormat !== WriteFormat.v0_0_2 || sharedTreeOp.version !== WriteFormat.v0_0_2)
+				) {
+					this.submitEditOp(localOpMetadata.transformedEdit);
+					return;
 				}
 				break;
-			default:
+			}
+			default: {
 				break;
+			}
 		}
 		super.reSubmitCore(sharedTreeOp, localOpMetadata);
 	}

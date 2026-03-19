@@ -13,7 +13,7 @@ import { setUpTestSharedTree, setUpTestTree } from './utilities/TestUtilities.js
 
 checkoutTests(
 	'LazyCheckout',
-	async (tree) => Promise.resolve(new LazyCheckout(tree)),
+	async (tree) => new LazyCheckout(tree),
 	() => {
 		it('updates lazily', async () => {
 			const { tree } = setUpTestSharedTree();

@@ -3,25 +3,25 @@
  * Licensed under the MIT License.
  */
 
-import { IDisposable, IErrorEvent, ITelemetryBaseProperties } from '@fluidframework/core-interfaces';
+import type { IDisposable, IErrorEvent, ITelemetryBaseProperties } from '@fluidframework/core-interfaces';
 import { assert } from '@fluidframework/core-utils/internal';
-import {
-	ITelemetryLoggerExt,
-	EventEmitterWithErrorHandling,
-	createChildLogger,
-} from '@fluidframework/telemetry-utils/internal';
+import type { ITelemetryLoggerExt } from '@fluidframework/telemetry-utils/internal';
+import { EventEmitterWithErrorHandling, createChildLogger } from '@fluidframework/telemetry-utils/internal';
 
-import { Change } from './ChangeTypes.js';
-import { RestOrArray, assertWithMessage, fail, unwrapRestOrArray } from './Common.js';
+import type { Change } from './ChangeTypes.js';
+import type { RestOrArray } from './Common.js';
+import { assertWithMessage, fail, unwrapRestOrArray } from './Common.js';
 import { newEditId } from './EditUtilities.js';
 import { SharedTreeEvent } from './EventTypes.js';
-import { EditId } from './Identifiers.js';
+import type { EditId } from './Identifiers.js';
 import { CachingLogViewer } from './LogViewer.js';
-import { RevisionView } from './RevisionView.js';
-import { EditCommittedHandler, SharedTree } from './SharedTree.js';
-import { EditingResult, GenericTransaction, TransactionInternal, ValidEditingResult } from './TransactionInternal.js';
-import { TreeView } from './TreeView.js';
-import { ChangeInternal, Edit, EditStatus } from './persisted-types/index.js';
+import type { RevisionView } from './RevisionView.js';
+import type { EditCommittedHandler, SharedTree } from './SharedTree.js';
+import type { EditingResult, GenericTransaction, ValidEditingResult } from './TransactionInternal.js';
+import { TransactionInternal } from './TransactionInternal.js';
+import type { TreeView } from './TreeView.js';
+import type { ChangeInternal, Edit } from './persisted-types/index.js';
+import { EditStatus } from './persisted-types/index.js';
 
 /**
  * An event emitted by a `Checkout` to indicate a state change. See {@link ICheckoutEvents} for event argument information.
@@ -206,9 +206,10 @@ export abstract class Checkout extends EventEmitterWithErrorHandling<ICheckoutEv
 		const { failure } = result as { failure: TransactionInternal.Failure };
 		const additionalProps: ITelemetryBaseProperties = {};
 		switch (failure.kind) {
-			case TransactionInternal.FailureKind.BadPlace:
+			case TransactionInternal.FailureKind.BadPlace: {
 				additionalProps.placeFailure = failure.placeFailure;
 				break;
+			}
 			case TransactionInternal.FailureKind.BadRange: {
 				const { rangeFailure } = failure;
 				if (typeof rangeFailure === 'string') {
@@ -219,8 +220,9 @@ export abstract class Checkout extends EventEmitterWithErrorHandling<ICheckoutEv
 				}
 				break;
 			}
-			default:
+			default: {
 				break;
+			}
 		}
 
 		this.logger.sendErrorEvent({

@@ -226,9 +226,14 @@ describe('Transaction', () => {
 		it('can clear an unset payload', () => {
 			transaction.applyChange(ChangeInternal.clearPayload(testTree.identifier));
 			expect(transaction.status).equals(EditStatus.Applied);
-			expect({}.hasOwnProperty.call(transaction.view.getViewNode(testTree.identifier), 'payload')).to.be.false;
-			expect({}.hasOwnProperty.call(getChangeNodeFromViewNode(transaction.view, testTree.identifier), 'payload')).to.be
+			expect(Object.prototype.hasOwnProperty.call(transaction.view.getViewNode(testTree.identifier), 'payload')).to.be
 				.false;
+			expect(
+				Object.prototype.hasOwnProperty.call(
+					getChangeNodeFromViewNode(transaction.view, testTree.identifier),
+					'payload'
+				)
+			).to.be.false;
 		});
 
 		it('can clear a set payload', () => {
@@ -242,9 +247,14 @@ describe('Transaction', () => {
 			expect(transaction.view.getViewNode(testTree.identifier).payload).not.undefined;
 			transaction.applyChange(ChangeInternal.clearPayload(testTree.identifier));
 			expect(transaction.status).equals(EditStatus.Applied);
-			expect({}.hasOwnProperty.call(transaction.view.getViewNode(testTree.identifier), 'payload')).to.be.false;
-			expect({}.hasOwnProperty.call(getChangeNodeFromViewNode(transaction.view, testTree.identifier), 'payload')).to.be
+			expect(Object.prototype.hasOwnProperty.call(transaction.view.getViewNode(testTree.identifier), 'payload')).to.be
 				.false;
+			expect(
+				Object.prototype.hasOwnProperty.call(
+					getChangeNodeFromViewNode(transaction.view, testTree.identifier),
+					'payload'
+				)
+			).to.be.false;
 		});
 	});
 
@@ -325,7 +335,7 @@ describe('Transaction', () => {
 			expect(transaction.view.getTrait(testTree.left.traitLocation)).deep.equals([testTree.left.identifier]);
 			expect(transaction.view.getViewNode(testTree.left.identifier).payload).to.equal(payload);
 		});
-		[Side.Before, Side.After].forEach((side) => {
+		for (const side of [Side.Before, Side.After]) {
 			it(`can insert a node at the ${side === Side.After ? 'beginning' : 'end'} of a trait`, () => {
 				const transaction = TransactionInternal.factory(testTree.view);
 				const newNodeId = testTree.generateNodeId();
@@ -358,7 +368,7 @@ describe('Transaction', () => {
 						: [testTree.left.identifier, newNode.identifier]
 				);
 			});
-		});
+		}
 	});
 
 	describe('Build', () => {

@@ -639,11 +639,11 @@ describe('EditUtilities', () => {
 			check({ x: undefined }, {}, sameAfter);
 
 			// NaN and Infinity become null
-			check(NaN, NaN, sameAfter);
-			check(NaN, 7, differentAfter);
+			check(Number.NaN, Number.NaN, sameAfter);
+			check(Number.NaN, 7, differentAfter);
 			check(Infinity, Infinity, sameAfter);
 			check(-Infinity, Infinity, sameAfter);
-			check(NaN, 'NaN', differentAfter);
+			check(Number.NaN, 'NaN', differentAfter);
 
 			// json loses -0 on round trip
 			check(-0, -0, sameAfter);

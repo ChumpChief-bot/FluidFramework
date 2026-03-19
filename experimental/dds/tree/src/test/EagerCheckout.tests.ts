@@ -13,7 +13,7 @@ import { setUpTestSharedTree, setUpTestTree } from './utilities/TestUtilities.js
 
 checkoutTests(
 	'EagerCheckout',
-	async (tree) => Promise.resolve(new EagerCheckout(tree)),
+	async (tree) => new EagerCheckout(tree),
 	() => {
 		it('updates eagerly', () => {
 			const { tree } = setUpTestSharedTree();

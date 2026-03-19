@@ -356,7 +356,7 @@ export class AppendOnlyDoublySortedMap<K, V, S> extends AppendOnlySortedMap<K, V
 
 	public append(key: K, value: V): void {
 		if (
-			this.elements.length !== 0 &&
+			this.elements.length > 0 &&
 			this.valueComparator(this.extractSearchValue(value), this.extractSearchValue(this.maxValue() as V)) <= 0
 		) {
 			fail('Inserted value must be > all others in the map.');

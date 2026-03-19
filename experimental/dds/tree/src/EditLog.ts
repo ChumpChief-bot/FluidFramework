@@ -6,14 +6,14 @@
 import { TypedEventEmitter } from '@fluid-internal/client-utils';
 import type { IEvent } from '@fluidframework/core-interfaces';
 import { assert, compareArrays } from '@fluidframework/core-utils/internal';
-import { ITelemetryLoggerExt } from '@fluidframework/telemetry-utils/internal';
+import type { ITelemetryLoggerExt } from '@fluidframework/telemetry-utils/internal';
 import { BTree } from '@tylerbu/sorted-btree-es6';
 
 import type { ChangeCompressor } from './ChangeCompression.js';
 import { fail } from './Common.js';
 import type { EditId } from './Identifiers.js';
 import type { StringInterner } from './StringInterner.js';
-import { Edit, EditLogSummary, EditWithoutId, FluidEditHandle } from './persisted-types/index.js';
+import type { Edit, EditLogSummary, EditWithoutId, FluidEditHandle } from './persisted-types/index.js';
 
 /**
  * An ordered set of Edits associated with a SharedTree.
@@ -181,11 +181,11 @@ export function getNumberOfHandlesFromEditLogSummary(summary: EditLogSummary<unk
 	const { editChunks } = summary;
 
 	let numberOfHandles = 0;
-	editChunks.forEach(({ chunk }) => {
+	for (const { chunk } of editChunks) {
 		if (!Array.isArray(chunk)) {
 			numberOfHandles++;
 		}
-	});
+	}
 
 	return numberOfHandles;
 }
@@ -288,7 +288,7 @@ export class EditLog<TChange = unknown> extends TypedEventEmitter<IEditLogEvents
 			}
 		}
 
-		editChunks.forEach((editChunkOrHandle) => {
+		for (const editChunkOrHandle of editChunks) {
 			const { startRevision, chunk } = editChunkOrHandle;
 
 			if (Array.isArray(chunk)) {
@@ -306,7 +306,7 @@ export class EditLog<TChange = unknown> extends TypedEventEmitter<IEditLogEvents
 				// being used so we're going with the simpler solution.
 				this.logger?.sendErrorEvent({ eventName: 'UnexpectedEditHandleInSummary' });
 			}
-		});
+		}
 	}
 
 	/**
@@ -322,7 +322,7 @@ export class EditLog<TChange = unknown> extends TypedEventEmitter<IEditLogEvents
 	 * @returns the `EditAddedHandler`s registered on this `EditLog`.
 	 */
 	public get editAddedHandlers(): readonly EditAddedHandler<TChange>[] {
-		return Array.from(this._editAddedHandlers);
+		return [...this._editAddedHandlers];
 	}
 
 	/**
@@ -338,7 +338,7 @@ export class EditLog<TChange = unknown> extends TypedEventEmitter<IEditLogEvents
 	 * @returns the `EditEvictedHandler`s registered on this `EditLog`.
 	 */
 	public get editEvictedHandlers(): readonly EditEvictionHandler[] {
-		return Array.from(this._editEvictionHandlers);
+		return [...this._editEvictionHandlers];
 	}
 
 	/**
@@ -447,14 +447,14 @@ export class EditLog<TChange = unknown> extends TypedEventEmitter<IEditLogEvents
 	 */
 	public tryGetEditFromId(editId: EditId): Edit<TChange> | undefined {
 		const index = this.tryGetIndexOfId(editId);
-		return index !== undefined ? this.tryGetEditAtIndex(index) : undefined;
+		return index === undefined ? undefined : this.tryGetEditAtIndex(index);
 	}
 
 	/**
 	 * Sequences all local edits.
 	 */
 	public sequenceLocalEdits(): void {
-		this.localEdits.slice().forEach((edit) => this.addSequencedEditInternal(edit));
+		for (const edit of [...this.localEdits]) this.addSequencedEditInternal(edit);
 	}
 
 	/**
@@ -570,7 +570,7 @@ export class EditLog<TChange = unknown> extends TypedEventEmitter<IEditLogEvents
 			this._earliestAvailableEditIndex += numberOfEditsToEvict;
 
 			// On eviction, we need to remove the IDs of edits that have been evicted
-			removedEdits.forEach((edit) => this.allEditIds.delete(edit.id));
+			for (const edit of removedEdits) this.allEditIds.delete(edit.id);
 
 			// The minSequenceNumber is strictly increasing so we can clear sequence numbers before it
 			this.sequenceNumberToIndex.deleteRange(0, this._minSequenceNumber, false);
@@ -602,7 +602,7 @@ export class EditLog<TChange = unknown> extends TypedEventEmitter<IEditLogEvents
 		compressEdit?: (edit: Pick<Edit<TChange>, 'changes'>) => Pick<Edit<TCompressedChange>, 'changes'>
 	): EditLogSummary<TChange, FluidEditHandle> | EditLogSummary<TCompressedChange, FluidEditHandle> {
 		const editIds = this.sequencedEdits.map(({ id }) => id);
-		return compressEdit !== undefined
+		return compressEdit === undefined
 			? {
 					editChunks:
 						this.sequencedEdits.length === 0
@@ -611,7 +611,7 @@ export class EditLog<TChange = unknown> extends TypedEventEmitter<IEditLogEvents
 									{
 										// Store all edits within a single "chunk"
 										startRevision: 0,
-										chunk: this.sequencedEdits.map((edit) => compressEdit(edit)),
+										chunk: this.sequencedEdits.map(({ changes }) => ({ changes })),
 									},
 								],
 					editIds,
@@ -624,7 +624,7 @@ export class EditLog<TChange = unknown> extends TypedEventEmitter<IEditLogEvents
 									{
 										// Store all edits within a single "chunk"
 										startRevision: 0,
-										chunk: this.sequencedEdits.map(({ changes }) => ({ changes })),
+										chunk: this.sequencedEdits.map((edit) => compressEdit(edit)),
 									},
 								],
 					editIds,
@@ -637,7 +637,7 @@ export class EditLog<TChange = unknown> extends TypedEventEmitter<IEditLogEvents
 	 */
 	public async tryGetEdit(editId: EditId): Promise<Edit<TChange> | undefined> {
 		const index = this.tryGetIndexOfId(editId);
-		return index !== undefined ? this.tryGetEditAtIndex(index) : undefined;
+		return index === undefined ? undefined : this.tryGetEditAtIndex(index);
 	}
 
 	/**

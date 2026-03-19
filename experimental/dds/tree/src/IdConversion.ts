@@ -3,13 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { Mutable, ReplaceRecursive, copyPropertyIfDefined, fail } from './Common.js';
+import type { Mutable, ReplaceRecursive } from './Common.js';
+import { copyPropertyIfDefined, fail } from './Common.js';
 import { convertTreeNodes } from './EditUtilities.js';
-import { DetachedSequenceId, NodeId, isDetachedSequenceId } from './Identifiers.js';
-import {
+import type { DetachedSequenceId, NodeId } from './Identifiers.js';
+import { isDetachedSequenceId } from './Identifiers.js';
+import type {
 	BuildNodeInternal,
 	ChangeInternal,
-	ChangeTypeInternal,
 	ConstraintInternal,
 	DetachInternal,
 	Edit,
@@ -18,6 +19,7 @@ import {
 	StableRangeInternal,
 	TreeNode,
 } from './persisted-types/index.js';
+import { ChangeTypeInternal } from './persisted-types/index.js';
 
 export function convertEditIds<IdFrom, IdTo>(
 	edit: ReplaceRecursive<Edit<ChangeInternal>, NodeId, IdFrom>,
@@ -25,7 +27,7 @@ export function convertEditIds<IdFrom, IdTo>(
 ): Edit<ReplaceRecursive<ChangeInternal, NodeId, IdTo>> {
 	const changes = edit.changes.map((change): ReplaceRecursive<ChangeInternal, NodeId, IdTo> => {
 		switch (change.type) {
-			case ChangeTypeInternal.Build:
+			case ChangeTypeInternal.Build: {
 				return {
 					type: ChangeTypeInternal.Build,
 					destination: change.destination,
@@ -37,12 +39,14 @@ export function convertEditIds<IdFrom, IdTo>(
 						>(tree, (node) => convertNodeDataIds(node, convert), isDetachedSequenceId);
 					}),
 				};
-			case ChangeTypeInternal.Insert:
+			}
+			case ChangeTypeInternal.Insert: {
 				return {
 					type: ChangeTypeInternal.Insert,
 					source: change.source,
 					destination: convertStablePlaceIds(change.destination, convert),
 				};
+			}
 			case ChangeTypeInternal.Detach: {
 				const detach: ReplaceRecursive<DetachInternal, NodeId, IdTo> = {
 					type: ChangeTypeInternal.Detach,
@@ -51,12 +55,13 @@ export function convertEditIds<IdFrom, IdTo>(
 				copyPropertyIfDefined(change, detach, 'destination');
 				return detach;
 			}
-			case ChangeTypeInternal.SetValue:
+			case ChangeTypeInternal.SetValue: {
 				return {
 					type: ChangeTypeInternal.SetValue,
 					nodeToModify: convert(change.nodeToModify),
 					payload: change.payload,
 				};
+			}
 			case ChangeTypeInternal.Constraint: {
 				const constraint: Mutable<ReplaceRecursive<ConstraintInternal, NodeId, IdTo>> = {
 					type: ChangeTypeInternal.Constraint,
@@ -72,8 +77,9 @@ export function convertEditIds<IdFrom, IdTo>(
 				}
 				return constraint;
 			}
-			default:
+			default: {
 				fail('Unknown change type.');
+			}
 		}
 	});
 	const newEdit = { id: edit.id, changes };

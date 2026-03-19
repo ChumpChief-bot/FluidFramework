@@ -3,17 +3,17 @@
  * Licensed under the MIT License.
  */
 
-import { Mutable, ReplaceRecursive, copyPropertyIfDefined, fail } from './Common.js';
+import type { Mutable, ReplaceRecursive } from './Common.js';
+import { copyPropertyIfDefined, fail } from './Common.js';
 import { convertStablePlaceIds, convertStableRangeIds } from './IdConversion.js';
-import { DetachedSequenceId, NodeId, OpSpaceNodeId } from './Identifiers.js';
-import { ContextualizedNodeIdNormalizer } from './NodeIdUtilities.js';
-import { StringInterner } from './StringInterner.js';
-import { TreeCompressor } from './TreeCompressor.js';
-import {
+import type { DetachedSequenceId, NodeId, OpSpaceNodeId } from './Identifiers.js';
+import type { ContextualizedNodeIdNormalizer } from './NodeIdUtilities.js';
+import type { StringInterner } from './StringInterner.js';
+import type { TreeCompressor } from './TreeCompressor.js';
+import type {
 	BuildInternal,
 	BuildNodeInternal,
 	ChangeInternal,
-	ChangeTypeInternal,
 	CompressedBuildInternal,
 	CompressedChangeInternal,
 	CompressedPlaceholderTree,
@@ -22,6 +22,7 @@ import {
 	InsertInternal,
 	SetValueInternal,
 } from './persisted-types/index.js';
+import { ChangeTypeInternal } from './persisted-types/index.js';
 
 /**
  * Encapsulates knowledge of how to compress/decompress a change into a compressed change
@@ -118,8 +119,9 @@ function normalizeChange<From extends NodeId | OpSpaceNodeId, To extends NodeId 
 			}
 			return constraint;
 		}
-		default:
+		default: {
 			fail('unexpected change type');
+		}
 	}
 }
 

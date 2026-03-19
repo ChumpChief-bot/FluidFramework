@@ -197,8 +197,8 @@ function generateTraits(
 ): TraitMap<ChangeNode> {
 	const traits = {};
 
-	traitLabels.forEach((label) => {
-		traits[label] = Array.from(Array(nodesPerTrait).keys()).map(() => {
+	for (const label of traitLabels) {
+		traits[label] = [...new Array(nodesPerTrait).keys()].map(() => {
 			return {
 				definition,
 				identifier: testTree.generateNodeId(),
@@ -208,7 +208,7 @@ function generateTraits(
 						: {},
 			};
 		});
-	});
+	}
 
 	return traits;
 }

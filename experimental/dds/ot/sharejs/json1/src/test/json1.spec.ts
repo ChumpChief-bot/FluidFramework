@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from "assert";
+import { strict as assert } from "node:assert";
 
 import { Jsonable } from "@fluidframework/datastore-definitions/internal";
 import {
@@ -136,7 +136,7 @@ describe("SharedJson1", () => {
 					actual2,
 					// eslint-disable-next-line @typescript-eslint/no-base-to-string
 					`docs must converge (doc1: '${actual1}', doc2: '${actual2}'${
-						expected !== undefined ? ` expected: '${expected}'` : ""
+						expected === undefined ? "" : ` expected: '${expected}'`
 					})`,
 				);
 

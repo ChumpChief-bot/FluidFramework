@@ -282,10 +282,12 @@ describe('TreeCompression', () => {
 		const context = makeNodeIdContext(idCompressor);
 		// Order of IDs:  [-1, -2, -3, -4, 0, 1, 2, -5, 3, -6, -6]
 		// After elision: [-1,  _,  _,  _, 0, _, _, -5, 3, -6, -6]
-		const localIds = [...Array(6).keys()].map((_) => context.generateNodeId());
-		localIds.forEach((id) => assert(isLocalId(id)));
-		const finalIds = [...Array(reservedIdCount).keys()].map((_, i) => idCompressor.getReservedId(i) as NodeId);
-		finalIds.forEach((id) => assert(isFinalId(id)));
+		const localIds = [...Array.from({ length: 6 }).keys()].map((_) => context.generateNodeId());
+		for (const id of localIds) assert(isLocalId(id));
+		const finalIds = [...Array.from({ length: reservedIdCount }).keys()].map(
+			(_, i) => idCompressor.getReservedId(i) as NodeId
+		);
+		for (const id of finalIds) assert(isFinalId(id));
 
 		function node(
 			identifier: NodeId,

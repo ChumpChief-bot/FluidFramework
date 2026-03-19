@@ -121,9 +121,9 @@ export class RevisionValueCache<TValue> {
 				}
 			}
 		);
-		oldWindowEntries.forEach(([revision, value]) => {
+		for (const [revision, value] of oldWindowEntries) {
 			this.evictableRevisions.set(revision, value);
-		});
+		}
 	}
 
 	/**

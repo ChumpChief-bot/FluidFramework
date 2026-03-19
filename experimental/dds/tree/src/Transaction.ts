@@ -4,16 +4,18 @@
  */
 
 import { TypedEventEmitter } from '@fluid-internal/client-utils';
-import { IErrorEvent } from '@fluidframework/core-interfaces';
+import type { IErrorEvent } from '@fluidframework/core-interfaces';
 
-import { Change } from './ChangeTypes.js';
-import { RestOrArray, unwrapRestOrArray } from './Common.js';
+import type { Change } from './ChangeTypes.js';
+import type { RestOrArray } from './Common.js';
+import { unwrapRestOrArray } from './Common.js';
 import { newEditId } from './EditUtilities.js';
 import { CachingLogViewer } from './LogViewer.js';
-import { SharedTree } from './SharedTree.js';
+import type { SharedTree } from './SharedTree.js';
 import { GenericTransaction, TransactionInternal } from './TransactionInternal.js';
-import { TreeView } from './TreeView.js';
-import { ChangeInternal, Edit, EditStatus } from './persisted-types/index.js';
+import type { TreeView } from './TreeView.js';
+import type { ChangeInternal, Edit } from './persisted-types/index.js';
+import { EditStatus } from './persisted-types/index.js';
 
 /**
  * An event emitted by a `Transaction` to indicate a state change. See {@link TransactionEvents} for event argument information.
@@ -107,15 +109,13 @@ export class Transaction extends TypedEventEmitter<TransactionEvents> {
 	 * Close this transaction and apply its changes to the `SharedTree`. If this transaction is already closed, this method has no effect.
 	 */
 	public closeAndCommit(): void {
-		if (this.isOpen) {
-			if (this.transaction.changes.length > 0) {
-				const result = this.transaction.close();
-				const edit: Edit<ChangeInternal> = { id: newEditId(), changes: result.changes };
-				if (this.tree.edits instanceof CachingLogViewer) {
-					this.tree.edits.setKnownEditingResult(edit, result);
-				}
-				this.tree.applyEditInternal(edit);
+		if (this.isOpen && this.transaction.changes.length > 0) {
+			const result = this.transaction.close();
+			const edit: Edit<ChangeInternal> = { id: newEditId(), changes: result.changes };
+			if (this.tree.edits instanceof CachingLogViewer) {
+				this.tree.edits.setKnownEditingResult(edit, result);
 			}
+			this.tree.applyEditInternal(edit);
 		}
 	}
 }

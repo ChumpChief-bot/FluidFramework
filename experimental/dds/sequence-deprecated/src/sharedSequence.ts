@@ -12,5 +12,5 @@
 export {
 	SubSequence,
 	SharedSequence,
-	IJSONRunSegment,
+	type IJSONRunSegment,
 } from "@fluidframework/sequence/internal";

@@ -5,19 +5,19 @@
 
 import { bufferToString } from "@fluid-internal/client-utils";
 import { assert } from "@fluidframework/core-utils/internal";
-import {
+import type {
 	IChannelAttributes,
 	IFluidDataStoreRuntime,
 	IChannelStorageService,
 } from "@fluidframework/datastore-definitions/internal";
-import {
-	ISummaryTreeWithStats,
-	type IRuntimeMessageCollection,
-	type IRuntimeMessagesContent,
-	type ISequencedMessageEnvelope,
+import type { ISummaryTreeWithStats } from "@fluidframework/runtime-definitions/internal";
+import type {
+	IRuntimeMessageCollection,
+	IRuntimeMessagesContent,
+	ISequencedMessageEnvelope,
 } from "@fluidframework/runtime-definitions/internal";
+import type { IFluidSerializer } from "@fluidframework/shared-object-base/internal";
 import {
-	IFluidSerializer,
 	SharedObject,
 	createSingleBlobSummary,
 } from "@fluidframework/shared-object-base/internal";

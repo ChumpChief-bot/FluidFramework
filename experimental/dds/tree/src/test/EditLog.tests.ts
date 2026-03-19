@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from 'assert';
+import { strict as assert } from 'node:assert';
 
 import { validateAssertionError } from '@fluidframework/test-runtime-utils/internal';
 import { expect } from 'chai';
@@ -112,9 +112,9 @@ describe('EditLog', () => {
 		// Sequenced edits should be iterated before local edits
 		const expectedEditIdStack = [id1, id0];
 
-		log.editIds.forEach((editId) => {
+		for (const editId of log.editIds) {
 			expect(editId).to.equal(expectedEditIdStack.pop());
-		});
+		}
 
 		expect(expectedEditIdStack.length).to.equal(0);
 	});
@@ -396,9 +396,9 @@ describe('EditLog', () => {
 	});
 
 	describe('does not evict edits in the collaboration window', () => {
-		[0, 2, 8, 23, 50, 68, 255].forEach((startSequenceNumber) => {
-			[1, 7, 10, 13, 52].forEach((targetEditLogSize) => {
-				[2, 15, 21, Math.floor(targetEditLogSize * 1.5), targetEditLogSize * 2].forEach((collaborationWindowSize) => {
+		for (const startSequenceNumber of [0, 2, 8, 23, 50, 68, 255]) {
+			for (const targetEditLogSize of [1, 7, 10, 13, 52]) {
+				for (const collaborationWindowSize of [2, 15, 21, Math.floor(targetEditLogSize * 1.5), targetEditLogSize * 2]) {
 					it(`when accepting edits starting from sequence number ${startSequenceNumber} and targeting an edit log size of ${targetEditLogSize} and a collaboration window size of ${collaborationWindowSize}`, () => {
 						const log = new EditLog(undefined, undefined, undefined, targetEditLogSize, targetEditLogSize * 2);
 
@@ -462,8 +462,8 @@ describe('EditLog', () => {
 							.and.equals(secondExpectedEditLogSize, 'Only edits outside the collab window should have been evicted');
 						expect(editsEvicted).to.equal(targetEditLogSize * 3 - secondExpectedEditLogSize);
 					});
-				});
-			});
-		});
+				}
+			}
+		}
 	});
 });

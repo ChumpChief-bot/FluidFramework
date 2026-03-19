@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from 'assert';
+import { strict as assert } from 'node:assert';
 
 import { validateAssertionError } from '@fluidframework/test-runtime-utils/internal';
 import { expect } from 'chai';
@@ -196,8 +196,8 @@ describe('TreeView', () => {
 		};
 		const view1 = RevisionView.fromTree(tree1);
 		const view2 = RevisionView.fromTree(tree2);
-		expect(Array.from(view1).map((node) => node.identifier)).to.deep.equal([id1, id2, id3]);
+		expect([...view1].map((node) => node.identifier)).to.deep.equal([id1, id2, id3]);
 		// Child iteration should be sorted on trait labels.
-		expect(Array.from(view2).map((node) => node.identifier)).to.deep.equal([id1, id3, id2]);
+		expect([...view2].map((node) => node.identifier)).to.deep.equal([id1, id3, id2]);
 	});
 });

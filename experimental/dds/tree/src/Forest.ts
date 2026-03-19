@@ -9,9 +9,9 @@ import { BTree } from '@tylerbu/sorted-btree-es6';
 import { diffAgainst } from '@tylerbu/sorted-btree-es6/extended/diffAgainst';
 
 import { compareBtrees, compareFiniteNumbers, copyPropertyIfDefined, fail } from './Common.js';
-import { NodeId, TraitLabel } from './Identifiers.js';
+import type { NodeId, TraitLabel } from './Identifiers.js';
 import { comparePayloads } from './PayloadUtilities.js';
-import { NodeData, Payload } from './persisted-types/index.js';
+import type { NodeData, Payload } from './persisted-types/index.js';
 
 /**
  * A node that can be contained within a Forest
@@ -151,7 +151,10 @@ export class Forest {
 				assert(trait.length > 0, 0x611 /* any trait arrays present in a node must be non-empty */);
 				for (const childId of trait) {
 					const child = mutableNodes.get(childId);
-					if (child !== undefined) {
+					if (child === undefined) {
+						// The child hasn't been added yet, so record its parentage to use when it is added below
+						childToParent.set(childId, { parentId: identifier, traitParent: traitLabel });
+					} else {
 						// A child already exists in the forest, and its parent is now being added
 						assert(!isParentedForestNode(child), 0x612 /* can not give a child multiple parents */);
 						const parentedChild = {
@@ -164,9 +167,6 @@ export class Forest {
 						copyPropertyIfDefined(child, parentedChild, 'payload');
 						// Overwrite the existing child with its parented version
 						mutableNodes.set(childId, parentedChild);
-					} else {
-						// The child hasn't been added yet, so record its parentage to use when it is added below
-						childToParent.set(childId, { parentId: identifier, traitParent: traitLabel });
 					}
 				}
 			}
@@ -176,7 +176,10 @@ export class Forest {
 		for (const node of newNodes) {
 			const parentData = childToParent.get(node.identifier);
 			assert(!mutableNodes.has(node.identifier), 0x613 /* can not add node with already existing id */);
-			if (parentData !== undefined) {
+			if (parentData === undefined) {
+				// This is a node that has no parent. Add it with no parentage information.
+				mutableNodes.set(node.identifier, node);
+			} else {
 				// This is a child whom we haven't added yet, but whose parent we already added above. Supply the recorded parentage info.
 				const child = {
 					definition: node.definition,
@@ -186,9 +189,6 @@ export class Forest {
 				};
 				copyPropertyIfDefined(node, child, 'payload');
 				mutableNodes.set(node.identifier, child);
-			} else {
-				// This is a node that has no parent. Add it with no parentage information.
-				mutableNodes.set(node.identifier, node);
 			}
 		}
 
@@ -317,10 +317,10 @@ export class Forest {
 		assert(node !== undefined, 0x61b /* can not replace payload for node that does not exist */);
 		const mutableNodes = this.nodes.clone();
 		const newNode = { ...node };
-		if (value !== null) {
-			newNode.payload = value;
-		} else {
+		if (value === null) {
 			delete newNode.payload;
+		} else {
+			newNode.payload = value;
 		}
 		mutableNodes.set(nodeId, newNode);
 		return new Forest({

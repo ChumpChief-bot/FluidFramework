@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from 'assert';
+import { strict as assert } from 'node:assert';
 
 import { BenchmarkType, benchmark, isInPerformanceTestingMode } from '@fluid-tools/benchmark';
 import { v4 } from 'uuid';
@@ -20,7 +20,7 @@ import { refreshTestTree } from './utilities/TestUtilities.js';
 describe('Forest Perf', () => {
 	const testTree = refreshTestTree();
 	// Larger sizes can slow down correctness test runs, or even time out, so only run smaller sizes as correctness tests.
-	const sizes = isInPerformanceTestingMode ? [100, 1_000, 10_000, 100_000] : [100, 1_000];
+	const sizes = isInPerformanceTestingMode ? [100, 1000, 10_000, 100_000] : [100, 1000];
 
 	for (const count of sizes) {
 		// Pick a single representative size for the 'Measurement' suite to keep it small.

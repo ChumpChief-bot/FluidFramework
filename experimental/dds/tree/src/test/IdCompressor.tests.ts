@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from 'assert';
+import { strict as assert } from 'node:assert';
 
 import { take } from '@fluid-private/stochastic-test-utils';
 import { MockLogger } from '@fluidframework/telemetry-utils/internal';
@@ -97,7 +97,7 @@ describe('IdCompressor', () => {
 		it('can create compressed IDs with v5 overrides', () => {
 			const compressor = createCompressor(Client.Client1);
 			const uuidA = v5('foo', '7834b437-6e8c-4936-a1a3-0130b1178f17');
-			const uuidB = uuidA.slice(0, uuidA.length - 1) + (uuidA.endsWith('a') ? 'b' : 'a');
+			const uuidB = uuidA.slice(0, -1) + (uuidA.endsWith('a') ? 'b' : 'a');
 			const idA = compressor.generateCompressedId(uuidA);
 			const idB = compressor.generateCompressedId(uuidB);
 			expect(compressor.decompress(idA)).to.equal(uuidA);
@@ -366,20 +366,20 @@ describe('IdCompressor', () => {
 			},
 		];
 
-		tests.forEach(({ title, overrideIndices, idCount }) => {
+		for (const { title, overrideIndices, idCount } of tests) {
 			it(title, () => {
 				const compressor = createCompressor(Client.Client1);
 				validateIdCreationRange(compressor, idCount, new Set(overrideIndices));
 			});
 
-			tests.forEach(({ title: title2, overrideIndices: overrideIndices2, idCount: idCount2 }) => {
+			for (const { title: title2, overrideIndices: overrideIndices2, idCount: idCount2 } of tests) {
 				it(`${title2} after a range ${title}`, () => {
 					const compressor = createCompressor(Client.Client1);
 					const lastTaken = validateIdCreationRange(compressor, idCount, new Set(overrideIndices));
 					validateIdCreationRange(compressor, idCount2, new Set(overrideIndices2), lastTaken);
 				});
-			});
-		});
+			}
+		}
 
 		function validateIdCreationRange(
 			compressor: IdCompressor,
@@ -476,9 +476,9 @@ describe('IdCompressor', () => {
 					}
 					compressor.finalizeCreationRange(compressor.takeNextCreationRange());
 					const opIds = new Set<OpSpaceCompressedId>();
-					ids.forEach((id) => opIds.add(compressor.normalizeToOpSpace(id)));
+					for (const id of ids) opIds.add(compressor.normalizeToOpSpace(id));
 					expect(ids.size).to.equal(opIds.size);
-					opIds.forEach((id) => expect(isFinalId(id)).to.be.true);
+					for (const id of opIds) expect(isFinalId(id)).to.be.true;
 				}
 			}
 		});
@@ -648,7 +648,7 @@ describe('IdCompressor', () => {
 
 		it('can decompress an override that starts with the reserved prefix character', () => {
 			const compressor = createCompressor(Client.Client1, 5);
-			const override = `\ue15e${compressor.localSessionId}`;
+			const override = `\uE15E${compressor.localSessionId}`;
 			const id = compressor.generateCompressedId(override);
 			expect(compressor.decompress(id)).to.equal(override);
 		});
@@ -1136,10 +1136,10 @@ describe('IdCompressor', () => {
 			// Assert everything is unique and consistent.
 			const ids = new Set<SessionSpaceCompressedId>();
 			const uuids = new Set<StableId | string>();
-			[id1_1, id1_2, id2_1, id2_2, id3_1, id3_2, id4_1, id4_2].forEach((id) => {
+			for (const id of [id1_1, id1_2, id2_1, id2_2, id3_1, id3_2, id4_1, id4_2]) {
 				ids.add(id);
 				uuids.add(compressor.decompress(id));
-			});
+			}
 			expect(ids.size).to.equal(8);
 			expect(uuids.size).to.equal(8);
 		});
@@ -1179,7 +1179,7 @@ describe('IdCompressor', () => {
 
 			// All generated IDs should have aligned finals (even though range3 has not been finalized)
 			const allIds = [id1_1, id1_2, id2_1, id2_2, id2_3, id3_1];
-			allIds.forEach((id) => expect(isFinalId(compressor.normalizeToOpSpace(id))).to.be.true);
+			for (const id of allIds) expect(isFinalId(compressor.normalizeToOpSpace(id))).to.be.true;
 
 			compressor.finalizeCreationRange(range3);
 
@@ -1191,10 +1191,10 @@ describe('IdCompressor', () => {
 			// Assert everything is unique and consistent.
 			const ids = new Set<SessionSpaceCompressedId>();
 			const uuids = new Set<StableId | string>();
-			allIds.forEach((id) => {
+			for (const id of allIds) {
 				ids.add(id);
 				uuids.add(compressor.decompress(id));
-			});
+			}
 			expect(ids.size).to.equal(7);
 			expect(uuids.size).to.equal(7);
 		});
@@ -1560,49 +1560,44 @@ describe('IdCompressor', () => {
 				1: 'override1',
 			});
 
-			network.getIdLog(Client.Client1).forEach((id) => expect(id.id).to.be.lessThan(0));
+			for (const id of network.getIdLog(Client.Client1)) expect(id.id).to.be.lessThan(0);
 
 			// Client 1's IDs have not been acked so have no op space equivalent
-			network
-				.getIdLog(Client.Client1)
-				.forEach((idData) => expect(compressor1.normalizeToOpSpace(idData.id)).to.be.lessThan(0));
+			for (const idData of network.getIdLog(Client.Client1))
+				expect(compressor1.normalizeToOpSpace(idData.id)).to.be.lessThan(0);
 
 			// Client 1's IDs are acked
 			network.deliverOperations(Client.Client1);
-			network.getIdLog(Client.Client1).forEach((id) => expect(id.id).to.be.lessThan(0));
+			for (const id of network.getIdLog(Client.Client1)) expect(id.id).to.be.lessThan(0);
 
 			// Client 3 makes two IDs, two explicit (one with an override) and one sequential
 			network.allocateAndSendIds(Client.Client2, 3, {
 				1: 'override2',
 			});
 
-			network.getIdLog(Client.Client2).forEach((id) => expect(id.id).to.be.lessThan(0));
+			for (const id of network.getIdLog(Client.Client2)) expect(id.id).to.be.lessThan(0);
 
 			// Client 1 receives Client 2's IDs
 			network.deliverOperations(Client.Client1);
 
-			network
-				.getIdLog(Client.Client1)
-				.slice(-3)
-				.forEach((id) => expect(id.id).to.be.greaterThan(0));
+			for (const id of network.getIdLog(Client.Client1).slice(-3)) expect(id.id).to.be.greaterThan(0);
 
 			// All IDs have been acked or are from another client, and therefore have a final form in op space
-			network
-				.getIdLog(Client.Client1)
-				.forEach((idData) => expect(compressor1.normalizeToOpSpace(idData.id)).to.be.greaterThan(0));
+			for (const idData of network.getIdLog(Client.Client1))
+				expect(compressor1.normalizeToOpSpace(idData.id)).to.be.greaterThan(0);
 
 			// Compression should preserve ID space correctness
-			network.getIdLog(Client.Client1).forEach((idData) => {
+			for (const idData of network.getIdLog(Client.Client1)) {
 				const roundtripped = compressor1.recompress(compressor1.decompress(idData.id));
 				expect(Math.sign(roundtripped)).to.equal(Math.sign(idData.id));
-			});
+			}
 
-			network.getIdLog(Client.Client1).forEach((idData) => {
+			for (const idData of network.getIdLog(Client.Client1)) {
 				const opNormalized = compressor1.normalizeToOpSpace(idData.id);
 				expect(Math.sign(compressor1.normalizeToSessionSpace(opNormalized, idData.sessionId))).to.equal(
 					Math.sign(idData.id)
 				);
-			});
+			}
 		});
 
 		itNetwork('produces consistent IDs with large fuzz input', (network) => {

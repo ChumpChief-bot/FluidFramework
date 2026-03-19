@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { ITelemetryLoggerExt } from '@fluidframework/telemetry-utils/internal';
+import type { ITelemetryLoggerExt } from '@fluidframework/telemetry-utils/internal';
 
 import { assertNotUndefined, fail } from './Common.js';
 import { PlaceValidationResult, RangeValidationResultKind } from './EditUtilities.js';
 import { SharedTreeEvent } from './EventTypes.js';
-import { SequencedEditAppliedEventArguments, SharedTree } from './SharedTree.js';
+import type { SequencedEditAppliedEventArguments, SharedTree } from './SharedTree.js';
 import { TransactionInternal } from './TransactionInternal.js';
 import { EditStatus } from './persisted-types/index.js';
 
@@ -358,22 +358,27 @@ export class SharedTreeMergeHealthTelemetryHeartbeat {
 					case TransactionInternal.FailureKind.BadRange: {
 						tally.badRangeCount += 1;
 						switch (outcome.failure.rangeFailure) {
-							case RangeValidationResultKind.Inverted:
+							case RangeValidationResultKind.Inverted: {
 								tally.updatedRangeInvertedCount += 1;
 								break;
-							case RangeValidationResultKind.PlacesInDifferentTraits:
+							}
+							case RangeValidationResultKind.PlacesInDifferentTraits: {
 								tally.updatedRangeHasPlacesInDifferentTraitsCount += 1;
 								break;
-							default:
+							}
+							default: {
 								// 'rangeFailure' is either a RangeValidationResultKind (handled above), or an object
 								// with a nested 'kind' property containing the RangeValidationResultKind (handled below).
 								switch (outcome.failure.rangeFailure?.kind) {
-									case RangeValidationResultKind.BadPlace:
+									case RangeValidationResultKind.BadPlace: {
 										tally.updatedRangeBadPlaceCount += 1;
 										break;
-									default:
+									}
+									default: {
 										break;
+									}
 								}
+							}
 						}
 						break;
 					}

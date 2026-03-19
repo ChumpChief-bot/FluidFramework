@@ -80,10 +80,10 @@ export function runSharedTreeUndoRedoTestSuite(options: SharedTreeUndoRedoOption
 			undoSharedTree = secondTree ?? sharedTree;
 
 			if (additionalSetup !== undefined) {
-				if (secondTree !== undefined) {
-					additionalSetup([sharedTree, undoSharedTree]);
-				} else {
+				if (secondTree === undefined) {
 					additionalSetup([sharedTree]);
+				} else {
+					additionalSetup([sharedTree, undoSharedTree]);
 				}
 			}
 		});

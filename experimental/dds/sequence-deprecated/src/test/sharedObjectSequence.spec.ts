@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from "assert";
+import { strict as assert } from "node:assert";
 
 import { IGCTestProvider, runGCTests } from "@fluid-private/test-dds-utils";
 import type { IFluidHandleInternal } from "@fluidframework/core-interfaces/internal";
@@ -87,9 +87,8 @@ describe("SharedObjectSequence", () => {
 					lastElementIndex,
 				) as IFluidHandleInternal[];
 				// Get the routes of the handles.
-				const deletedHandleRoutes = Array.from(
-					deletedHandles,
-					(handle) => handle.absolutePath,
+				const deletedHandleRoutes = new Set(
+					Array.from(deletedHandles, (handle) => handle.absolutePath),
 				);
 
 				// Remove the last added handles.
@@ -97,7 +96,7 @@ describe("SharedObjectSequence", () => {
 
 				// Remove the deleted routes from expected routes.
 				this._expectedRoutes = this._expectedRoutes.filter(
-					(route) => !deletedHandleRoutes.includes(route),
+					(route) => !deletedHandleRoutes.has(route),
 				);
 				this.containerRuntimeFactory.processAllMessages();
 

@@ -3,21 +3,17 @@
  * Licensed under the MIT License.
  */
 
-import { IFluidHandle } from "@fluidframework/core-interfaces";
+import type { IFluidHandle } from "@fluidframework/core-interfaces";
 import { assert } from "@fluidframework/core-utils/internal";
-import {
+import type {
 	IChannelAttributes,
 	IChannelFactory,
 	IFluidDataStoreRuntime,
 	Jsonable,
 	IChannelServices,
 } from "@fluidframework/datastore-definitions/internal";
-import {
-	BaseSegment,
-	IJSONSegment,
-	ISegment,
-	PropertySet,
-} from "@fluidframework/merge-tree/internal";
+import type { IJSONSegment, ISegment, PropertySet } from "@fluidframework/merge-tree/internal";
+import { BaseSegment } from "@fluidframework/merge-tree/internal";
 import { SharedSegmentSequence } from "@fluidframework/sequence/internal";
 import { createSharedObjectKind } from "@fluidframework/shared-object-base/internal";
 
@@ -120,7 +116,7 @@ export class RunSegment extends SubSequence<SparseMatrixItem> {
 		props?: PropertySet,
 	) {
 		super(items, props);
-		this.tags = new Array(items.length).fill(undefined);
+		this.tags = Array.from({ length: items.length }).fill(undefined);
 	}
 
 	public clone(start = 0, end?: number): RunSegment {
@@ -136,10 +132,8 @@ export class RunSegment extends SubSequence<SparseMatrixItem> {
 		super.append(segment);
 
 		const asRun = segment as RunSegment;
-		if (asRun.tags) {
-			if (this.tags) {
-				this.tags.splice(this.items.length, 0, ...asRun.tags);
-			}
+		if (asRun.tags && this.tags) {
+			this.tags.splice(this.items.length, 0, ...asRun.tags);
 		}
 
 		return this;

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { resolve } from 'path';
+import { resolve } from 'node:path';
 
 import { LocalServerTestDriver } from '@fluid-private/test-drivers';
 import { AttachState } from '@fluidframework/container-definitions';
@@ -367,20 +367,20 @@ export async function setUpLocalServerTestSharedTree(
 	let provider: TestObjectProvider;
 	let container: IContainer;
 
-	if (testObjectProvider !== undefined) {
-		provider = testObjectProvider;
-		const driver = new LocalServerTestDriver();
-		const loader = makeTestLoader(provider);
-		// Once ILoaderOptions is specificable, this should use `provider.loadTestContainer` instead.
-		container = await loader.resolve({ url: await driver.createContainerUrl(treeId), headers }, pendingLocalState);
-		await waitContainerToCatchUp(container);
-	} else {
+	if (testObjectProvider === undefined) {
 		const driver = new LocalServerTestDriver();
 		provider = new TestObjectProvider(Loader, driver, runtimeFactory);
 		testObjectProviders.push(provider);
 		// Once ILoaderOptions is specificable, this should use `provider.makeTestContainer` instead.
 		const loader = makeTestLoader(provider);
 		container = await createAndAttachContainer(defaultCodeDetails, loader, driver.createCreateNewRequest(treeId));
+	} else {
+		provider = testObjectProvider;
+		const driver = new LocalServerTestDriver();
+		const loader = makeTestLoader(provider);
+		// Once ILoaderOptions is specificable, this should use `provider.loadTestContainer` instead.
+		container = await loader.resolve({ url: await driver.createContainerUrl(treeId), headers }, pendingLocalState);
+		await waitContainerToCatchUp(container);
 	}
 
 	const dataObject = (await container.getEntryPoint()) as ITestFluidObject;
@@ -513,8 +513,8 @@ export const versionComparator = (versionA: string, versionB: string): number =>
 	);
 
 	for (let i = 0; i < 3; ++i) {
-		const numberA = parseInt(versionASplit[i], 10);
-		const numberB = parseInt(versionBSplit[i], 10);
+		const numberA = Number.parseInt(versionASplit[i], 10);
+		const numberB = Number.parseInt(versionBSplit[i], 10);
 
 		if (numberA > numberB) {
 			return 1;

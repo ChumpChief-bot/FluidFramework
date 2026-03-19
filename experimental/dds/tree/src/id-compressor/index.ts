@@ -16,7 +16,7 @@ export {
 	legacySharedTreeInitialTreeId,
 } from './IdCompressor.js';
 export { getIds } from './IdRange.js';
-export {
+export type {
 	IdCreationRange,
 	SerializedCluster,
 	SerializedClusterOverrides,

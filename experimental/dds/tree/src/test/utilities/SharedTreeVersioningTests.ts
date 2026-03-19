@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from 'assert';
+import { strict as assert } from 'node:assert';
 
 import { LoaderHeader } from '@fluidframework/container-definitions/internal';
 import { ITelemetryBaseEvent } from '@fluidframework/core-interfaces';

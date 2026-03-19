@@ -50,7 +50,7 @@ describe('RevisionView', () => {
 		let createdRight = false;
 		for (let viewNode = viewNodes.pop(); viewNode !== undefined; viewNode = viewNodes.pop()) {
 			switch (viewNode.identifier) {
-				case testTree.identifier:
+				case testTree.identifier: {
 					expect(createdRoot).to.be.false;
 					expect(viewNode.definition).to.equal(testTree.definition);
 					expect(viewNode.traits.size).to.equal(2);
@@ -58,20 +58,24 @@ describe('RevisionView', () => {
 					expect(viewNode.traits.get(testTree.right.traitLabel)).to.deep.equal([testTree.right.identifier]);
 					createdRoot = true;
 					break;
-				case testTree.left.identifier:
+				}
+				case testTree.left.identifier: {
 					expect(createdLeft).to.be.false;
 					expect(viewNode.definition).to.equal(testTree.left.definition);
 					expect(viewNode.traits.size).to.equal(0);
 					createdLeft = true;
 					break;
-				case testTree.right.identifier:
+				}
+				case testTree.right.identifier: {
 					expect(createdRight).to.be.false;
 					expect(viewNode.definition).to.equal(testTree.right.definition);
 					expect(viewNode.traits.size).to.equal(0);
 					createdRight = true;
 					break;
-				default:
+				}
+				default: {
 					expect.fail('Unexpected view node ID');
+				}
 			}
 		}
 	});

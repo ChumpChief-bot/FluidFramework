@@ -21,7 +21,7 @@ describe('SharedTreeUndoRedoHandler', () => {
 			handler = new SharedTreeUndoRedoHandler(undoRedoStack);
 
 			// Attach each tree to the handler
-			trees.forEach((tree) => handler.attachTree(tree));
+			for (const tree of trees) handler.attachTree(tree);
 		},
 		undo: (tree: SharedTree, editId: EditId) => {
 			undoRedoStack.undoOperation();

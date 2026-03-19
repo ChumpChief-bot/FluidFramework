@@ -4,18 +4,21 @@
  */
 
 import { TypedEventEmitter } from '@fluid-internal/client-utils';
-import { IEvent } from '@fluidframework/core-interfaces';
+import type { IEvent } from '@fluidframework/core-interfaces';
 import { assert } from '@fluidframework/core-utils/internal';
 import Denque from 'denque';
 
 import { fail, noop } from './Common.js';
-import { EditLog, SequencedOrderedEditId } from './EditLog.js';
-import { EditId } from './Identifiers.js';
-import { ReconciliationChange, ReconciliationEdit, ReconciliationPath } from './ReconciliationPath.js';
-import { Revision, RevisionValueCache } from './RevisionValueCache.js';
-import { RevisionView } from './RevisionView.js';
-import { EditingResult, TransactionInternal } from './TransactionInternal.js';
-import { ChangeInternal, Edit, EditStatus } from './persisted-types/index.js';
+import type { EditLog, SequencedOrderedEditId } from './EditLog.js';
+import type { EditId } from './Identifiers.js';
+import type { ReconciliationChange, ReconciliationEdit, ReconciliationPath } from './ReconciliationPath.js';
+import type { Revision } from './RevisionValueCache.js';
+import { RevisionValueCache } from './RevisionValueCache.js';
+import type { RevisionView } from './RevisionView.js';
+import type { EditingResult } from './TransactionInternal.js';
+import { TransactionInternal } from './TransactionInternal.js';
+import type { ChangeInternal, Edit } from './persisted-types/index.js';
+import { EditStatus } from './persisted-types/index.js';
 
 /**
  * Callback for when an edit is applied (meaning the result of applying it to a particular revision is computed).
@@ -535,11 +538,9 @@ export class CachingLogViewer extends TypedEventEmitter<ICachingLogViewerEvents>
 		let wasLocal = false;
 		// This is the first time this sequenced edit has been processed by this LogViewer. If it was a local edit, log telemetry
 		// in the event that it was invalid or malformed.
-		if (this.unappliedSelfEdits.length > 0) {
-			if (edit.id === this.unappliedSelfEdits.peekFront()) {
-				wasLocal = true;
-				this.unappliedSelfEdits.shift();
-			}
+		if (this.unappliedSelfEdits.length > 0 && edit.id === this.unappliedSelfEdits.peekFront()) {
+			wasLocal = true;
+			this.unappliedSelfEdits.shift();
 		}
 		this.processSequencedEditResult({ edit, wasLocal, result, reconciliationPath });
 	}

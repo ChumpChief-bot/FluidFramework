@@ -11,43 +11,29 @@ import { assertWithMessage, fail } from './Common.js';
 import { EditLog } from './EditLog.js';
 import { convertTreeNodes, newEdit } from './EditUtilities.js';
 import { convertEditIds, convertNodeDataIds } from './IdConversion.js';
-import {
-	AttributionId,
-	DetachedSequenceId,
-	FinalNodeId,
-	OpSpaceNodeId,
-	TraitLabel,
-	type NodeId,
-} from './Identifiers.js';
+import type { AttributionId, DetachedSequenceId, FinalNodeId, OpSpaceNodeId, TraitLabel } from './Identifiers.js';
+import type { NodeId } from './Identifiers.js';
 import { initialTree } from './InitialTree.js';
-import {
+import type {
 	ContextualizedNodeIdNormalizer,
 	NodeIdContext,
 	NodeIdConverter,
 	NodeIdGenerator,
 	NodeIdNormalizer,
-	getNodeIdContext,
-	scopeIdNormalizer,
-	sequencedIdNormalizer,
 } from './NodeIdUtilities.js';
-import { RevisionView } from './RevisionView.js';
+import { getNodeIdContext, scopeIdNormalizer, sequencedIdNormalizer } from './NodeIdUtilities.js';
+import type { RevisionView } from './RevisionView.js';
 import { getChangeNodeFromView, getChangeNode_0_0_2FromView } from './SerializationUtilities.js';
-import { MutableStringInterner, StringInterner } from './StringInterner.js';
-import { SummaryContents } from './Summary.js';
+import type { StringInterner } from './StringInterner.js';
+import { MutableStringInterner } from './StringInterner.js';
+import type { SummaryContents } from './Summary.js';
 import { InterningTreeCompressor } from './TreeCompressor.js';
-import {
-	IdCompressor,
-	IdCreationRange,
-	SerializedIdCompressorWithNoSession,
-	createSessionId,
-	hasOngoingSession,
-} from './id-compressor/index.js';
-import {
-	ChangeInternal,
+import type { IdCreationRange, SerializedIdCompressorWithNoSession } from './id-compressor/index.js';
+import { IdCompressor, createSessionId, hasOngoingSession } from './id-compressor/index.js';
+import type {
 	ChangeInternal_0_0_2,
 	ChangeNode,
 	ChangeNode_0_0_2,
-	ChangeTypeInternal,
 	CompressedChangeInternal,
 	Edit,
 	EditChunkContents,
@@ -57,9 +43,13 @@ import {
 	FluidEditHandle,
 	SharedTreeEditOp,
 	SharedTreeEditOp_0_0_2,
-	SharedTreeOpType,
 	SharedTreeSummary,
 	SharedTreeSummary_0_0_2,
+} from './persisted-types/index.js';
+import {
+	ChangeInternal,
+	ChangeTypeInternal,
+	SharedTreeOpType,
 	Side,
 	StablePlaceInternal,
 	WriteFormat,
@@ -171,9 +161,9 @@ export class SharedTreeEncoder_0_1_1 {
 		const interner = new MutableStringInterner(internedStrings);
 		const sequencedNormalizer = sequencedIdNormalizer(getNodeIdContext(idCompressor));
 		const decompressedTree: ChangeNode | undefined =
-			compressedTree !== undefined
-				? this.treeCompressor.decompress(compressedTree, interner, sequencedNormalizer)
-				: undefined;
+			compressedTree === undefined
+				? undefined
+				: this.treeCompressor.decompress(compressedTree, interner, sequencedNormalizer);
 		const { editChunks, editIds } = editHistory;
 		assertWithMessage(editChunks !== undefined, 'Missing editChunks on 0.1.1 summary.');
 		assert(editIds !== undefined, 0x634 /* Missing editIds on 0.1.1 summary. */);
@@ -218,13 +208,13 @@ export class SharedTreeEncoder_0_1_1 {
 		const initialTreeId = idContext.convertToNodeId(initialTree.identifier);
 		const changes: ChangeInternal[] = [];
 		// Generate a set of changes to set the root node's children to that of the root in the currentTree
-		Object.entries(currentTree.traits).forEach(([label, children]) => {
+		for (const [label, children] of Object.entries(currentTree.traits)) {
 			const id = 0 as DetachedSequenceId;
 			changes.push(
 				ChangeInternal.build(children, id),
 				ChangeInternal.insert(id, StablePlaceInternal.atStartOf({ parent: initialTreeId, label: label as TraitLabel }))
 			);
-		});
+		}
 
 		if (currentTree.payload !== undefined) {
 			changes.push(ChangeInternal.setPayload(initialTreeId, currentTree.payload));
@@ -374,12 +364,11 @@ export class SharedTreeEncoder_0_0_2 {
 
 		// This saves all of the edits in the summary as part of the first chunk.
 		const temporaryLog = new EditLog<ChangeInternal>();
-		sequencedEdits.forEach((edit) =>
+		for (const edit of sequencedEdits)
 			temporaryLog.addSequencedEdit(convertEditIds(edit, generateId), {
 				sequenceNumber: 1,
 				referenceSequenceNumber: 0,
-			})
-		);
+			});
 
 		return {
 			currentTree: convertTreeNodes<ChangeNode_0_0_2, ChangeNode>(currentTree, (node) =>
@@ -405,7 +394,7 @@ export class SharedTreeEncoder_0_0_2 {
 		const currentTree = getChangeNode_0_0_2FromView(currentView, idConverter);
 		const changes: ChangeInternal_0_0_2[] = [];
 		// Generate a set of changes to set the root node's children to that of the root in the currentTree
-		Object.entries(currentTree.traits).forEach(([label, children]) => {
+		for (const [label, children] of Object.entries(currentTree.traits)) {
 			const id = 0 as DetachedSequenceId;
 			changes.push(
 				{ type: ChangeTypeInternal.Build, source: children, destination: id },
@@ -418,7 +407,7 @@ export class SharedTreeEncoder_0_0_2 {
 					},
 				}
 			);
-		});
+		}
 
 		if (currentTree.payload !== undefined) {
 			changes.push({
@@ -457,11 +446,11 @@ export class SharedTreeEncoder_0_0_2 {
 
 		const sequencedEdits: Edit<ChangeInternal_0_0_2>[] = [];
 		let idIndex = 0;
-		editChunks.forEach(({ chunk }) => {
+		for (const { chunk } of editChunks) {
 			if (isEditHandle(chunk)) {
 				fail('Cannot write handles to summary version 0.0.2');
 			} else {
-				chunk.forEach(({ changes }) => {
+				for (const { changes } of chunk) {
 					sequencedEdits.push(
 						convertEditIds(
 							{
@@ -471,9 +460,9 @@ export class SharedTreeEncoder_0_0_2 {
 							(id) => idConverter.convertToStableNodeId(id)
 						)
 					);
-				});
+				}
 			}
-		});
+		}
 
 		return {
 			currentTree: getChangeNode_0_0_2FromView(currentView, idConverter),

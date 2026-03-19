@@ -5,7 +5,8 @@
 
 import { assert } from '@fluidframework/core-utils/internal';
 
-import { ReplaceRecursive, assertNotUndefined } from '../Common.js';
+import type { ReplaceRecursive } from '../Common.js';
+import { assertNotUndefined } from '../Common.js';
 import type {
 	Definition,
 	DetachedSequenceId,
@@ -25,9 +26,8 @@ import type {
 	SerializedIdCompressorWithOngoingSession,
 } from '../id-compressor/index.js';
 
-import {
+import type {
 	BuildInternal_0_0_2,
-	ChangeTypeInternal,
 	ConstraintEffect,
 	ConstraintInternal_0_0_2,
 	DetachInternal_0_0_2,
@@ -41,7 +41,6 @@ import {
 	SharedTreeOpType,
 	SharedTreeSummaryBase,
 	SharedTreeUpdateOp,
-	Side,
 	StablePlaceInternal_0_0_2,
 	TraitLocationInternal_0_0_2,
 	TreeNode,
@@ -49,6 +48,7 @@ import {
 	VersionedOp,
 	WriteFormat,
 } from './0.0.2.js';
+import { ChangeTypeInternal, Side } from './0.0.2.js';
 
 /**
  * Specifies the location of a trait (a labeled sequence of nodes) within the tree.

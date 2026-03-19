@@ -3,13 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { HasVariadicTraits } from './ChangeTypes.js';
-import { Mutable, MutableMap, copyPropertyIfDefined, fail } from './Common.js';
+import type { HasVariadicTraits } from './ChangeTypes.js';
+import type { Mutable, MutableMap } from './Common.js';
+import { copyPropertyIfDefined, fail } from './Common.js';
 import { Forest } from './Forest.js';
-import { NodeId, StableNodeId, TraitLabel } from './Identifiers.js';
-import { NodeIdConverter } from './NodeIdUtilities.js';
-import { TreeView, TreeViewNode, TreeViewPlace, TreeViewRange } from './TreeView.js';
-import { Payload, TreeNode, TreeNodeSequence } from './persisted-types/index.js';
+import type { NodeId, StableNodeId, TraitLabel } from './Identifiers.js';
+import type { NodeIdConverter } from './NodeIdUtilities.js';
+import type { TreeViewNode, TreeViewPlace, TreeViewRange } from './TreeView.js';
+import { TreeView } from './TreeView.js';
+import type { Payload, TreeNode, TreeNodeSequence } from './persisted-types/index.js';
 
 /**
  * An immutable view of a distributed tree.

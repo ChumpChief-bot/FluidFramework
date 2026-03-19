@@ -4,28 +4,26 @@
  */
 
 import { assert } from '@fluidframework/core-utils/internal';
-import { ITelemetryLoggerExt } from '@fluidframework/telemetry-utils/internal';
+import type { ITelemetryLoggerExt } from '@fluidframework/telemetry-utils/internal';
 
-import { StablePlace } from './ChangeTypes.js';
+import type { StablePlace } from './ChangeTypes.js';
 import { fail } from './Common.js';
 import { RangeValidationResultKind, validateStableRange } from './EditUtilities.js';
-import { DetachedSequenceId, NodeId, isDetachedSequenceId } from './Identifiers.js';
-import { RevisionView } from './RevisionView.js';
+import type { DetachedSequenceId, NodeId } from './Identifiers.js';
+import { isDetachedSequenceId } from './Identifiers.js';
+import type { RevisionView } from './RevisionView.js';
 import { getChangeNodeFromViewNode } from './SerializationUtilities.js';
 import { TransactionInternal } from './TransactionInternal.js';
-import { TreeView } from './TreeView.js';
+import type { TreeView } from './TreeView.js';
 import { rangeFromStableRange } from './TreeViewUtilities.js';
-import {
+import type {
 	BuildNodeInternal,
-	ChangeInternal,
-	ChangeTypeInternal,
 	DetachInternal,
-	EditStatus,
 	InsertInternal,
 	SetValueInternal,
-	Side,
 	StableRangeInternal,
 } from './persisted-types/index.js';
+import { ChangeInternal, ChangeTypeInternal, EditStatus, Side } from './persisted-types/index.js';
 
 /**
  * Events emitted from the history edit factory
@@ -104,7 +102,13 @@ export function revert(
 					}
 					result.unshift(createInvertedInsert(change, nodesBuilt));
 					builtNodes.delete(source);
-				} else if (nodesDetached !== undefined) {
+				} else if (nodesDetached === undefined) {
+					// Cannot revert an insert whose source is no longer available for inserting (i.e. not just built, and not detached)
+					if (emit !== undefined) {
+						emit(HistoryEditFactoryEvents.MissingNodes, change, changes);
+					}
+					return undefined;
+				} else {
 					if (nodesDetached.length === 0) {
 						detachedNodes.delete(source);
 						logger?.sendTelemetryEvent({ eventName: 'reverting insertion of empty traits' });
@@ -112,12 +116,6 @@ export function revert(
 					}
 					result.unshift(createInvertedInsert(change, nodesDetached, true));
 					detachedNodes.delete(source);
-				} else {
-					// Cannot revert an insert whose source is no longer available for inserting (i.e. not just built, and not detached)
-					if (emit !== undefined) {
-						emit(HistoryEditFactoryEvents.MissingNodes, change, changes);
-					}
-					return undefined;
 				}
 
 				break;
@@ -167,11 +165,13 @@ export function revert(
 				result.unshift(...invert);
 				break;
 			}
-			case ChangeTypeInternal.Constraint:
+			case ChangeTypeInternal.Constraint: {
 				// TODO:#46759: Support Constraint in reverts
 				fail('Revert currently does not support Constraints');
-			default:
+			}
+			default: {
 				fail('Revert does not support the change type.');
+			}
 		}
 
 		// Abort the entire revert if this change can't be applied successfully.

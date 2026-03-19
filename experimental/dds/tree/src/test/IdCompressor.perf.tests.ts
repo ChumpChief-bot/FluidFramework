@@ -60,13 +60,13 @@ describe('IdCompressor Perf', () => {
 	function setupCompressorWithId(local: boolean, override: boolean, clusterHasOtherOverrides: boolean): CompressedId {
 		const clusterCapacity = defaultClusterCapacity;
 		const network = setupCompressors(clusterCapacity, true, true);
-		if (!clusterHasOtherOverrides) {
-			network.allocateAndSendIds(localClient, clusterCapacity);
-		} else {
+		if (clusterHasOtherOverrides) {
 			network.allocateAndSendIds(localClient, 2, {
 				0: 'override1',
 				1: 'override2',
 			});
+		} else {
+			network.allocateAndSendIds(localClient, clusterCapacity);
 		}
 		if (override) {
 			network.allocateAndSendIds(localClient, 1, { 0: 'override3' });
@@ -92,7 +92,7 @@ describe('IdCompressor Perf', () => {
 		}
 	}
 
-	[true, false].forEach((override) => {
+	for (const override of [true, false]) {
 		const numericSource = numericUuidFromStableId(createSessionId());
 		let overrideIndex = 0;
 		benchmark({
@@ -108,9 +108,9 @@ describe('IdCompressor Perf', () => {
 				);
 			},
 		});
-	});
+	}
 
-	[true, false].forEach((override) => {
+	for (const override of [true, false]) {
 		for (const clusterSize of [1, 10, 500, 1000]) {
 			const overrideCount = 3;
 			const numIds = 7;
@@ -164,7 +164,7 @@ describe('IdCompressor Perf', () => {
 				},
 			});
 		}
-	});
+	}
 
 	benchmark({
 		type,

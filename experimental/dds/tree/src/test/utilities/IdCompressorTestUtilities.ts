@@ -324,7 +324,7 @@ export class IdCompressorTestNetwork {
 			for (let i = 0; i < numTrailingIds; i++) {
 				this.addNewId(client, sessionSpaceIds[i], undefined, client, false);
 			}
-			sessionSpaceIds.forEach((id) => opSpaceIds.push(compressor.normalizeToOpSpace(id)));
+			for (const id of sessionSpaceIds) opSpaceIds.push(compressor.normalizeToOpSpace(id));
 		}
 		const creationRange = compressor.takeNextCreationRange();
 		this.serverOperations.push([creationRange, opSpaceIds, client]);
@@ -351,9 +351,9 @@ export class IdCompressorTestNetwork {
 			opIndexBound = this.serverOperations.length;
 		} else {
 			opIndexBound =
-				opsToDeliver !== undefined
-					? this.clientProgress.get(clientTakingDelivery) + opsToDeliver
-					: this.serverOperations.length;
+				opsToDeliver === undefined
+					? this.serverOperations.length
+					: this.clientProgress.get(clientTakingDelivery) + opsToDeliver;
 		}
 		for (const [clientTo, compressorTo] of this.getTargetCompressors(clientTakingDelivery)) {
 			for (let i = this.clientProgress.get(clientTo); i < opIndexBound; i++) {
@@ -478,10 +478,10 @@ export class IdCompressorTestNetwork {
 				}
 
 				const uuidASessionSpace = compressorA.decompress(sessionSpaceIdA);
-				if (idDataA.expectedOverride !== undefined) {
-					expect(uuidASessionSpace).to.equal(idDataA.expectedOverride);
-				} else {
+				if (idDataA.expectedOverride === undefined) {
 					expect(uuidASessionSpace).to.equal(stableIdFromNumericUuid(idDataA.sessionNumericUuid, idIndex));
+				} else {
+					expect(uuidASessionSpace).to.equal(idDataA.expectedOverride);
 				}
 				expect(compressorA.recompress(uuidASessionSpace)).to.equal(sessionSpaceIdA);
 				uuids.add(uuidASessionSpace);
@@ -625,10 +625,10 @@ export function mergeArrayMaps<K, V>(
 ): Pick<Map<K, V[]>, 'get' | 'set'> {
 	for (const [key, value] of from.entries()) {
 		const entry = to.get(key);
-		if (entry !== undefined) {
-			entry.push(...value);
-		} else {
+		if (entry === undefined) {
 			to.set(key, [...value]);
+		} else {
+			entry.push(...value);
 		}
 	}
 	return to;
@@ -874,7 +874,7 @@ export function integerToStableId(num: number | bigint): StableId {
 	const lowerString = padToLength((BigInt('0x8000000000000000') | BigInt(lower)).toString(16), '0', 16);
 	const uuid = upperString + middleString + lowerString;
 	return assertIsStableId(
-		`${uuid.substr(0, 8)}-${uuid.substr(8, 4)}-${uuid.substr(12, 4)}-${uuid.substr(16, 4)}-${uuid.substr(20)}`
+		`${uuid.slice(0, 8)}-${uuid.slice(8, 12)}-${uuid.slice(12, 16)}-${uuid.slice(16, 20)}-${uuid.slice(20)}`
 	);
 }
 

@@ -5,11 +5,12 @@
 
 import { assert } from '@fluidframework/core-utils/internal';
 
-import { Mutable, compareFiniteNumbers, compareFiniteNumbersReversed, fail } from '../Common.js';
-import { FinalCompressedId, LocalCompressedId, SessionSpaceCompressedId } from '../Identifiers.js';
+import type { Mutable } from '../Common.js';
+import { compareFiniteNumbers, compareFiniteNumbersReversed, fail } from '../Common.js';
+import type { FinalCompressedId, LocalCompressedId, SessionSpaceCompressedId } from '../Identifiers.js';
 
 import { AppendOnlyDoublySortedMap } from './AppendOnlySortedMap.js';
-import { SerializedSessionIdNormalizer } from './persisted-types/index.js';
+import type { SerializedSessionIdNormalizer } from './persisted-types/index.js';
 
 /**
  * Maps IDs created by a session between their local and final forms (i.e. normalization). These IDs are in a contiguous range.
@@ -391,14 +392,14 @@ export class SessionIdNormalizer<TRangeObject> {
 		const localRanges = serialized.localRanges as Mutable<typeof serialized.localRanges>;
 		for (const [firstLocal, finalRanges] of this.idRanges.entries()) {
 			const [lastLocal, finalRangesTable] = finalRanges;
-			if (finalRangesTable !== undefined) {
+			if (finalRangesTable === undefined) {
+				localRanges.push([firstLocal, lastLocal]);
+			} else {
 				const serializedFinalRanges: [LocalCompressedId, FinalCompressedId, FinalCompressedId][] = [];
 				for (const [alignedLocal, [firstFinal, lastFinal]] of entries(firstLocal, finalRangesTable)) {
 					serializedFinalRanges.push([alignedLocal, firstFinal, lastFinal]);
 				}
 				localRanges.push([firstLocal, lastLocal, serializedFinalRanges]);
-			} else {
-				localRanges.push([firstLocal, lastLocal]);
 			}
 		}
 		return serialized;
@@ -413,7 +414,7 @@ export class SessionIdNormalizer<TRangeObject> {
 		for (const [firstLocal, lastLocal, serializedFinalRanges] of serialized.localRanges) {
 			let finalRanges: FinalRanges<TRangeObject> | undefined;
 			if (serializedFinalRanges !== undefined) {
-				assert(serializedFinalRanges.length !== 0, 0x65d /* Empty range should not be reified. */);
+				assert(serializedFinalRanges.length > 0, 0x65d /* Empty range should not be reified. */);
 				if (serializedFinalRanges.length === 1) {
 					const [_, firstFinal, lastFinal] = serializedFinalRanges[0];
 					finalRanges = [firstFinal, lastFinal, getRangeObject(firstFinal)];

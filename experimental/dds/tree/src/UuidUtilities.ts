@@ -6,9 +6,9 @@
 import { NIL, v4 } from 'uuid';
 
 import { assertWithMessage } from './Common.js';
-import { StableId, UuidString } from './Identifiers.js';
+import type { StableId, UuidString } from './Identifiers.js';
 
-const hexadecimalCharCodes = Array.from('09afAF').map((c) => c.charCodeAt(0)) as [
+const hexadecimalCharCodes = [...'09afAF'].map((c) => c.charCodeAt(0)) as [
 	zero: number,
 	nine: number,
 	a: number,
@@ -46,17 +46,19 @@ export function isUuidString(str: string): str is UuidString {
 			case 8:
 			case 13:
 			case 18:
-			case 23:
+			case 23: {
 				if (str.charAt(i) !== '-') {
 					return false;
 				}
 				break;
+			}
 
-			default:
+			default: {
 				if (!isHexadecimalCharacter(str.charCodeAt(i))) {
 					return false;
 				}
 				break;
+			}
 		}
 	}
 
@@ -92,17 +94,19 @@ export function isStableId(str: string): str is StableId {
 			case 8:
 			case 13:
 			case 18:
-			case 23:
+			case 23: {
 				if (str.charAt(i) !== '-') {
 					return false;
 				}
 				break;
+			}
 
-			case 14:
+			case 14: {
 				if (str.charAt(i) !== '4') {
 					return false;
 				}
 				break;
+			}
 
 			case 19: {
 				const char = str.charAt(i);
@@ -112,11 +116,12 @@ export function isStableId(str: string): str is StableId {
 				break;
 			}
 
-			default:
+			default: {
 				if (!isHexadecimalCharacter(str.charCodeAt(i))) {
 					return false;
 				}
 				break;
+			}
 		}
 	}
 

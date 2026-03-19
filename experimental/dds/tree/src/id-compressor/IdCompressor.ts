@@ -3,15 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import { ITelemetryBaseLogger } from '@fluidframework/core-interfaces';
+import type { ITelemetryBaseLogger } from '@fluidframework/core-interfaces';
 import { assert } from '@fluidframework/core-utils/internal';
-import { ITelemetryLoggerExt, createChildLogger } from '@fluidframework/telemetry-utils/internal';
+import type { ITelemetryLoggerExt } from '@fluidframework/telemetry-utils/internal';
+import { createChildLogger } from '@fluidframework/telemetry-utils/internal';
 import { BTree } from '@tylerbu/sorted-btree-es6';
 // eslint-disable-next-line import-x/no-internal-modules
 import { diffAgainst } from '@tylerbu/sorted-btree-es6/extended/diffAgainst';
 
+import type { Mutable } from '../Common.js';
 import {
-	Mutable,
 	assertNotUndefined,
 	assertWithMessage,
 	compareFiniteNumbers,
@@ -23,7 +24,7 @@ import {
 	hasLength,
 	setPropertyIfDefined,
 } from '../Common.js';
-import {
+import type {
 	AttributionId,
 	CompressedId,
 	FinalCompressedId,
@@ -38,8 +39,8 @@ import { assertIsStableId, assertIsUuidString, isStableId } from '../UuidUtiliti
 
 import { AppendOnlySortedMap } from './AppendOnlySortedMap.js';
 import { getIds } from './IdRange.js';
+import type { NumericUuid } from './NumericUuid.js';
 import {
-	NumericUuid,
 	ensureSessionUuid,
 	getPositiveDelta,
 	incrementUuid,
@@ -208,7 +209,7 @@ type Override = UnackedLocalId | FinalizedOverride;
 type CompressionMapping = ClusterInfo | Override;
 
 /** Prepended to all keys in {@link IdCompressor.clustersAndOverridesInversion} that are override strings and not valid `StableIds` */
-const nonStableOverridePrefix = '\ue15e'; // A character in the Private Use Area of the BMP (https://en.wikipedia.org/wiki/Private_Use_Areas)
+const nonStableOverridePrefix = '\uE15E'; // A character in the Private Use Area of the BMP (https://en.wikipedia.org/wiki/Private_Use_Areas)
 
 /** Keys of {@link IdCompressor.clustersAndOverridesInversion} */
 type InversionKey = `${typeof nonStableOverridePrefix}${string}` | StableId;
@@ -481,10 +482,10 @@ export class IdCompressor {
 		}
 		const closestCluster = this.getClusterForFinalId(opSpaceNormalizedId);
 		if (closestCluster === undefined) {
-			if (this.sessionIdNormalizer.getCreationIndex(opSpaceNormalizedId) !== undefined) {
-				return this.attributionId;
-			} else {
+			if (this.sessionIdNormalizer.getCreationIndex(opSpaceNormalizedId) === undefined) {
 				fail('Cluster does not exist for final ID');
+			} else {
+				return this.attributionId;
 			}
 		}
 		const [_, cluster] = closestCluster;
@@ -777,7 +778,10 @@ export class IdCompressor {
 				const existingIds = this.getExistingIdsForNewOverride(inversionKey, true);
 				let overrideForCluster: string | FinalCompressedId;
 				let associatedLocal: LocalCompressedId | undefined;
-				if (existingIds !== undefined) {
+				if (existingIds === undefined) {
+					// This is the first time this override has been associated with any ID
+					overrideForCluster = override;
+				} else {
 					let mostFinalExistingOverride: CompressedId;
 					if (typeof existingIds === 'number') {
 						mostFinalExistingOverride = existingIds;
@@ -800,9 +804,6 @@ export class IdCompressor {
 						// made by this session or not.
 						overrideForCluster = override;
 					}
-				} else {
-					// This is the first time this override has been associated with any ID
-					overrideForCluster = override;
 				}
 
 				assert(!cluster.overrides.has(overriddenFinal), 0x650 /* Cannot add a second override for final id */);
@@ -857,16 +858,15 @@ export class IdCompressor {
 		const closestMatch = this.clustersAndOverridesInversion.getPairOrNextLower(maxClusterStableId);
 		if (closestMatch !== undefined) {
 			const [inversionKey, compressionMapping] = closestMatch;
-			if (!IdCompressor.isClusterInfo(compressionMapping)) {
-				if (
-					isStableId(inversionKey) &&
-					IdCompressor.uuidsMightCollide(inversionKey, maxClusterStableId, cluster.capacity)
-				) {
-					const numericOverride = numericUuidFromStableId(inversionKey);
-					const delta = getPositiveDelta(maxClusterUuid, numericOverride, cluster.capacity - 1);
-					if (delta !== undefined) {
-						IdCompressor.failWithCollidingOverride(inversionKey);
-					}
+			if (
+				!IdCompressor.isClusterInfo(compressionMapping) &&
+				isStableId(inversionKey) &&
+				IdCompressor.uuidsMightCollide(inversionKey, maxClusterStableId, cluster.capacity)
+			) {
+				const numericOverride = numericUuidFromStableId(inversionKey);
+				const delta = getPositiveDelta(maxClusterUuid, numericOverride, cluster.capacity - 1);
+				if (delta !== undefined) {
+					IdCompressor.failWithCollidingOverride(inversionKey);
 				}
 			}
 		}
@@ -910,9 +910,9 @@ export class IdCompressor {
 						return compressionMapping;
 					}
 					const finalizedOverride = compressionMapping;
-					return finalizedOverride.associatedLocalId !== undefined
-						? [finalizedOverride.associatedLocalId, finalizedOverride.originalOverridingFinal]
-						: (finalizedOverride.originalOverridingFinal as SessionSpaceCompressedId);
+					return finalizedOverride.associatedLocalId === undefined
+						? (finalizedOverride.originalOverridingFinal as SessionSpaceCompressedId)
+						: [finalizedOverride.associatedLocalId, finalizedOverride.originalOverridingFinal];
 				}
 			} else if (IdCompressor.isStableInversionKey(inversionKey)) {
 				stableOverride = inversionKey;
@@ -920,14 +920,12 @@ export class IdCompressor {
 				if (IdCompressor.uuidsMightCollide(inversionKey, key as StableId, cluster.capacity)) {
 					numericOverride = numericUuidFromStableId(stableOverride);
 					const delta = getPositiveDelta(numericOverride, cluster.baseUuid, cluster.capacity - 1);
-					if (delta !== undefined) {
-						if (!isFinalOverride) {
-							if (delta >= cluster.count) {
-								// TODO:#283: Properly implement unification
-								return undefined;
-							}
-							return this.normalizeToSessionSpace((compressionMapping.clusterBase + delta) as FinalCompressedId);
+					if (delta !== undefined && !isFinalOverride) {
+						if (delta >= cluster.count) {
+							// TODO:#283: Properly implement unification
+							return undefined;
 						}
+						return this.normalizeToSessionSpace((compressionMapping.clusterBase + delta) as FinalCompressedId);
 					}
 				}
 			}
@@ -1020,12 +1018,12 @@ export class IdCompressor {
 			// Since the local ID was just created, it is in both session and op space
 			const compressionMapping = newLocalId as UnackedLocalId;
 			this.clustersAndOverridesInversion.set(overrideInversionKey, compressionMapping);
-		} else if (eagerFinalId !== undefined) {
-			sessionIdNormalizer.addFinalIds(eagerFinalId, eagerFinalId, cluster ?? fail());
-			return eagerFinalId;
-		} else {
+		} else if (eagerFinalId === undefined) {
 			const registeredLocal = sessionIdNormalizer.addLocalId();
 			assert(registeredLocal === newLocalId, 0x652 /* Session ID Normalizer produced unexpected local ID */);
+		} else {
+			sessionIdNormalizer.addFinalIds(eagerFinalId, eagerFinalId, cluster ?? fail());
+			return eagerFinalId;
 		}
 
 		return newLocalId;
@@ -1058,11 +1056,11 @@ export class IdCompressor {
 			} else {
 				const [baseFinalId, cluster] = possibleCluster;
 				const override = IdCompressor.tryGetOverride(cluster, id);
-				if (override !== undefined) {
-					return override;
-				} else {
+				if (override === undefined) {
 					const offsetInCluster = id - baseFinalId;
 					return stableIdFromNumericUuid(cluster.baseUuid, offsetInCluster);
+				} else {
+					return override;
 				}
 			}
 		} else {
@@ -1113,14 +1111,7 @@ export class IdCompressor {
 		const closestMatch = this.clustersAndOverridesInversion.getPairOrNextLower(inversionKey, reusedArray);
 		if (closestMatch !== undefined) {
 			const [key, compressionMapping] = closestMatch;
-			if (!IdCompressor.isClusterInfo(compressionMapping)) {
-				if (key === inversionKey) {
-					return IdCompressor.isUnfinalizedOverride(compressionMapping)
-						? compressionMapping
-						: (compressionMapping.associatedLocalId ??
-								(compressionMapping.originalOverridingFinal as SessionSpaceCompressedId));
-				}
-			} else {
+			if (IdCompressor.isClusterInfo(compressionMapping)) {
 				if (!isStable) {
 					return undefined;
 				}
@@ -1139,6 +1130,13 @@ export class IdCompressor {
 						targetFinalId = override.originalOverridingFinal;
 					}
 					return this.normalizeToSessionSpace(targetFinalId);
+				}
+			} else {
+				if (key === inversionKey) {
+					return IdCompressor.isUnfinalizedOverride(compressionMapping)
+						? compressionMapping
+						: (compressionMapping.associatedLocalId ??
+								(compressionMapping.originalOverridingFinal as SessionSpaceCompressedId));
 				}
 			}
 		}
@@ -1359,10 +1357,8 @@ export class IdCompressor {
 
 			for (const [keyB, valueB] of other.sessions) {
 				const valueA = this.sessions.get(keyB);
-				if (valueA === undefined) {
-					if (valueB.lastFinalizedLocalId !== undefined) {
-						return false;
-					}
+				if (valueA === undefined && valueB.lastFinalizedLocalId !== undefined) {
+					return false;
 				}
 			}
 		}
@@ -1754,16 +1750,7 @@ export class IdCompressor {
 				cluster.overrides = new Map();
 				for (const [finalIdIndex, override, originalOverridingFinal] of overrides) {
 					const finalId = (clusterBase + finalIdIndex) as FinalCompressedId;
-					if (originalOverridingFinal !== undefined) {
-						const unifiedOverride: Mutable<UnifiedOverride> = {
-							override,
-							originalOverridingFinal,
-						};
-						if (serializedLocalState !== undefined) {
-							setPropertyIfDefined(localOverridesInverse.get(override), unifiedOverride, 'associatedLocalId');
-						}
-						cluster.overrides.set(finalId, unifiedOverride);
-					} else {
+					if (originalOverridingFinal === undefined) {
 						const associatedLocal = localOverridesInverse.get(override);
 						if (associatedLocal !== undefined && sessionId !== localSessionId) {
 							// In this case, there is a local ID associated with this override, but this is the first cluster to contain
@@ -1785,6 +1772,15 @@ export class IdCompressor {
 							setPropertyIfDefined(associatedLocal, finalizedOverride, 'associatedLocalId');
 						}
 						compressor.clustersAndOverridesInversion.set(IdCompressor.createInversionKey(override), finalizedOverride);
+					} else {
+						const unifiedOverride: Mutable<UnifiedOverride> = {
+							override,
+							originalOverridingFinal,
+						};
+						if (serializedLocalState !== undefined) {
+							setPropertyIfDefined(localOverridesInverse.get(override), unifiedOverride, 'associatedLocalId');
+						}
+						cluster.overrides.set(finalId, unifiedOverride);
 					}
 				}
 			}

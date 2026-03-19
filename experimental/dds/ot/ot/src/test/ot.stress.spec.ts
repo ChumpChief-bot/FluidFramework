@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from "assert";
+import { strict as assert } from "node:assert";
 
 import { IChannelServices } from "@fluidframework/datastore-definitions/internal";
 import {
@@ -109,7 +109,10 @@ describe("SharedOT", () => {
 				// Returns a pseudorandom 32b integer in the range [0 .. max).
 				// eslint-disable-next-line no-bitwise
 				const int32 = (max = 0x7fffffff): number => (float64() * max) | 0;
-				const randomText = (): string => `${float64().toString(36).substr(0, int32(12))}`;
+				const randomText = (): string =>
+					`${float64()
+						.toString(36)
+						.slice(0, Math.max(0, int32(12)))}`;
 
 				const insert = (docIndex: number, position: number, text: string): void => {
 					trace?.push(
@@ -149,9 +152,10 @@ describe("SharedOT", () => {
 							}
 							break;
 						}
-						default:
+						default: {
 							insert(docIndex, int32(length + 1), randomText());
 							break;
+						}
 					}
 
 					if (runtimes[docIndex].connected && float64() < disconnectProbability) {
@@ -204,7 +208,7 @@ describe("SharedOT", () => {
 			{
 				numClients: 5,
 				numOps: 200,
-				syncProbability: 0.0,
+				syncProbability: 0,
 				disconnectProbability: 0,
 				seed: 0x2f98736d,
 			},

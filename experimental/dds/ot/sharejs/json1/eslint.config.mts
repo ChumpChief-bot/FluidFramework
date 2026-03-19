@@ -10,13 +10,10 @@ const config: Linter.Config[] = [
 	...recommended,
 	{
 		rules: {
-			"@typescript-eslint/consistent-type-imports": "off",
 			"@typescript-eslint/no-explicit-any": "off",
 			"@typescript-eslint/no-unsafe-argument": "off",
 			"@typescript-eslint/no-unsafe-member-access": "off",
-			"unicorn/no-negated-condition": "off",
 			"unicorn/no-null": "off",
-			"unicorn/prefer-node-protocol": "off",
 		},
 	},
 ];

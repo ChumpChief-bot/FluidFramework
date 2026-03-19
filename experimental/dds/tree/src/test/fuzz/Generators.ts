@@ -206,19 +206,23 @@ const makeEditGenerator = (
 			traits: traits ?? {},
 		});
 		switch (treeType) {
-			case 'leaf':
+			case 'leaf': {
 				return makeNode();
-			case 'stick':
+			}
+			case 'stick': {
 				return makeNode({
 					[traitLabelGenerator(state)]: [makeNode({ [traitLabelGenerator(state)]: [makeNode()] })],
 				});
-			case 'balanced':
+			}
+			case 'balanced': {
 				return makeNode({
 					[traitLabelGenerator(state)]: [makeNode()],
 					[traitLabelGenerator(state)]: [makeNode()],
 				});
-			default:
+			}
+			default: {
 				fail(`Unexpected treeType ${treeType}`);
+			}
 		}
 	}
 
@@ -336,7 +340,7 @@ const makeEditGenerator = (
 
 		const viewNode = view.getViewNode(nodeToModify);
 		const payload =
-			viewNode.payload !== undefined ? (random.bool() ? await getPayloadContents(random) : undefined) : undefined;
+			viewNode.payload === undefined ? undefined : random.bool() ? await getPayloadContents(random) : undefined;
 		return {
 			fuzzType: 'setPayload',
 			type: ChangeType.SetValue,

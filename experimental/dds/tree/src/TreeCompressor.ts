@@ -5,7 +5,8 @@
 
 import { assert } from '@fluidframework/core-utils/internal';
 
-import { Mutable, fail } from './Common.js';
+import type { Mutable } from './Common.js';
+import { fail } from './Common.js';
 import { isDetachedSequenceId } from './Identifiers.js';
 import type { Definition, DetachedSequenceId, InternedStringId, OpSpaceNodeId, TraitLabel } from './Identifiers.js';
 import type { ContextualizedNodeIdNormalizer } from './NodeIdUtilities.js';
@@ -83,7 +84,7 @@ export class InterningTreeCompressor<TPlaceholder extends DetachedSequenceId | n
 			}
 		}
 
-		const payloadTraits = node.payload !== undefined ? [node.payload, ...compressedTraits] : compressedTraits;
+		const payloadTraits = node.payload === undefined ? compressedTraits : [node.payload, ...compressedTraits];
 		if (payloadTraits.length > 0) {
 			if (compressedId !== undefined) {
 				return [internedDefinition, compressedId, payloadTraits];
@@ -148,11 +149,11 @@ export class InterningTreeCompressor<TPlaceholder extends DetachedSequenceId | n
 				: (interner.getString(maybeInternedDefinition) as Definition);
 
 		let identifier: TId;
-		if (compressedId !== undefined) {
-			identifier = compressedId;
-		} else {
+		if (compressedId === undefined) {
 			const prevId = this.previousId ?? fail();
 			identifier = prevId < 0 ? ((prevId - 1) as TId) : (((prevId as number) + 1) as TId);
+		} else {
+			identifier = compressedId;
 		}
 		this.previousId = identifier;
 

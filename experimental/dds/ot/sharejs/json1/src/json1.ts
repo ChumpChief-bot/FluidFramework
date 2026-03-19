@@ -4,21 +4,13 @@
  */
 
 import { SharedOT } from "@fluid-experimental/ot";
-import {
+import type {
 	IChannelAttributes,
 	IFluidDataStoreRuntime,
 	Serializable,
 } from "@fluidframework/datastore-definitions/internal";
-import {
-	Doc,
-	JSONOp,
-	type as Json1OTType,
-	Path,
-	insertOp,
-	moveOp,
-	removeOp,
-	replaceOp,
-} from "ot-json1";
+import type { Doc, JSONOp, Path } from "ot-json1";
+import { type as Json1OTType, insertOp, moveOp, removeOp, replaceOp } from "ot-json1";
 
 import { Json1Factory } from "./factory.js";
 

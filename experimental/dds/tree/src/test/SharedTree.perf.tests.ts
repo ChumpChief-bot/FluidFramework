@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from 'assert';
+import { strict as assert } from 'node:assert';
 
 import { BenchmarkType, benchmark } from '@fluid-tools/benchmark';
 import { MockContainerRuntimeFactory } from '@fluidframework/test-runtime-utils/internal';
@@ -17,7 +17,7 @@ import { createStableEdits, setUpTestSharedTree } from './utilities/TestUtilitie
 describe('SharedTree Perf', () => {
 	let tree: SharedTree | undefined;
 	let containerRuntimeFactory: MockContainerRuntimeFactory | undefined;
-	for (const count of [1, 1_000]) {
+	for (const count of [1, 1000]) {
 		benchmark({
 			type: BenchmarkType.Measurement,
 			title: `get currentView with ${count} sequenced edit(s)`,

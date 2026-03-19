@@ -4,9 +4,10 @@
  */
 
 import { assertWithMessage } from './Common.js';
-import { FinalNodeId, NodeId, OpSpaceNodeId, SessionId, StableNodeId } from './Identifiers.js';
-import { IdCompressor, isFinalId } from './id-compressor/index.js';
-import { NodeData } from './persisted-types/index.js';
+import type { FinalNodeId, NodeId, OpSpaceNodeId, SessionId, StableNodeId } from './Identifiers.js';
+import type { IdCompressor } from './id-compressor/index.js';
+import { isFinalId } from './id-compressor/index.js';
+import type { NodeData } from './persisted-types/index.js';
 
 /**
  * An object which can generate node IDs and convert node IDs between compressed and stable variants

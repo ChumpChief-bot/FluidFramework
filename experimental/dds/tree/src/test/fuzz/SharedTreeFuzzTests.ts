@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
+import { existsSync, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
 
 import {
 	AsyncGenerator,
@@ -166,10 +166,12 @@ export async function performFuzzActions(
 					// Summary nacks can happen as part of normal operation and are handled by the framework
 					case 'fluid:telemetry:Summarizer:Running:SummaryNack':
 					case 'fluid:telemetry:Summarizer:summarizingError':
-					case 'fluid:telemetry:Summarizer:Running:Summarize_cancel':
+					case 'fluid:telemetry:Summarizer:Running:Summarize_cancel': {
 						break;
-					default:
+					}
+					default: {
 						expect.fail(`Unexpected error event: ${event.eventName}`);
+					}
 				}
 			}
 		}
@@ -321,22 +323,27 @@ export function runSharedTreeFuzzTests(title: string): void {
 
 function applyFuzzChange(tree: SharedTree, contents: FuzzChange): void {
 	switch (contents.fuzzType) {
-		case 'insert':
+		case 'insert': {
 			tree.applyEdit(contents.build, contents.insert);
 			break;
+		}
 
-		case 'delete':
+		case 'delete': {
 			tree.applyEdit(contents);
 			break;
+		}
 
-		case 'move':
+		case 'move': {
 			tree.applyEdit(contents.detach, contents.insert);
 			break;
+		}
 
-		case 'setPayload':
+		case 'setPayload': {
 			tree.applyEdit(contents);
 			break;
-		default:
+		}
+		default: {
 			fail('Invalid edit.');
+		}
 	}
 }

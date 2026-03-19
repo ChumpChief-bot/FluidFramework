@@ -15,7 +15,7 @@ import { setUpTestTree } from './utilities/TestUtilities.js';
 describe('EditLog Perf', () => {
 	const insertNumbers = [10, 50, 100, 500, 1000];
 
-	insertNumbers.forEach((numberOfInserts) => {
+	for (const numberOfInserts of insertNumbers) {
 		const edits: Edit<Change>[] = [];
 
 		const testTree = setUpTestTree();
@@ -29,9 +29,9 @@ describe('EditLog Perf', () => {
 			benchmarkFn: () => {
 				const log = new EditLog();
 
-				edits.forEach((edit) => {
+				for (const edit of edits) {
 					log.addSequencedEdit(edit, { sequenceNumber: 1, referenceSequenceNumber: 0 });
-				});
+				}
 			},
 		});
 
@@ -42,10 +42,10 @@ describe('EditLog Perf', () => {
 			benchmarkFn: () => {
 				const log = new EditLog(undefined, undefined, undefined, targetEditLogSize);
 
-				edits.forEach((edit) => {
+				for (const edit of edits) {
 					log.addSequencedEdit(edit, { sequenceNumber: 1, referenceSequenceNumber: 0 });
-				});
+				}
 			},
 		});
-	});
+	}
 });

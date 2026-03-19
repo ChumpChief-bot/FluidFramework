@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from 'assert';
+import { strict as assert } from 'node:assert';
 
 import { validateAssertionError } from '@fluidframework/test-runtime-utils/internal';
 import { expect } from 'chai';
@@ -295,9 +295,9 @@ describe('CachingLogViewer', () => {
 		return new CachingLogViewer(
 			log,
 			baseView,
-			initialRevision !== undefined
-				? [initialRevision[0], { view: initialRevision[1], status: EditStatus.Applied, steps: [] }]
-				: undefined,
+			initialRevision === undefined
+				? undefined
+				: [initialRevision[0], { view: initialRevision[1], status: EditStatus.Applied, steps: [] }],
 			editStatusCallback,
 			sequencedEditResultCallback,
 			log.numberOfSequencedEdits

@@ -5,7 +5,7 @@
 
 /* eslint-disable no-bitwise */
 
-import { strict as assert } from 'assert';
+import { strict as assert } from 'node:assert';
 
 import { validateAssertionError } from '@fluidframework/test-runtime-utils/internal';
 import { expect } from 'chai';
@@ -72,7 +72,7 @@ function runAppendOnlyMapTests(mapBuilder: () => AppendOnlySortedMap<number, num
 	});
 
 	it('can get an entry or next lower by key', () => {
-		[99, 100].forEach((elementCount) => {
+		for (const elementCount of [99, 100]) {
 			const map = mapBuilder();
 			for (let i = 0; i < elementCount; i++) {
 				map.append(i * 2, i * 2);
@@ -84,11 +84,11 @@ function runAppendOnlyMapTests(mapBuilder: () => AppendOnlySortedMap<number, num
 			}
 			const maxKey = assertNotUndefined(map.maxKey());
 			expect(map.getPairOrNextLower(maxKey + 1)).to.deep.equal([maxKey, maxKey]);
-		});
+		}
 	});
 
 	it('can get an entry or next higher by key', () => {
-		[99, 100].forEach((elementCount) => {
+		for (const elementCount of [99, 100]) {
 			const map = mapBuilder();
 			for (let i = 0; i < elementCount; i++) {
 				map.append(i * 2, i * 2);
@@ -100,7 +100,7 @@ function runAppendOnlyMapTests(mapBuilder: () => AppendOnlySortedMap<number, num
 				expect(map.getPairOrNextHigher(i * 2 + 1)).to.deep.equal([i * 2 + 2, i * 2 + 2]);
 			}
 			expect(map.getPairOrNextHigher(map.size * 2 + 1)).to.be.undefined;
-		});
+		}
 	});
 
 	it('knows how big it is', () => {
@@ -198,7 +198,7 @@ describe('AppendOnlyDoublySortedMap', () => {
 	});
 
 	it('can get an entry or next lower by value', () => {
-		[99, 100].forEach((elementCount) => {
+		for (const elementCount of [99, 100]) {
 			const map = mapBuilder();
 			for (let i = 0; i < elementCount; i++) {
 				map.append(i - elementCount, i * 2);
@@ -208,11 +208,11 @@ describe('AppendOnlyDoublySortedMap', () => {
 				expect(map.getPairOrNextLowerByValue(i * 2)).to.deep.equal([i - elementCount, i * 2]);
 				expect(map.getPairOrNextLowerByValue(i * 2 + 1)).to.deep.equal([i - elementCount, i * 2]);
 			}
-		});
+		}
 	});
 
 	it('can get an entry or next higher by value', () => {
-		[99, 100].forEach((elementCount) => {
+		for (const elementCount of [99, 100]) {
 			const map = mapBuilder();
 			for (let i = 0; i < elementCount; i++) {
 				map.append(i - elementCount, i * 2);
@@ -224,7 +224,7 @@ describe('AppendOnlyDoublySortedMap', () => {
 			const maxValue = (elementCount - 1) * 2;
 			expect(map.getPairOrNextHigherByValue(maxValue)).to.deep.equal([-1, maxValue]);
 			expect(map.getPairOrNextHigherByValue(maxValue + 1)).to.be.undefined;
-		});
+		}
 	});
 
 	it('validity assertion detects out-of-order keys', () => {

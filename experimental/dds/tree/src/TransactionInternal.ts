@@ -6,9 +6,8 @@
 import { assert } from '@fluidframework/core-utils/internal';
 
 import { Result, assertWithMessage, copyPropertyIfDefined, fail } from './Common.js';
+import type { BadPlaceValidationResult, BadRangeValidationResult } from './EditUtilities.js';
 import {
-	BadPlaceValidationResult,
-	BadRangeValidationResult,
 	PlaceValidationResult,
 	RangeValidationResultKind,
 	detachRange,
@@ -16,25 +15,24 @@ import {
 	validateStablePlace,
 	validateStableRange,
 } from './EditUtilities.js';
-import { DetachedSequenceId, NodeId, TraitLabel, isDetachedSequenceId } from './Identifiers.js';
-import { ReconciliationChange, ReconciliationPath } from './ReconciliationPath.js';
-import { RevisionView, TransactionView } from './RevisionView.js';
-import { TreeViewNode } from './TreeView.js';
+import type { DetachedSequenceId, NodeId, TraitLabel } from './Identifiers.js';
+import { isDetachedSequenceId } from './Identifiers.js';
+import type { ReconciliationChange, ReconciliationPath } from './ReconciliationPath.js';
+import type { RevisionView, TransactionView } from './RevisionView.js';
+import type { TreeViewNode } from './TreeView.js';
 import { rangeFromStableRange } from './TreeViewUtilities.js';
-import {
+import type {
 	BuildInternal,
 	BuildNodeInternal,
 	ChangeInternal,
-	ChangeTypeInternal,
-	ConstraintEffect,
 	ConstraintInternal,
 	DetachInternal,
-	EditStatus,
 	InsertInternal,
 	SetValueInternal,
 	StablePlaceInternal,
 	StableRangeInternal,
 } from './persisted-types/index.js';
+import { ChangeTypeInternal, ConstraintEffect, EditStatus } from './persisted-types/index.js';
 
 /**
  * Result of applying a transaction.
@@ -474,7 +472,7 @@ export namespace TransactionInternal {
 		 */
 		public validateOnClose(state: ValidState): ChangeResult {
 			// Making the policy choice that storing a detached sequences in an edit but not using it is an error.
-			return this.detached.size !== 0
+			return this.detached.size > 0
 				? Result.error({
 						status: EditStatus.Malformed,
 						failure: {
@@ -494,18 +492,24 @@ export namespace TransactionInternal {
 		 */
 		public dispatchChange(state: ValidState, change: ChangeInternal): ChangeResult {
 			switch (change.type) {
-				case ChangeTypeInternal.Build:
+				case ChangeTypeInternal.Build: {
 					return this.applyBuild(state, change);
-				case ChangeTypeInternal.Insert:
+				}
+				case ChangeTypeInternal.Insert: {
 					return this.applyInsert(state, change);
-				case ChangeTypeInternal.Detach:
+				}
+				case ChangeTypeInternal.Detach: {
 					return this.applyDetach(state, change);
-				case ChangeTypeInternal.Constraint:
+				}
+				case ChangeTypeInternal.Constraint: {
 					return this.applyConstraint(state, change);
-				case ChangeTypeInternal.SetValue:
+				}
+				case ChangeTypeInternal.SetValue: {
 					return this.applySetValue(state, change);
-				default:
+				}
+				default: {
 					return fail('Attempted to apply unsupported change');
+				}
 			}
 		}
 
@@ -638,7 +642,9 @@ export namespace TransactionInternal {
 			const { detached } = result;
 
 			// Store or dispose detached
-			if (change.destination !== undefined) {
+			if (change.destination === undefined) {
+				modifiedView = modifiedView.deleteNodes(detached);
+			} else {
 				if (this.detached.has(change.destination)) {
 					return Result.error({
 						status: EditStatus.Malformed,
@@ -650,8 +656,6 @@ export namespace TransactionInternal {
 					});
 				}
 				this.detached.set(change.destination, detached);
-			} else {
-				modifiedView = modifiedView.deleteNodes(detached);
 			}
 			return Result.ok(modifiedView);
 		}

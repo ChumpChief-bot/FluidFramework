@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from 'assert';
+import { strict as assert } from 'node:assert';
 
 import { ITelemetryBaseEvent, ITelemetryBaseLogger } from '@fluidframework/core-interfaces';
 import { SummaryType } from '@fluidframework/driver-definitions';
@@ -419,15 +419,15 @@ export function runSharedTreeOperationsTests(
 					let root1 = getTestTreeRoot(sharedTree1);
 					let root2 = getTestTreeRoot(sharedTree2);
 
-					expect(Array.from(root1.traits[testTree2.right.traitLabel])).to.have.length(1);
-					expect(Array.from(root2.traits[testTree2.right.traitLabel] ?? [])).to.have.length(0);
+					expect([...root1.traits[testTree2.right.traitLabel]]).to.have.length(1);
+					expect([...(root2.traits[testTree2.right.traitLabel] ?? [])]).to.have.length(0);
 
 					containerRuntimeFactory.processAllMessages();
 
 					root1 = getTestTreeRoot(sharedTree1);
 					root2 = getTestTreeRoot(sharedTree2);
-					expect(Array.from(root1.traits[testTree2.right.traitLabel] ?? [])).to.have.length(0);
-					expect(Array.from(root2.traits[testTree2.right.traitLabel] ?? [])).to.have.length(0);
+					expect([...(root1.traits[testTree2.right.traitLabel] ?? [])]).to.have.length(0);
+					expect([...(root2.traits[testTree2.right.traitLabel] ?? [])]).to.have.length(0);
 				});
 			}
 
@@ -793,7 +793,7 @@ export function runSharedTreeOperationsTests(
 				}
 			});
 
-			[true, false].forEach((hasLocalEdits) => {
+			for (const hasLocalEdits of [true, false]) {
 				it(`produces correct snapshot for a tree with ${hasLocalEdits ? 'local' : 'acked'} edits`, async () => {
 					// The initial tree results in an edit.
 					const { sharedTree, testTree, containerRuntimeFactory } = createSimpleTestTree({
@@ -840,7 +840,7 @@ export function runSharedTreeOperationsTests(
 					expect(treeInitEdit.changes[0].type).to.equal(ChangeType.Build);
 					expect(treeInitEdit.changes[1].type).to.equal(ChangeType.Insert);
 				});
-			});
+			}
 
 			it('can be used to initialize a tree', () => {
 				const {
@@ -895,7 +895,7 @@ export function runSharedTreeOperationsTests(
 				sharedTree1.applyEdit(...Change.insertTree(newNode, StablePlace.before(testTree1.left)));
 				containerRuntimeFactory.processAllMessages();
 				const summary = sharedTree1.saveSummary() as SharedTreeSummary_0_0_2;
-				const sequencedEdits = assertNotUndefined(summary.sequencedEdits).slice();
+				const sequencedEdits = [...assertNotUndefined(summary.sequencedEdits)];
 				sequencedEdits.push(sequencedEdits[0]);
 				const corruptedSummary = {
 					...summary,
@@ -1021,9 +1021,9 @@ export function runSharedTreeOperationsTests(
 					// Force demand, which will cause a telemetry event for the invalid edit to be emitted
 					sharedTree.logViewer.getRevisionViewInMemory(Number.POSITIVE_INFINITY);
 					expect(logger.events.length).is.greaterThan(0);
-					logger.events.forEach((event) => {
+					for (const event of logger.events) {
 						expect(isSharedTreeEvent(event)).is.true;
-					});
+					}
 				});
 
 				it('is logged for invalid locally generated edits when those edits are sequenced', async () => {
@@ -1232,12 +1232,15 @@ export function runSharedTreeOperationsTests(
 				function getMutableStringInterner(tree: SharedTree): MutableStringInterner {
 					const summary = tree.saveSummary();
 					switch (summary.version) {
-						case WriteFormat.v0_0_2:
+						case WriteFormat.v0_0_2: {
 							return new MutableStringInterner();
-						case WriteFormat.v0_1_1:
+						}
+						case WriteFormat.v0_1_1: {
 							return new MutableStringInterner((summary as SharedTreeSummary).internedStrings);
-						default:
+						}
+						default: {
 							fail(`Invalid summary format: ${summary.version}`);
+						}
 					}
 				}
 

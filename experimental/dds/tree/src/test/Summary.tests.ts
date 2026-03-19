@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import * as fs from 'fs';
-import { join } from 'path';
+import * as fs from 'node:fs';
+import { join } from 'node:path';
 
 import { ISummaryBlob, SummaryType } from '@fluidframework/driver-definitions';
 import { assert, expect } from 'chai';

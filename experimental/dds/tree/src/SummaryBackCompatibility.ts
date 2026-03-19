@@ -8,12 +8,8 @@ import type { IFluidSerializer } from '@fluidframework/shared-object-base/intern
 
 import { fail } from './Common.js';
 import { getNumberOfHandlesFromEditLogSummary } from './EditLog.js';
-import {
-	SharedTreeSummary,
-	SharedTreeSummaryBase,
-	SharedTreeSummary_0_0_2,
-	WriteFormat,
-} from './persisted-types/index.js';
+import type { SharedTreeSummary, SharedTreeSummaryBase, SharedTreeSummary_0_0_2 } from './persisted-types/index.js';
+import { WriteFormat } from './persisted-types/index.js';
 
 /**
  * Deserializes a JSON object produced by `serialize()` and uses it to initialize the tree with the encoded state.

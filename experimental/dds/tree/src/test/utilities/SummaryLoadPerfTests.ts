@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import * as fs from 'fs';
-import { join } from 'path';
+import * as fs from 'node:fs';
+import { join } from 'node:path';
 
 import { takeAsync } from '@fluid-private/stochastic-test-utils';
 import { BenchmarkType, benchmark } from '@fluid-tools/benchmark';
@@ -119,7 +119,7 @@ function loadSummaryTestFiles(): {
 	summaryFileNoHistory_0_1_1: string;
 } {
 	const readFile = (name: string): string => {
-		const contents = fs.readFileSync(join(directory, name), 'utf-8');
+		const contents = fs.readFileSync(join(directory, name), 'utf8');
 		// Round-trip the file so that performance testing summary doesn't require parsing unnecessary/unrealistic whitespace
 		return JSON.stringify(JSON.parse(contents));
 	};

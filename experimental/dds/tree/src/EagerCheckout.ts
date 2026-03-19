@@ -4,8 +4,8 @@
  */
 
 import { Checkout } from './Checkout.js';
-import { RevisionView } from './RevisionView.js';
-import { EditCommittedEventArguments, SharedTree } from './SharedTree.js';
+import type { RevisionView } from './RevisionView.js';
+import type { EditCommittedEventArguments, SharedTree } from './SharedTree.js';
 
 /**
  * Checkout that always stays up to date with the SharedTree.
@@ -28,10 +28,10 @@ export class EagerCheckout extends Checkout {
 	}
 
 	public async waitForPendingUpdates(): Promise<void> {
-		return Promise.resolve();
+		return;
 	}
 
 	public async waitForEditsToSubmit(): Promise<void> {
-		return Promise.resolve();
+		return;
 	}
 }

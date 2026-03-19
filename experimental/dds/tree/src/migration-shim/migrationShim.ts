@@ -7,12 +7,12 @@ import type { EventEmitterEventType } from '@fluid-internal/client-utils';
 import { AttachState } from '@fluidframework/container-definitions';
 import type { IEvent, IFluidHandle, IFluidLoadable } from '@fluidframework/core-interfaces';
 import { assert } from '@fluidframework/core-utils/internal';
-import {
-	type IChannelAttributes,
-	IChannelFactory,
-	type IFluidDataStoreRuntime,
-	type IChannel,
-	type IChannelServices,
+import type { IChannelFactory } from '@fluidframework/datastore-definitions/internal';
+import type {
+	IChannelAttributes,
+	IFluidDataStoreRuntime,
+	IChannel,
+	IChannelServices,
 } from '@fluidframework/datastore-definitions/internal';
 import { MessageType, type ISequencedDocumentMessage } from '@fluidframework/driver-definitions/internal';
 import type { SessionId } from '@fluidframework/id-compressor';
@@ -109,12 +109,12 @@ export class MigrationShim extends EventEmitterWithErrorHandling<IMigrationEvent
 		assert(this.preMigrationDeltaConnection !== undefined, 0x82f /* Should be in v1 state */);
 		this.preMigrationDeltaConnection.disableSubmit();
 		const { idCompressor } = this.runtime;
-		if (idCompressor !== undefined) {
+		if (idCompressor === undefined) {
+			this.populateNewSharedObjectFn(this.legacyTree, newTree);
+		} else {
 			(idCompressor as unknown as IIdCompressorCore).beginGhostSession(ghostSessionId, () =>
 				this.populateNewSharedObjectFn(this.legacyTree, newTree)
 			);
-		} else {
-			this.populateNewSharedObjectFn(this.legacyTree, newTree);
 		}
 		this.newTree = newTree;
 		this.reconnect();

@@ -5,7 +5,7 @@
 
 /* eslint-disable no-bitwise */
 
-import { strict as assert } from 'assert';
+import { strict as assert } from 'node:assert';
 
 import { makeRandom } from '@fluid-private/stochastic-test-utils';
 import { validateAssertionError } from '@fluidframework/test-runtime-utils/internal';
@@ -32,23 +32,21 @@ describe('NumericUuid', () => {
 		expect(isStableId('ffffffff-ffff-ffff-ffff-ffffffffffff')).to.be.false;
 		expect(isStableId('8e8fec9a10ea4d158308ed35bc7f1e66')).to.be.false;
 		expect(isStableId('8e8fec9a-10ea-4d15-8308-ed35bc7f1e66')).to.be.true;
-		[...new Array(16).keys()]
-			.map<[number, string]>((n) => [n, n.toString(16)])
-			.forEach(([n, char]) => {
-				const expectUuidVersion = expect(isStableId(`00000000-0000-${char}000-b000-000000000000`));
-				if (char === '4') {
-					expectUuidVersion.to.be.true;
-				} else {
-					expectUuidVersion.to.be.false;
-				}
+		for (const [n, char] of [...Array.from({ length: 16 }).keys()].map<[number, string]>((n) => [n, n.toString(16)])) {
+			const expectUuidVersion = expect(isStableId(`00000000-0000-${char}000-b000-000000000000`));
+			if (char === '4') {
+				expectUuidVersion.to.be.true;
+			} else {
+				expectUuidVersion.to.be.false;
+			}
 
-				const expectUuidVariant = expect(isStableId(`00000000-0000-4000-${char}000-000000000000`));
-				if (n >= 8 && n <= 11) {
-					expectUuidVariant.to.be.true;
-				} else {
-					expectUuidVariant.to.be.false;
-				}
-			});
+			const expectUuidVariant = expect(isStableId(`00000000-0000-4000-${char}000-000000000000`));
+			if (n >= 8 && n <= 11) {
+				expectUuidVariant.to.be.true;
+			} else {
+				expectUuidVariant.to.be.false;
+			}
+		}
 	});
 
 	const maxStableId = assertIsStableId('ffffffff-ffff-4fff-bfff-ffffffffffff');
@@ -116,8 +114,8 @@ describe('NumericUuid', () => {
 			assertIsStableId('ffffffff-ffff-4fff-be00-000000000000'),
 		];
 
-		dangerous.forEach((stableId) => expect(ensureSessionUuid(stableId)).to.not.equal(stableId));
-		safe.forEach((stableId) => expect(ensureSessionUuid(stableId)).to.equal(stableId));
+		for (const stableId of dangerous) expect(ensureSessionUuid(stableId)).to.not.equal(stableId);
+		for (const stableId of safe) expect(ensureSessionUuid(stableId)).to.equal(stableId);
 	});
 
 	const stableIds = [
@@ -147,29 +145,29 @@ describe('NumericUuid', () => {
 	describe('incrementing', () => {
 		const rand = makeRandom(0);
 		const incrementAmounts = [
-			...[...new Array(53).keys()].map((n) => 2 ** n - 1),
-			...[...new Array(10).keys()].map((_) => rand.integer(0, Number.MAX_SAFE_INTEGER)),
+			...[...Array.from({ length: 53 }).keys()].map((n) => 2 ** n - 1),
+			...[...Array.from({ length: 10 }).keys()].map((_) => rand.integer(0, Number.MAX_SAFE_INTEGER)),
 		];
-		stableIds.forEach((stableId) => {
+		for (const stableId of stableIds) {
 			it(`can increment ${stableId}`, () => {
 				const uuid = numericUuidFromStableId(stableId);
 
-				incrementAmounts.forEach((incrementAmount) => {
+				for (const incrementAmount of incrementAmounts) {
 					const bigintIncremented = bigIntFromStableId(stableId) + BigInt(incrementAmount);
 					const incremented = incrementUuid(uuid, incrementAmount);
 					const bigintStr = integerToStableId(bigintIncremented);
 					expect(stableIdFromNumericUuid(incremented)).to.equal(bigintStr);
-				});
+				}
 			});
-		});
+		}
 	});
 
 	it('delta calculation can calculate the integer delta between stable ids', () => {
-		stableIds.forEach((stableIdA) => {
+		for (const stableIdA of stableIds) {
 			const uuidA = numericUuidFromStableId(stableIdA);
 			const bigintA = bigIntFromStableId(stableIdA);
 			const arbitraryMaxDelta = 2 ** 32 - 1;
-			stableIds.forEach((stableIdB) => {
+			for (const stableIdB of stableIds) {
 				const uuidB = numericUuidFromStableId(stableIdB);
 				const bigintB = bigIntFromStableId(stableIdB);
 				const realDelta = bigintA - bigintB;
@@ -185,28 +183,28 @@ describe('NumericUuid', () => {
 				} else {
 					expect(numericDeltaCapped).to.equal(undefined);
 				}
-			});
-		});
+			}
+		}
 	});
 
 	it('can round trip between stable ID and uuid', () => {
-		stableIds.forEach((stableId) => {
+		for (const stableId of stableIds) {
 			const uuid = numericUuidFromStableId(stableId);
 			const roundTripped = stableIdFromNumericUuid(uuid);
 			expect(stableId).to.equal(roundTripped);
-		});
+		}
 	});
 
 	it('can compare numeric uuids', () => {
-		stableIds.forEach((stableIdA) => {
-			stableIds.forEach((stableIdB) => {
+		for (const stableIdA of stableIds) {
+			for (const stableIdB of stableIds) {
 				const numericA = numericUuidFromStableId(stableIdA);
 				const numericB = numericUuidFromStableId(stableIdB);
 				const comparedNumeric = numericUuidEquals(numericA, numericB);
 				const comparedStrings = compareStrings(stableIdA, stableIdB);
 				expect(comparedNumeric).to.equal(comparedStrings === 0);
-			});
-		});
+			}
+		}
 	});
 });
 
@@ -217,9 +215,9 @@ function bigIntFromStableId(id: StableId): bigint {
 	// bit count | 44444444-4444-0444-2444-444444444444 | The number of bits per nibble that are used to encode the number
 
 	// Interpret numerically...
-	const highNibbles = BigInt(`0x${minimized.substr(0, 12)}`); // ...all nibbles above the version nibble,
-	const midNibbles = BigInt(`0x${minimized.substr(13, 3)}`); //  the nibbles below the version nibble and above the variant nibble,
-	const lowNibbles = BigInt(`0x${minimized.substr(16, 16)}`); // and the variant nibble and all nibbles below
+	const highNibbles = BigInt(`0x${minimized.slice(0, 12)}`); // ...all nibbles above the version nibble,
+	const midNibbles = BigInt(`0x${minimized.slice(13, 16)}`); //  the nibbles below the version nibble and above the variant nibble,
+	const lowNibbles = BigInt(`0x${minimized.slice(16, 32)}`); // and the variant nibble and all nibbles below
 	// Count the number of bits that contribute to the number (i.e. are not reserved for version/variant) in...
 	const lowBitCount = BigInt(62); // ...the low nibbles
 	const midBitCount = BigInt(12); // and the mid nibbles

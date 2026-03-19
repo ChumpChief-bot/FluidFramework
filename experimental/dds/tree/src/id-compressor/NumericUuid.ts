@@ -6,7 +6,7 @@
 /* eslint-disable no-bitwise */
 
 import { assertWithMessage, fail } from '../Common.js';
-import { SessionId, StableId } from '../Identifiers.js';
+import type { SessionId, StableId } from '../Identifiers.js';
 import { generateStableId } from '../UuidUtilities.js';
 
 /**
@@ -119,7 +119,7 @@ export function stableIdFromNumericUuid(uuid: NumericUuid, offset = 0): StableId
  * @returns a numeric representation of `stableId`.
  */
 export function numericUuidFromStableId(stableId: StableId): NumericUuid {
-	const uuid: (string | number)[] = new Array(2);
+	const uuid: (string | number)[] = Array.from({ length: 2 });
 	uuid[0] = stableId.slice(0, stringEntryLength);
 	uuid[1] = Number.parseInt(ChunkMath.Lower.parse(stableId), 16);
 	return uuid as readonly (number | string)[] as NumericUuid;

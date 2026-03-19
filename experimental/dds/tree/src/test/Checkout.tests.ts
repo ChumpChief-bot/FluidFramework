@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from 'assert';
+import { strict as assert } from 'node:assert';
 
 import { ITelemetryBaseEvent } from '@fluidframework/core-interfaces';
 import { validateAssertionError } from '@fluidframework/test-runtime-utils/internal';
@@ -237,7 +237,7 @@ export function checkoutTests(
 			const { checkout, tree } = await setUpTestCheckout();
 			const message = 'Simulated unexpected error in ViewChange event handler';
 			checkout.on(CheckoutEvent.ViewChange, () => {
-				throw Error(message);
+				throw new Error(message);
 			});
 			let treeErrorHandlerWasCalled = false;
 			tree.on('error', (error) => {

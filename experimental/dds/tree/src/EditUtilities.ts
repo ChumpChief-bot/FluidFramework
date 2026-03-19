@@ -6,18 +6,20 @@
 import { compareArrays } from '@fluidframework/core-utils/internal';
 import { v4 as uuidv4 } from 'uuid';
 
-import { BuildNode, BuildTreeNode, Change, HasVariadicTraits, StablePlace, StableRange } from './ChangeTypes.js';
-import { Mutable, copyPropertyIfDefined, fail } from './Common.js';
-import { Definition, DetachedSequenceId, EditId, NodeId, StableNodeId, TraitLabel } from './Identifiers.js';
-import { NodeIdContext, NodeIdConverter } from './NodeIdUtilities.js';
+import type { BuildNode, BuildTreeNode, HasVariadicTraits, StablePlace } from './ChangeTypes.js';
+import { Change, StableRange } from './ChangeTypes.js';
+import type { Mutable } from './Common.js';
+import { copyPropertyIfDefined, fail } from './Common.js';
+import type { Definition, DetachedSequenceId, EditId, NodeId, StableNodeId, TraitLabel } from './Identifiers.js';
+import type { NodeIdContext, NodeIdConverter } from './NodeIdUtilities.js';
 import { comparePayloads } from './PayloadUtilities.js';
-import { TransactionView, iterateChildren } from './RevisionView.js';
+import type { TransactionView } from './RevisionView.js';
+import { iterateChildren } from './RevisionView.js';
 import { getChangeNode_0_0_2FromView } from './SerializationUtilities.js';
-import { TraitLocation, TreeView } from './TreeView.js';
+import type { TraitLocation, TreeView } from './TreeView.js';
 import { placeFromStablePlace, rangeFromStableRange } from './TreeViewUtilities.js';
-import {
+import type {
 	BuildNodeInternal,
-	ChangeInternal,
 	ChangeNode,
 	ChangeNode_0_0_2,
 	Edit,
@@ -25,12 +27,12 @@ import {
 	NodeData,
 	Side,
 	StablePlaceInternal,
-	StableRangeInternal,
 	TraitLocationInternal,
 	TraitMap,
 	TreeNode,
 	TreeNodeSequence,
 } from './persisted-types/index.js';
+import { ChangeInternal, StableRangeInternal } from './persisted-types/index.js';
 
 /**
  * Functions for constructing and comparing Edits.
@@ -128,7 +130,9 @@ export function convertTreeNodes<
 		} else {
 			const [traitLabel, child] = value;
 			let convertedChild: TOut | TPlaceholder;
-			if (!isKnownType(child, isPlaceholder)) {
+			if (isKnownType(child, isPlaceholder)) {
+				convertedChild = child;
+			} else {
 				convertedChild = convert(child) as TOut;
 				if (child.traits !== undefined) {
 					const childTraits = (child as unknown as TOut) === convertedChild ? { traits: child.traits } : child;
@@ -138,8 +142,6 @@ export function convertTreeNodes<
 					});
 				}
 				(convertedChild as Mutable<TOut>).traits = {};
-			} else {
-				convertedChild = child;
 			}
 			const newTraits = newNode.traits as Mutable<TraitMap<TOut | TPlaceholder>>;
 			let newTrait = newTraits[traitLabel];
