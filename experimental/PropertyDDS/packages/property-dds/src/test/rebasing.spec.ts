@@ -5,7 +5,7 @@
 
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 
-import { strict as assert } from "assert";
+import { strict as assert } from "node:assert";
 
 import { DeterministicRandomGenerator } from "@fluid-experimental/property-common";
 import {
@@ -194,9 +194,9 @@ describe("PropertyDDS", () => {
 
 					testString += getFunctionSource(final);
 					await final();
-				} catch (e) {
+				} catch (error) {
 					console.error(`Failed Test code: ${testString}`);
-					throw e;
+					throw error;
 				}
 			}).timeout(10000);
 		}
@@ -268,10 +268,9 @@ describe("PropertyDDS", () => {
 			});
 
 			afterEach(() => {
-				const result = range(1, ACount + 1)
-					.map((i) => `A${i}`)
-					.concat(["B1", "B2", "B3"])
-					.concat(range(1, CCount + 1).map((i) => `C${i}`));
+				const result = [...range(1, ACount + 1).map((i) => `A${i}`), "B1", "B2", "B3"].concat(
+					range(1, CCount + 1).map((i) => `C${i}`),
+				);
 
 				const array1 = sharedPropertyTree1.root.get("array") as StringArrayProperty;
 				const array2 = sharedPropertyTree2.root.get("array") as StringArrayProperty;
@@ -500,48 +499,55 @@ describe("PropertyDDS", () => {
 						for (const _j of range(numOperations)) {
 							const operation = random.irandom(6);
 							switch (operation) {
-								case 0:
+								case 0: {
 									insertInArray(sharedPropertyTree1, "A");
 									if (logTest) {
 										testString += 'insertInArray(sharedPropertyTree1, "A");\n';
 									}
 									break;
-								case 1:
+								}
+								case 1: {
 									insertInArray(sharedPropertyTree2, "C");
 									if (logTest) {
 										testString += 'insertInArray(sharedPropertyTree2, "C");\n';
 									}
 									break;
-								case 2:
+								}
+								case 2: {
 									await opProcessingController.processOutgoing(container1);
 									if (logTest) {
 										testString +=
 											"await opProcessingController.processOutgoing(container1);\n";
 									}
 									break;
-								case 3:
+								}
+								case 3: {
 									await opProcessingController.processIncoming(container1);
 									if (logTest) {
 										testString +=
 											"await opProcessingController.processIncoming(container1);\n";
 									}
 									break;
-								case 4:
+								}
+								case 4: {
 									await opProcessingController.processOutgoing(container2);
 									if (logTest) {
 										testString +=
 											"await opProcessingController.processOutgoing(container2);\n";
 									}
 									break;
-								case 5:
+								}
+								case 5: {
 									await opProcessingController.processIncoming(container2);
 									if (logTest) {
 										testString +=
 											"await opProcessingController.processIncoming(container2);\n";
 									}
 									break;
-								default:
+								}
+								default: {
 									throw new Error("Should never happen");
+								}
 							}
 						}
 

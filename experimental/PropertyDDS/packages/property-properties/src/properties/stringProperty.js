@@ -16,7 +16,7 @@ const { ArrayProperty } = require("./arrayProperty");
 const { BaseProperty } = require("./baseProperty");
 const { ValueArrayProperty } = require("./valueArrayProperty");
 
-var MODIFIED_STATE_FLAGS = BaseProperty.MODIFIED_STATE_FLAGS;
+const MODIFIED_STATE_FLAGS = BaseProperty.MODIFIED_STATE_FLAGS;
 
 // Some global constant objects that are used to indicate a few special
 // cases for the dirty object. If the string was directly set to a literal,
@@ -24,18 +24,18 @@ var MODIFIED_STATE_FLAGS = BaseProperty.MODIFIED_STATE_FLAGS;
 // that it was updated to a literal and the dirty flags.
 // By using these special objects we avoid the memory overhead of having a separate
 // object for each array in this state.
-var PENDING_AND_DIRTY_SET_TO_PROPERTY_VALUE = {
+const PENDING_AND_DIRTY_SET_TO_PROPERTY_VALUE = {
 	pending: "setAsLiteral",
 	dirty: "setAsLiteral",
 	flags: MODIFIED_STATE_FLAGS.PENDING_CHANGE | MODIFIED_STATE_FLAGS.DIRTY,
 };
-var NO_DIRTY_AND_PENDING_SET_TO_PROPERTY_VALUE = {
+const NO_DIRTY_AND_PENDING_SET_TO_PROPERTY_VALUE = {
 	pending: "setAsLiteral",
 	dirty: undefined,
 	flags: MODIFIED_STATE_FLAGS.PENDING_CHANGE,
 };
 
-var DIRTY_AND_NO_PENDING_SET_TO_PROPERTY_VALUE = {
+const DIRTY_AND_NO_PENDING_SET_TO_PROPERTY_VALUE = {
 	pending: undefined,
 	dirty: "setAsLiteral",
 	_flags: MODIFIED_STATE_FLAGS.DIRTY,
@@ -48,7 +48,7 @@ var DIRTY_AND_NO_PENDING_SET_TO_PROPERTY_VALUE = {
 	},
 };
 
-var STRING_PROPERTY_SET_PROPERTY_VALUE_STATE_FLAGS = [
+const STRING_PROPERTY_SET_PROPERTY_VALUE_STATE_FLAGS = [
 	undefined,
 	NO_DIRTY_AND_PENDING_SET_TO_PROPERTY_VALUE,
 	DIRTY_AND_NO_PENDING_SET_TO_PROPERTY_VALUE,
@@ -89,8 +89,8 @@ export class StringProperty extends ValueArrayProperty {
 	_updateChanges(in_changeSet) {
 		// we need to convert the format to allow the application of the changes
 		// since _performApplyAfterOnPropertyArray only understands insert/modify/remove commands
-		var pendingChangesWereSetBefore = false;
-		var pendingChanges = this._getPendingChanges();
+		let pendingChangesWereSetBefore = false;
+		let pendingChanges = this._getPendingChanges();
 
 		if (_.isString(pendingChanges)) {
 			pendingChanges = { insert: [[0, pendingChanges]] };
@@ -105,8 +105,8 @@ export class StringProperty extends ValueArrayProperty {
 			pendingChanges = pendingChanges.insert[0][1];
 		}
 
-		var dirtyChangesWereSetBefore = false;
-		var dirtyChanges = this._getDirtyChanges();
+		let dirtyChangesWereSetBefore = false;
+		let dirtyChanges = this._getDirtyChanges();
 
 		if (_.isString(dirtyChanges)) {
 			dirtyChanges = { insert: [[0, dirtyChanges]] };
@@ -215,22 +215,20 @@ export class StringProperty extends ValueArrayProperty {
 	removeRange(in_offset, in_deleteCount) {
 		ConsoleUtils.assert(
 			_.isNumber(in_offset),
-			MSG.NOT_NUMBER + "in_offset, method: StringProperty.remove or .removeRange",
+			`${MSG.NOT_NUMBER}in_offset, method: StringProperty.remove or .removeRange`,
 		);
 		ConsoleUtils.assert(
 			_.isNumber(in_deleteCount),
-			MSG.NOT_NUMBER + "in_deleteCount, method: StringProperty.remove or .removeRange",
+			`${MSG.NOT_NUMBER}in_deleteCount, method: StringProperty.remove or .removeRange`,
 		);
 		ConsoleUtils.assert(
 			in_offset + in_deleteCount < this.length + 1 && in_offset >= 0 && in_deleteCount > 0,
-			MSG.REMOVE_OUT_OF_BOUNDS +
-				"Cannot remove " +
-				in_deleteCount +
-				" items starting at index " +
-				in_offset,
+			`${MSG.REMOVE_OUT_OF_BOUNDS}Cannot remove ${in_deleteCount} items starting at index ${
+				in_offset
+			}`,
 		);
-		var result = "";
-		for (var i = in_offset; i < in_offset + in_deleteCount; i++) {
+		let result = "";
+		for (let i = in_offset; i < in_offset + in_deleteCount; i++) {
 			result += this.get(i);
 		}
 		this._checkIsNotReadOnly(true);
@@ -255,8 +253,8 @@ export class StringProperty extends ValueArrayProperty {
 			throw new Error(MSG.NO_NORMALIZED_CHANGESET);
 		}
 
-		var oldStringLength = this._dataArrayRef.length;
-		var newStringData;
+		const oldStringLength = this._dataArrayRef.length;
+		let newStringData;
 		if (_.isString(in_serializedObj)) {
 			return this._setValue(in_serializedObj, in_reportToView) ? in_serializedObj : {};
 		} else {
@@ -282,22 +280,23 @@ export class StringProperty extends ValueArrayProperty {
 		}
 
 		// check if something was attached (very common case)
-		if (newStringData.length > oldStringLength) {
-			if (newStringData.substring(0, oldStringLength) === this._dataArrayRef) {
-				var appendChanges = {
-					insert: [[oldStringLength, newStringData.substring(oldStringLength)]],
-				};
-				this.insertRange(
-					oldStringLength,
-					newStringData.substring(oldStringLength),
-					in_reportToView,
-				);
-				return appendChanges;
-			}
+		if (
+			newStringData.length > oldStringLength &&
+			newStringData.slice(0, Math.max(0, oldStringLength)) === this._dataArrayRef
+		) {
+			const appendChanges = {
+				insert: [[oldStringLength, newStringData.slice(Math.max(0, oldStringLength))]],
+			};
+			this.insertRange(
+				oldStringLength,
+				newStringData.slice(Math.max(0, oldStringLength)),
+				in_reportToView,
+			);
+			return appendChanges;
 		}
 
 		// most simplistic diff method: Remove all existing data and insert the new data
-		var simpleChanges = {
+		const simpleChanges = {
 			insert: [[0, newStringData]],
 		};
 		if (oldStringLength > 0) {
@@ -383,11 +382,11 @@ export class StringProperty extends ValueArrayProperty {
 	 * @returns {boolean} true if the value was actually changed
 	 */
 	_setValue(in_value, in_reportToView) {
-		var oldValue = this._dataArrayRef;
-		var castedValue = String(in_value);
-		var changed = castedValue !== oldValue;
+		const oldValue = this._dataArrayRef;
+		const castedValue = String(in_value);
+		const changed = castedValue !== oldValue;
 		if (changed) {
-			var stringLength = this._dataArrayRef.length;
+			const stringLength = this._dataArrayRef.length;
 			if (stringLength > 0) {
 				this._dataArrayRemoveRange(0, stringLength);
 			}
@@ -479,12 +478,12 @@ export class StringProperty extends ValueArrayProperty {
 		if (typeof in_changeSet === "string") {
 			// Let's consider it's a simple changeset.
 			this._setValue(in_changeSet, in_reportToView);
-		} else if (in_changeSet.value !== undefined) {
-			// Let's consider it's a reversible changeset.
-			this._setValue(in_changeSet.value, in_reportToView);
-		} else {
+		} else if (in_changeSet.value === undefined) {
 			// Let's consider it's an ArrayProperty-like changeset
 			ArrayProperty.prototype._applyChangeset.call(this, in_changeSet, in_reportToView);
+		} else {
+			// Let's consider it's a reversible changeset.
+			this._setValue(in_changeSet.value, in_reportToView);
 		}
 	}
 
@@ -496,9 +495,7 @@ export class StringProperty extends ValueArrayProperty {
 	 * @param {function} printFct - Function to call for printing each property
 	 */
 	_prettyPrint(indent, externalId, printFct) {
-		printFct(
-			indent + externalId + this.getId() + " (" + this.getTypeid() + '): "' + this.value + '"',
-		);
+		printFct(`${indent + externalId + this.getId()} (${this.getTypeid()}): "${this.value}"`);
 	}
 
 	/**
@@ -624,9 +621,9 @@ export class StringProperty extends ValueArrayProperty {
 	 */
 	_dataArrayInsertRange(in_position, in_range) {
 		this._dataArrayRef =
-			this._dataArrayRef.substr(0, in_position) +
+			this._dataArrayRef.slice(0, Math.max(0, in_position)) +
 			in_range +
-			this._dataArrayRef.substr(in_position);
+			this._dataArrayRef.slice(in_position);
 	}
 
 	/**
@@ -637,10 +634,10 @@ export class StringProperty extends ValueArrayProperty {
 	_dataArrayRemoveRange(in_position, in_length) {
 		if (in_position + in_length < this._dataArrayRef.length + 1) {
 			this._dataArrayRef =
-				this._dataArrayRef.substr(0, in_position) +
-				this._dataArrayRef.substr(in_position + in_length);
+				this._dataArrayRef.slice(0, Math.max(0, in_position)) +
+				this._dataArrayRef.slice(in_position + in_length);
 		} else {
-			throw Error("DataArray removeRange in_offset + in_deleteCount is out of bounds.");
+			throw new Error("DataArray removeRange in_offset + in_deleteCount is out of bounds.");
 		}
 	}
 
@@ -651,9 +648,9 @@ export class StringProperty extends ValueArrayProperty {
 	 */
 	_dataArraySetRange(in_position, in_values) {
 		this._dataArrayRef =
-			this._dataArrayRef.substr(0, in_position) +
+			this._dataArrayRef.slice(0, Math.max(0, in_position)) +
 			in_values +
-			this._dataArrayRef.substr(in_position + in_values.length);
+			this._dataArrayRef.slice(in_position + in_values.length);
 	}
 
 	get value() {

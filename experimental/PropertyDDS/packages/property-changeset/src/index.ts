@@ -3,13 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { ChangeSet, SerializedChangeSet } from "./changeset.js";
-import { ArrayChangeSetIterator } from "./changeset_operations/arrayChangesetIterator.js";
-import { ExtractedContext, TypeIdHelper } from "./helpers/typeidHelper.js";
-import { PathHelper } from "./pathHelper.js";
-import { rebaseToRemoteChanges } from "./rebase.js";
-import { TemplateSchema } from "./templateSchema.js";
-import { TemplateValidator } from "./templateValidator.js";
 import { Utils } from "./utils.js";
 
 /**
@@ -17,16 +10,13 @@ import { Utils } from "./utils.js";
  */
 const { TraversalContext } = Utils;
 
-export {
-	TemplateSchema,
-	TemplateValidator,
-	TypeIdHelper,
-	ChangeSet,
-	Utils,
-	PathHelper,
-	ArrayChangeSetIterator,
-	rebaseToRemoteChanges,
-	SerializedChangeSet,
-	TraversalContext,
-	ExtractedContext,
-};
+export { TraversalContext };
+
+export { ChangeSet, SerializedChangeSet } from "./changeset.js";
+export { ArrayChangeSetIterator } from "./changeset_operations/arrayChangesetIterator.js";
+export { ExtractedContext, TypeIdHelper } from "./helpers/typeidHelper.js";
+export { PathHelper } from "./pathHelper.js";
+export { rebaseToRemoteChanges } from "./rebase.js";
+export { TemplateSchema } from "./templateSchema.js";
+export { TemplateValidator } from "./templateValidator.js";
+export { Utils } from "./utils.js";

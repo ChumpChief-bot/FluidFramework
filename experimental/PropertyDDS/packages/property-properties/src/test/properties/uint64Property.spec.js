@@ -13,8 +13,8 @@ const { Uint64 } = require("@fluid-experimental/property-common");
 
 const { PropertyFactory } = require("../..");
 
-describe("Test Uint64Property", function () {
-	it("should correctly setValue when passed a number", function () {
+describe("Test Uint64Property", () => {
+	it("should correctly setValue when passed a number", () => {
 		const prop = PropertyFactory.create("Uint64");
 		const value = 123;
 		prop.setValue(value);
@@ -23,7 +23,7 @@ describe("Test Uint64Property", function () {
 		expect(prop.toString()).to.equal(value.toString());
 	});
 
-	it("should throw when setValue is passed a negative number", function () {
+	it("should throw when setValue is passed a negative number", () => {
 		const prop = PropertyFactory.create("Uint64");
 		const value = -123;
 		expect(() => {
@@ -31,7 +31,7 @@ describe("Test Uint64Property", function () {
 		}).to.throw();
 	});
 
-	it("should correctly setValue when passed a large number ( larger than 2^53)", function () {
+	it("should correctly setValue when passed a large number ( larger than 2^53)", () => {
 		const prop = PropertyFactory.create("Int64");
 		const value = Math.pow(2, 64) - 1000;
 		prop.setValue(value);
@@ -40,7 +40,7 @@ describe("Test Uint64Property", function () {
 		expect(prop.toString()).to.equal(value.toString());
 	});
 
-	it("should correctly setValue when passed a string", function () {
+	it("should correctly setValue when passed a string", () => {
 		const prop = PropertyFactory.create("Uint64");
 		const value = "1234567890";
 		prop.setValue(value);
@@ -49,14 +49,14 @@ describe("Test Uint64Property", function () {
 		expect(prop.toString()).to.equal("1234567890");
 	});
 
-	it("should throw error when passed a string with non numbers", function () {
+	it("should throw error when passed a string with non numbers", () => {
 		const prop = PropertyFactory.create("Uint64");
 		expect(prop.setValue.bind(prop, "error")).to.throw(
-			MSG.CANNOT_PARSE_INVALID_CHARACTERS + "error",
+			`${MSG.CANNOT_PARSE_INVALID_CHARACTERS}error`,
 		);
 	});
 
-	it("should correctly convert to string", function () {
+	it("should correctly convert to string", () => {
 		const prop = PropertyFactory.create("Uint64");
 
 		prop.value = new Uint64(845094001, 1810905006);
@@ -69,32 +69,32 @@ describe("Test Uint64Property", function () {
 		expect(prop.toString()).to.be.equal("18446744073709551615");
 	});
 
-	it("should work correctly when explicitly set fromString", function () {
+	it("should work correctly when explicitly set fromString", () => {
 		const prop = PropertyFactory.create("Uint64");
 
-		expect(function () {
+		expect(() => {
 			prop.fromString("-1");
 		}).to.throw();
-		expect(function () {
+		expect(() => {
 			prop.fromString("abcd");
 		}).to.throw();
 
-		expect(function () {
+		expect(() => {
 			prop.fromString("22545455", 37);
 		}).to.throw();
-		expect(function () {
+		expect(() => {
 			prop.fromString("22545455", 1);
 		}).to.throw();
 
 		prop.fromString("1a2b3c4d5e6f", 16);
 		expect(prop.toString(16)).to.be.equal("1a2b3c4d5e6f");
 
-		var maxUintString = new Array(65).join("1");
+		const maxUintString = Array.from({ length: 65 }).join("1");
 		prop.fromString(maxUintString, 2);
 		expect(prop.toString(2)).to.be.equal(maxUintString);
 	});
 
-	it("should correctly dirty on set", function () {
+	it("should correctly dirty on set", () => {
 		const prop = PropertyFactory.create("Uint64");
 		prop.cleanDirty();
 		expect(prop.isDirty()).to.be.false;

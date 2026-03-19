@@ -361,7 +361,7 @@ export class Collection<T> {
 	getItems(): { [key: string]: T } {
 		const result = {};
 
-		_.each(this._items, function (item, key) {
+		_.each(this._items, (item, key) => {
 			result[key] = item;
 		});
 

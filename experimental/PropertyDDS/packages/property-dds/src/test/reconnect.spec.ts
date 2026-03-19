@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { strict as assert } from "assert";
+import { strict as assert } from "node:assert";
 
 import { DeterministicRandomGenerator } from "@fluid-experimental/property-common";
 import {
@@ -135,23 +135,24 @@ describe("PropertyDDS", () => {
 							switch (operation) {
 								case 0:
 								case 1:
-								case 2:
+								case 2: {
 									{
 										// insert / modify an entry in the tree
 										const key = `item_${random.irandom(numKeys)}`;
 										const property = tree.root.get<Float64Property>(key);
-										if (property !== undefined) {
-											property.setValue(random.irandom(maxValue));
-										} else {
+										if (property === undefined) {
 											tree.root.insert(
 												key,
 												PropertyFactory.create("Float64", undefined, random.irandom(maxValue)),
 											);
+										} else {
+											property.setValue(random.irandom(maxValue));
 										}
 										tree.commit();
 									}
 									break;
-								case 3:
+								}
+								case 3: {
 									{
 										// remove an existing property
 										const ids = tree.root.getIds();
@@ -162,14 +163,17 @@ describe("PropertyDDS", () => {
 										}
 									}
 									break;
-								case 4:
+								}
+								case 4: {
 									{
 										// swap connection status
 										runtime.connected = !runtime.connected;
 									}
 									break;
-								default:
+								}
+								default: {
 									throw new Error(`Should never happen. Operation ${operation}`);
+								}
 							}
 						}
 

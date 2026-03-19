@@ -84,7 +84,7 @@ export class MapProperty extends IndexedCollectionBaseProperty {
 	_setValuesInternal(in_values, in_typed) {
 		if (this._containsPrimitiveTypes) {
 			var that = this;
-			_.each(in_values, function (value, key) {
+			_.each(in_values, (value, key) => {
 				if (that.has(key)) {
 					that.remove(key);
 				}
@@ -93,8 +93,8 @@ export class MapProperty extends IndexedCollectionBaseProperty {
 			});
 		} else {
 			var that = this;
-			_.each(in_values, function (value, key) {
-				var property = that.get(String(key), {
+			_.each(in_values, (value, key) => {
+				const property = that.get(String(key), {
 					referenceResolutionMode: BaseProperty.REFERENCE_RESOLUTION.NEVER,
 				});
 				// if key exists in set replace its value else insert a new key/value
@@ -170,13 +170,13 @@ export class MapProperty extends IndexedCollectionBaseProperty {
 	 * @override
 	 */
 	setValues(in_values) {
-		var checkoutView = this._getCheckoutView();
-		if (checkoutView !== undefined) {
+		const checkoutView = this._getCheckoutView();
+		if (checkoutView === undefined) {
+			this._setValues(in_values, false, false);
+		} else {
 			checkoutView.pushNotificationDelayScope();
 			this._setValues(in_values, false, false);
 			checkoutView.popNotificationDelayScope();
-		} else {
-			this._setValues(in_values, false, false);
 		}
 	}
 
@@ -196,10 +196,10 @@ export class MapProperty extends IndexedCollectionBaseProperty {
 	 * }
 	 */
 	getValues() {
-		var ids = this.getIds();
-		var result = {};
-		for (var i = 0; i < ids.length; i++) {
-			var child = this.get(ids[i]);
+		const ids = this.getIds();
+		const result = {};
+		for (let i = 0; i < ids.length; i++) {
+			const child = this.get(ids[i]);
 			result[ids[i]] = child.isPrimitiveType()
 				? this.get(ids[i]).getValue()
 				: child.getValues();
@@ -216,7 +216,7 @@ export class MapProperty extends IndexedCollectionBaseProperty {
 	 * @protected
 	 */
 	_getPathSegmentForChildNode(in_childNode) {
-		return "[" + PathHelper.quotePathSegmentIfNeeded(in_childNode._id) + "]";
+		return `[${PathHelper.quotePathSegmentIfNeeded(in_childNode._id)}]`;
 	}
 
 	/**
@@ -278,7 +278,7 @@ export class MapProperty extends IndexedCollectionBaseProperty {
 	 * @return {*} the item removed, or undefined if the key does not exist
 	 */
 	remove(in_key) {
-		var item = this.get(in_key);
+		const item = this.get(in_key);
 		this._removeByKey(in_key, true);
 		return item;
 	}
@@ -353,7 +353,7 @@ export class MapProperty extends IndexedCollectionBaseProperty {
 					? BaseProperty.REFERENCE_RESOLUTION.ALWAYS
 					: in_options.referenceResolutionMode;
 
-			var prop = this;
+			let prop = this;
 			switch (in_ids) {
 				case PATH_TOKENS.ROOT: {
 					prop = prop.getRoot();
@@ -373,10 +373,11 @@ export class MapProperty extends IndexedCollectionBaseProperty {
 			}
 
 			// Handle automatic reference resolution
-			if (in_options.referenceResolutionMode === BaseProperty.REFERENCE_RESOLUTION.ALWAYS) {
-				if (prop instanceof Property.ReferenceProperty) {
-					prop = prop.ref;
-				}
+			if (
+				in_options.referenceResolutionMode === BaseProperty.REFERENCE_RESOLUTION.ALWAYS &&
+				prop instanceof Property.ReferenceProperty
+			) {
+				prop = prop.ref;
 			}
 
 			return prop;
@@ -424,19 +425,19 @@ export class MapProperty extends IndexedCollectionBaseProperty {
 	 * @private
 	 */
 	_getScope() {
-		var scope = IndexedCollectionBaseProperty.prototype._getScope.call(this);
+		const scope = IndexedCollectionBaseProperty.prototype._getScope.call(this);
 
-		return scope !== undefined ? scope : this._scope;
+		return scope === undefined ? this._scope : scope;
 	}
 
 	/**
 	 * Deletes all values from the Map
 	 */
 	clear() {
-		var that = this;
-		this.getIds().forEach(function (id) {
+		const that = this;
+		for (const id of this.getIds()) {
 			that.remove(id);
-		});
+		}
 	}
 }
 

@@ -77,7 +77,7 @@ class BaseDataArray {
 	 * @returns An object containing an array of the values.
 	 */
 	serialize(): number[] {
-		return Array.from(this._buffer.subarray(0, this.size));
+		return [...this._buffer.subarray(0, this.size)];
 	}
 
 	/**
@@ -178,7 +178,7 @@ class BaseDataArray {
 	set(in_offset: number, in_array) {
 		if (
 			in_array instanceof ArrayBuffer ||
-			in_array instanceof Array ||
+			Array.isArray(in_array) ||
 			in_array instanceof this.getBufferCtor()
 		) {
 			this._buffer.set(in_array, in_offset);
@@ -383,10 +383,10 @@ class UniversalDataArray extends BaseDataArray {
 	 */
 	private arraySet(array, values, offset = 0) {
 		let index = 0;
-		values.forEach(function (value) {
+		for (const value of values) {
 			array[index + offset] = value;
 			index++;
-		});
+		}
 	}
 
 	/**
@@ -409,7 +409,7 @@ class UniversalDataArray extends BaseDataArray {
 			this._buffer.splice(in_offset, in_deleteCount);
 			this.size -= in_deleteCount;
 		} else {
-			throw Error("DataArray removeRange in_offset + in_deleteCount is out of bounds.");
+			throw new Error("DataArray removeRange in_offset + in_deleteCount is out of bounds.");
 		}
 	}
 
@@ -422,7 +422,7 @@ class UniversalDataArray extends BaseDataArray {
 	set(in_offset: number, in_array) {
 		if (
 			in_array instanceof ArrayBuffer ||
-			in_array instanceof Array ||
+			Array.isArray(in_array) ||
 			in_array instanceof this.getBufferCtor()
 		) {
 			this.arraySet(this._buffer, in_array, in_offset);
@@ -495,7 +495,7 @@ class StringDataArray extends BaseDataArray {
 	 * @param in_string - the string to be inserted
 	 */
 	insertRange(in_offset: number, in_string: string) {
-		this._buffer = `${this._buffer.substr(0, in_offset)}${in_string}${this._buffer.substr(
+		this._buffer = `${this._buffer.slice(0, Math.max(0, in_offset))}${in_string}${this._buffer.slice(
 			in_offset,
 		)}`;
 		this.size = this.size + in_string.length;
@@ -508,12 +508,12 @@ class StringDataArray extends BaseDataArray {
 	 */
 	removeRange(in_offset: number, in_deleteCount: number) {
 		if (in_offset + in_deleteCount < (this._buffer.length as number) + 1) {
-			this._buffer = `${this._buffer.substr(0, in_offset)}${this._buffer.substr(
+			this._buffer = `${this._buffer.slice(0, Math.max(0, in_offset))}${this._buffer.slice(
 				in_offset + in_deleteCount,
 			)}`;
 			this.size -= in_deleteCount;
 		} else {
-			throw Error("DataArray removeRange in_offset + in_deleteCount is out of bounds.");
+			throw new Error("DataArray removeRange in_offset + in_deleteCount is out of bounds.");
 		}
 	}
 
@@ -523,7 +523,7 @@ class StringDataArray extends BaseDataArray {
 	 * @param in_string - The input string.
 	 */
 	set(in_offset: number, in_string: string) {
-		this._buffer = `${this._buffer.substr(0, in_offset)}${in_string}${this._buffer.substr(
+		this._buffer = `${this._buffer.slice(0, Math.max(0, in_offset))}${in_string}${this._buffer.slice(
 			in_offset + in_string.length,
 		)}`;
 	}
@@ -571,10 +571,10 @@ class BoolDataArray extends UniversalDataArray {
 	 */
 	private arraySetBool(array, values, offset = 0) {
 		let index = 0;
-		values.forEach(function (value) {
+		for (const value of values) {
 			array[index + offset] = !!(value as boolean);
 			index++;
-		});
+		}
 	}
 
 	/**
@@ -596,7 +596,7 @@ class BoolDataArray extends UniversalDataArray {
 	set(in_offset: number, in_array) {
 		if (
 			in_array instanceof ArrayBuffer ||
-			in_array instanceof Array ||
+			Array.isArray(in_array) ||
 			in_array instanceof this.getBufferCtor()
 		) {
 			this.arraySetBool(this._buffer, in_array, in_offset);

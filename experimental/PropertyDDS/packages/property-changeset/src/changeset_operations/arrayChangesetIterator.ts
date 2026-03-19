@@ -13,7 +13,7 @@ import isString from "lodash/isString.js";
 
 // @ts-ignore
 
-import { SerializedChangeSet } from "../changeset.js";
+import type { SerializedChangeSet } from "../changeset.js";
 
 import { ArrayIteratorOperationTypes } from "./operationTypes.js";
 
@@ -92,7 +92,7 @@ export class ArrayChangeSetIterator {
 	private _lastOperationOffset: number;
 
 	private _atEnd: boolean;
-	private _op: GenericOperation;
+	private readonly _op: GenericOperation;
 
 	public get opDescription(): GenericOperation {
 		return this._op;
@@ -208,7 +208,7 @@ export class ArrayChangeSetIterator {
 
 		// Determine the return value and update the internal indices and offsets depending on the next operation
 		switch (type) {
-			case ArrayChangeSetIterator.types.INSERT:
+			case ArrayChangeSetIterator.types.INSERT: {
 				this._op.type = ArrayChangeSetIterator.types.INSERT;
 				// Define the return value
 				this._op.operation = this._changeSet.insert[this._currentIndices.insert];
@@ -219,13 +219,14 @@ export class ArrayChangeSetIterator {
 				// Shift the internal index
 				this._currentIndices.insert++;
 				break;
-			case ArrayChangeSetIterator.types.REMOVE:
+			}
+			case ArrayChangeSetIterator.types.REMOVE: {
 				this._op.type = ArrayChangeSetIterator.types.REMOVE;
 				// Define the return value
 				this._op.operation = this._changeSet.remove[this._currentIndices.remove];
 				this._op.offset = this._currentOffset;
 				// Update the current offset. For a remove we have to decrement it by the number of the removed elements
-				var removedElements = isNumber(this._op.operation[1])
+				const removedElements = isNumber(this._op.operation[1])
 					? this._op.operation[1]
 					: this._op.operation[1].length;
 				this._lastOperationOffset -= removedElements;
@@ -233,6 +234,7 @@ export class ArrayChangeSetIterator {
 				// Shift the internal index
 				this._currentIndices.remove++;
 				break;
+			}
 			case ArrayChangeSetIterator.types.MODIFY: {
 				this._op.type = ArrayChangeSetIterator.types.MODIFY;
 				this._op.offset = this._currentOffset;
@@ -259,8 +261,11 @@ export class ArrayChangeSetIterator {
 					// build a partial modify and cut the remaining one:
 					const partialModify: arrayModifyList = [nextModify[0], undefined];
 					if (isString(nextModify[1])) {
-						partialModify[1] = nextModify[1].substr(0, insertPosition - nextModify[0]);
-						nextModify[1] = nextModify[1].substr(insertPosition - nextModify[0]);
+						partialModify[1] = nextModify[1].slice(
+							0,
+							Math.max(0, insertPosition - nextModify[0]),
+						);
+						nextModify[1] = nextModify[1].slice(insertPosition - nextModify[0]);
 					} else {
 						partialModify[1] = nextModify[1].splice(0, insertPosition - nextModify[0]);
 					}
@@ -278,8 +283,9 @@ export class ArrayChangeSetIterator {
 				}
 				break;
 			}
-			default:
+			default: {
 				throw new Error(`ArrayChangeSetIterator: ${MSG.UNKNOWN_OPERATION}`);
+			}
 		}
 		this._atEnd = false;
 		return true;
@@ -298,7 +304,7 @@ export class ArrayChangeSetIterator {
 		}
 		const result = [];
 		for (let i = 0; i < in_modifies.length; i++) {
-			result.push([in_modifies[i][0], in_modifies[i][1].slice()]);
+			result.push([in_modifies[i][0], [...in_modifies[i][1]]]);
 		}
 		return result;
 	}

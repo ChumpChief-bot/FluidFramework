@@ -6,7 +6,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
 import { bufferToString, stringToBuffer } from "@fluid-internal/client-utils";
-import {
+import type {
 	IChannelAttributes,
 	IChannelFactory,
 	IFluidDataStoreRuntime,
@@ -15,7 +15,7 @@ import {
 import { compress, decompress } from "lz4js";
 import { deflate, inflate } from "pako";
 
-import {
+import type {
 	IPropertyTreeConfig,
 	IPropertyTreeMessage,
 	ISharedPropertyTreeEncDec,

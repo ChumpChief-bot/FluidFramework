@@ -12,10 +12,10 @@ const _ = require("lodash");
 const { PropertyFactory } = require("..");
 const { PropertyUtils } = require("..");
 
-describe("PropertyUtils", function () {
-	describe("PropertyUtils.gatherProperties", function () {
-		it("should return a list of properties that match the predicate", function () {
-			var testTemplate = {
+describe("PropertyUtils", () => {
+	describe("PropertyUtils.gatherProperties", () => {
+		it("should return a list of properties that match the predicate", () => {
+			const testTemplate = {
 				typeid: "autodesk.test:testProp-1.0.0",
 				properties: [
 					{ id: "a", typeid: "Float64" },
@@ -30,13 +30,13 @@ describe("PropertyUtils", function () {
 				],
 			};
 			PropertyFactory.register(testTemplate);
-			var myProperty = PropertyFactory.create("autodesk.test:testProp-1.0.0");
+			const myProperty = PropertyFactory.create("autodesk.test:testProp-1.0.0");
 			myProperty.get("a").setValue(3);
 			myProperty.get("b").setValue("Hello");
 			myProperty.get("nested").get("c").setValue(42);
 			myProperty.get("nested").get("d").setValue("Hello again!");
 
-			var result = PropertyUtils.gatherProperties(myProperty, function (property) {
+			const result = PropertyUtils.gatherProperties(myProperty, (property) => {
 				return _.isNumber(property.value);
 			});
 			expect(result["a"]).to.exist;

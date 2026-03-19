@@ -25,7 +25,7 @@ const { AbstractStaticCollectionProperty } = require("./abstractStaticCollection
 const { BaseProperty } = require("./baseProperty");
 const { LazyLoadedProperties: Property } = require("./lazyLoadedProperties");
 
-var MODIFIED_STATE_FLAGS = BaseProperty.MODIFIED_STATE_FLAGS;
+const MODIFIED_STATE_FLAGS = BaseProperty.MODIFIED_STATE_FLAGS;
 
 // Some global constant objects that are used to indicate a few special
 // cases for the dirty object. If there are no entries in the pending and
@@ -34,29 +34,29 @@ var MODIFIED_STATE_FLAGS = BaseProperty.MODIFIED_STATE_FLAGS;
 // type array, for which the children have been changed.
 // By using these special objects we avoid the memory overhead of having a separate
 // object for each array in this state.
-var DIRTY_AND_PENDING_CHILD_CHANGES = {
+const DIRTY_AND_PENDING_CHILD_CHANGES = {
 	pending: undefined,
 	dirty: undefined,
 	flags: MODIFIED_STATE_FLAGS.PENDING_CHANGE | MODIFIED_STATE_FLAGS.DIRTY,
 };
-var PENDING_CHILD_CHANGES = {
+const PENDING_CHILD_CHANGES = {
 	pending: undefined,
 	dirty: undefined,
 	flags: MODIFIED_STATE_FLAGS.PENDING_CHANGE,
 };
-var DIRTY_CHILD_CHANGES = {
+const DIRTY_CHILD_CHANGES = {
 	pending: undefined,
 	dirty: undefined,
 	flags: MODIFIED_STATE_FLAGS.DIRTY,
 };
-var DIRTY_STATE_FLAGS_ARRAY = [
+const DIRTY_STATE_FLAGS_ARRAY = [
 	undefined,
 	PENDING_CHILD_CHANGES,
 	DIRTY_CHILD_CHANGES,
 	DIRTY_AND_PENDING_CHILD_CHANGES,
 ];
 
-var PATH_TOKENS = BaseProperty.PATH_TOKENS;
+const PATH_TOKENS = BaseProperty.PATH_TOKENS;
 
 /**
  * Given a list of non-overlapping, unordered segments, each identified by its start point and length,
@@ -72,7 +72,10 @@ var PATH_TOKENS = BaseProperty.PATH_TOKENS;
  * @return {Array.<Number>} List of the selected segments, given as indices of the segments
  * @private
  */
-var _getLongestIncreasingSubsequenceSegments = function (in_segmentStarts, in_segmentLengths) {
+const _getLongestIncreasingSubsequenceSegments = function (
+	in_segmentStarts,
+	in_segmentLengths,
+) {
 	if (in_segmentStarts.length === 0) {
 		return [];
 	}
@@ -82,23 +85,23 @@ var _getLongestIncreasingSubsequenceSegments = function (in_segmentStarts, in_se
 	// the last entry in each of the sequences is smaller than the last
 	// entry in longer sequences (so the list is also sorted according to
 	// the sequenceLastEntry member of the structs)
-	var foundSubSequences = [];
+	const foundSubSequences = [];
 
-	for (var i = 0; i < in_segmentStarts.length; i++) {
-		var currentSegmentStart = in_segmentStarts[i];
+	for (let i = 0; i < in_segmentStarts.length; i++) {
+		const currentSegmentStart = in_segmentStarts[i];
 
 		// Perform a binary search to find the largest entry in the list of found sub
 		// sequences that has a sequenceEnd that is smaller or equal than currentSegmentStart
-		var index = _.sortedIndexBy(
+		const index = _.sortedIndexBy(
 			foundSubSequences,
 			{ sequenceLastEntry: currentSegmentStart },
 			"sequenceLastEntry",
 		);
-		var lastEntry = index > 0 ? foundSubSequences[index - 1] : undefined;
+		const lastEntry = index > 0 ? foundSubSequences[index - 1] : undefined;
 
 		// Create a new entry that is obtained by concatenating the longest sequence found so far
 		// with the new segment
-		var newEntry = {
+		const newEntry = {
 			sequenceLength: in_segmentLengths[i] + (lastEntry ? lastEntry.sequenceLength : 0),
 			segmentIndex: i,
 			sequenceLastEntry: currentSegmentStart + in_segmentLengths[i] - 1,
@@ -106,7 +109,7 @@ var _getLongestIncreasingSubsequenceSegments = function (in_segmentStarts, in_se
 		};
 
 		// Search for the insertion position for this entry
-		var insertionPoint = _.sortedIndexBy(foundSubSequences, newEntry, "sequenceLength");
+		let insertionPoint = _.sortedIndexBy(foundSubSequences, newEntry, "sequenceLength");
 		if (
 			foundSubSequences[insertionPoint] !== undefined &&
 			foundSubSequences[insertionPoint].sequenceLength === newEntry.sequenceLength
@@ -119,9 +122,9 @@ var _getLongestIncreasingSubsequenceSegments = function (in_segmentStarts, in_se
 		// it would be a better choice to use the new entry instead of these old
 		// entries). This will preserve the invariant on the foundSubSequences
 		// that they are sorted with respect to the sequenceLastEntry.
-		var lowerLengthBoundary = newEntry.sequenceLength - in_segmentLengths[i];
+		const lowerLengthBoundary = newEntry.sequenceLength - in_segmentLengths[i];
 
-		var j = insertionPoint - 1;
+		let j = insertionPoint - 1;
 		for (; j >= 0 && foundSubSequences[j].sequenceLength > lowerLengthBoundary; j--) {
 			if (foundSubSequences[j].sequenceLastEntry >= newEntry.sequenceLastEntry) {
 				foundSubSequences.splice(j, 1);
@@ -137,8 +140,8 @@ var _getLongestIncreasingSubsequenceSegments = function (in_segmentStarts, in_se
 	ConsoleUtils.assert(foundSubSequences.length > 0);
 
 	// Extract the result
-	var longestSequence = [];
-	var currentSegment = _.last(foundSubSequences);
+	const longestSequence = [];
+	let currentSegment = _.last(foundSubSequences);
 	while (currentSegment) {
 		longestSequence.unshift(currentSegment.segmentIndex);
 		currentSegment = currentSegment.previousEntry;
@@ -160,7 +163,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 */
 	constructor(in_params, in_scope) {
 		super(in_params);
-		var length = in_params.size || in_params.length || 0;
+		const length = in_params.size || in_params.length || 0;
 
 		// changesets
 		this._dirty = undefined;
@@ -182,12 +185,12 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 * @protected
 	 */
 	_getPathSegmentForChildNode(in_childNode) {
-		var index = this._dataArrayGetBuffer().indexOf(in_childNode);
+		const index = this._dataArrayGetBuffer().indexOf(in_childNode);
 		if (index === -1) {
 			throw new Error(MSG.GET_PATH_SEGMENT_CALLED_FOR_NON_ENTRY);
 		}
 
-		return "[" + index + "]";
+		return `[${index}]`;
 	}
 
 	/**
@@ -202,7 +205,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	_resolvePathSegment(in_segment, in_segmentType) {
 		// Base Properties only support paths separated via dots
 		if (in_segmentType === PathHelper.TOKEN_TYPES.ARRAY_TOKEN) {
-			var index = Math.floor(in_segment);
+			const index = Math.floor(in_segment);
 
 			// Specifying a non-integer index is regarded a mal-formed path and thus throws an exception
 			if (!isFinite(index)) {
@@ -304,7 +307,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 * @return {property-properties.BaseProperty | * } the value that was removed.
 	 */
 	remove(in_position) {
-		var value = this.get(in_position);
+		const value = this.get(in_position);
 		this.removeRange(in_position, 1);
 		return value;
 	}
@@ -316,7 +319,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 */
 	pop() {
 		if (this._dataArrayGetLength() > 0) {
-			var item = this.get(this._dataArrayGetLength() - 1, {
+			const item = this.get(this._dataArrayGetLength() - 1, {
 				referenceResolutionMode: BaseProperty.REFERENCE_RESOLUTION.NEVER,
 			});
 			this.remove(this._dataArrayGetLength() - 1);
@@ -332,7 +335,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 */
 	shift() {
 		if (this._dataArrayGetLength() > 0) {
-			var item = this.get(0, {
+			const item = this.get(0, {
 				referenceResolutionMode: BaseProperty.REFERENCE_RESOLUTION.NEVER,
 			});
 			this.remove(0);
@@ -379,15 +382,22 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 */
 	_setValues(in_values, in_typed, in_initial) {
 		if (in_typed) {
-			if (!this._isPrimitive) {
+			if (this._isPrimitive) {
+				AbstractStaticCollectionProperty.prototype._setValues.call(
+					this,
+					in_values,
+					in_typed,
+					in_initial,
+				);
+			} else {
 				ConsoleUtils.assert(
 					_.isArray(in_values),
-					MSG.IN_ARRAY_NOT_ARRAY + "ArrayProperty._setValues",
+					`${MSG.IN_ARRAY_NOT_ARRAY}ArrayProperty._setValues`,
 				);
 
-				var arr = [];
-				for (var i = 0; i < in_values.length; i++) {
-					var prop = in_values[i];
+				const arr = [];
+				for (let i = 0; i < in_values.length; i++) {
+					let prop = in_values[i];
 
 					prop =
 						in_values[i] instanceof BaseProperty
@@ -403,13 +413,6 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 				}
 
 				this._setValuesInternal(arr);
-			} else {
-				AbstractStaticCollectionProperty.prototype._setValues.call(
-					this,
-					in_values,
-					in_typed,
-					in_initial,
-				);
 			}
 		} else {
 			this._setValuesInternal(in_values);
@@ -424,14 +427,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	_setValuesInternal(in_values) {
 		this._checkIsNotReadOnly(true);
 
-		if (!this._isPrimitive) {
-			if (_.isArray(in_values)) {
-				this.clear();
-				this.insertRange(0, in_values);
-			} else {
-				AbstractStaticCollectionProperty.prototype.setValues.call(this, in_values);
-			}
-		} else {
+		if (this._isPrimitive) {
 			if (_.isArray(in_values)) {
 				if (in_values.length < this._dataArrayGetLength()) {
 					this.removeRange(in_values.length, this._dataArrayGetLength() - in_values.length);
@@ -444,9 +440,9 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 					);
 				}
 			} else {
-				var that = this;
-				var maxIndex = this._dataArrayGetLength() - 1;
-				_.each(in_values, function (value, index) {
+				const that = this;
+				const maxIndex = this._dataArrayGetLength() - 1;
+				_.each(in_values, (value, index) => {
 					if (index > maxIndex) {
 						that.insert(index, value);
 					} else {
@@ -455,6 +451,13 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 						}
 					}
 				});
+			}
+		} else {
+			if (_.isArray(in_values)) {
+				this.clear();
+				this.insertRange(0, in_values);
+			} else {
+				AbstractStaticCollectionProperty.prototype.setValues.call(this, in_values);
 			}
 		}
 	}
@@ -470,13 +473,13 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 * @throws if one of the path in in_values does not correspond to a path in the property
 	 */
 	setValues(in_values) {
-		var checkoutView = this._getCheckoutView();
-		if (checkoutView !== undefined) {
+		const checkoutView = this._getCheckoutView();
+		if (checkoutView === undefined) {
+			ArrayProperty.prototype._setValues.call(this, in_values, false, false);
+		} else {
 			checkoutView.pushNotificationDelayScope();
 			ArrayProperty.prototype._setValues.call(this, in_values, false, false);
 			checkoutView.popNotificationDelayScope();
-		} else {
-			ArrayProperty.prototype._setValues.call(this, in_values, false, false);
 		}
 	}
 
@@ -507,14 +510,14 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 * @private
 	 */
 	_updateChanges(in_changeSet) {
-		var pendingChanges = this._getPendingChanges();
+		const pendingChanges = this._getPendingChanges();
 		ChangeSet.prototype._performApplyAfterOnPropertyArray(
 			pendingChanges,
 			in_changeSet,
 			this.getFullTypeid(true),
 		);
 
-		var dirtyChanges = this._getDirtyChanges();
+		const dirtyChanges = this._getDirtyChanges();
 		ChangeSet.prototype._performApplyAfterOnPropertyArray(
 			dirtyChanges,
 			in_changeSet,
@@ -549,7 +552,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 * passed, no change will be applied. undefined indicates that the changes should be reset
 	 */
 	_setChanges(in_pending, in_dirty) {
-		var oldFlags = this._dirty ? this._dirty.flags : 0;
+		const oldFlags = this._dirty ? this._dirty.flags : 0;
 
 		if (this._dirty && this._dirty === DIRTY_STATE_FLAGS_ARRAY[this._dirty.flags]) {
 			this._dirty = undefined;
@@ -590,7 +593,9 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 */
 	_setDirtyFlags(in_flags) {
 		if (this._dirty) {
-			if (this._dirty !== DIRTY_STATE_FLAGS_ARRAY[this._dirty.flags]) {
+			if (this._dirty === DIRTY_STATE_FLAGS_ARRAY[this._dirty.flags]) {
+				this._dirty = DIRTY_STATE_FLAGS_ARRAY[in_flags];
+			} else {
 				this._dirty.flags = in_flags;
 
 				if (
@@ -600,8 +605,6 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 				) {
 					this._dirty = undefined;
 				}
-			} else {
-				this._dirty = DIRTY_STATE_FLAGS_ARRAY[in_flags];
 			}
 		} else {
 			this._dirty = DIRTY_STATE_FLAGS_ARRAY[in_flags];
@@ -634,11 +637,11 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 */
 	insertRange(in_offset, in_array) {
 		if (!_.isArray(in_array)) {
-			throw new TypeError(MSG.IN_ARRAY_NOT_ARRAY + "ArrayProperty.insertRange");
+			throw new TypeError(`${MSG.IN_ARRAY_NOT_ARRAY}ArrayProperty.insertRange`);
 		}
 
 		if (validationsEnabled.enabled) {
-			for (var i = 0; i < in_array.length; i++) {
+			for (let i = 0; i < in_array.length; i++) {
 				if (in_array[i] instanceof BaseProperty) {
 					in_array[i]._validateInsertIn(this);
 				}
@@ -663,12 +666,12 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 			in_setParents = true;
 		}
 		if (in_offset < 0 || in_offset > this.length || !_.isNumber(in_offset)) {
-			throw Error(MSG.START_OFFSET_INVALID + in_offset);
+			throw new Error(MSG.START_OFFSET_INVALID + in_offset);
 		}
 		if (in_setParents && !this._isPrimitive) {
-			var arr = [];
-			for (var i = 0; i < in_array.length; ++i) {
-				var prop = in_array[i];
+			const arr = [];
+			for (let i = 0; i < in_array.length; ++i) {
+				let prop = in_array[i];
 				if (!(in_array[i] instanceof BaseProperty)) {
 					prop = Property.PropertyFactory._createProperty(
 						this._typeid,
@@ -691,7 +694,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 		this._dataArrayInsertRange(in_offset, in_array);
 
 		// Insert entry into changesets
-		var changeSet = {
+		const changeSet = {
 			insert: [[in_offset, this._serializeArray(in_array)]],
 		};
 		this._updateChanges(changeSet);
@@ -713,22 +716,20 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	removeRange(in_offset, in_deleteCount) {
 		ConsoleUtils.assert(
 			_.isNumber(in_offset),
-			MSG.NOT_NUMBER + "in_offset, method: ArrayProperty.removeRange or .remove",
+			`${MSG.NOT_NUMBER}in_offset, method: ArrayProperty.removeRange or .remove`,
 		);
 		ConsoleUtils.assert(
 			_.isNumber(in_deleteCount),
-			MSG.NOT_NUMBER + "in_deleteCount, method: ArrayProperty.removeRange or .remove",
+			`${MSG.NOT_NUMBER}in_deleteCount, method: ArrayProperty.removeRange or .remove`,
 		);
 		ConsoleUtils.assert(
 			in_offset + in_deleteCount < this.length + 1 && in_offset >= 0 && in_deleteCount > 0,
-			MSG.REMOVE_OUT_OF_BOUNDS +
-				"Cannot remove " +
-				in_deleteCount +
-				" items starting at index " +
-				in_offset,
+			`${MSG.REMOVE_OUT_OF_BOUNDS}Cannot remove ${in_deleteCount} items starting at index ${
+				in_offset
+			}`,
 		);
-		var result = [];
-		for (var i = in_offset; i < in_offset + in_deleteCount; i++) {
+		const result = [];
+		for (let i = in_offset; i < in_offset + in_deleteCount; i++) {
 			result.push(this.get(i));
 		}
 		this._checkIsNotReadOnly(true);
@@ -746,11 +747,11 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 */
 	_clearRange(in_offset, in_deleteCount) {
 		if (!this._isPrimitive) {
-			for (var i = 0; i < in_deleteCount; ++i) {
-				if (this._dataArrayGetValue(in_offset + i).getParent() !== this) {
-					throw new Error(MSG.CANNOT_REMOVE_WITH_DIFFERENT_PARENT);
-				} else {
+			for (let i = 0; i < in_deleteCount; ++i) {
+				if (this._dataArrayGetValue(in_offset + i).getParent() === this) {
 					this._dataArrayGetValue(in_offset + i)._setParent(undefined);
+				} else {
+					throw new Error(MSG.CANNOT_REMOVE_WITH_DIFFERENT_PARENT);
 				}
 			}
 		}
@@ -769,7 +770,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 		this._clearRange(in_offset, in_deleteCount);
 
 		// Insert entry into changesets
-		var changeSet = {
+		const changeSet = {
 			remove: [[in_offset, in_deleteCount]],
 		};
 		this._updateChanges(changeSet);
@@ -786,22 +787,18 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 */
 	setRange(in_offset, in_array) {
 		if (!_.isArray(in_array) && !_.isString(in_array)) {
-			throw new TypeError(MSG.IN_ARRAY_NOT_ARRAY + "ArrayProperty.setRange");
+			throw new TypeError(`${MSG.IN_ARRAY_NOT_ARRAY}ArrayProperty.setRange`);
 		}
 		in_offset = Math.floor(in_offset);
 		if (!isFinite(in_offset)) {
 			// eslint-disable-next-line unicorn/prefer-type-error
-			throw new Error(MSG.NOT_NUMBER + "in_offset, method: ArrayProperty.setRange or .set");
+			throw new Error(`${MSG.NOT_NUMBER}in_offset, method: ArrayProperty.setRange or .set`);
 		}
 		ConsoleUtils.assert(
 			in_offset >= -1 && in_offset + in_array.length <= this.getLength(),
-			MSG.SET_OUT_OF_BOUNDS +
-				"Cannot set " +
-				in_array.length +
-				" items starting at index " +
-				in_offset +
-				". Array length: " +
-				this.getLength(),
+			`${MSG.SET_OUT_OF_BOUNDS}Cannot set ${in_array.length} items starting at index ${
+				in_offset
+			}. Array length: ${this.getLength()}`,
 		);
 		this._checkIsNotReadOnly(true);
 		this._setRangeWithoutDirtying(in_offset, in_array);
@@ -829,22 +826,18 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	_modifyRangeWithoutDirtying(in_offset, in_array) {
 		// Has to be overloaded for arrays of properties!
 		if (in_offset < 0) {
-			throw Error(MSG.START_OFFSET_NEGATIVE + in_offset);
+			throw new Error(MSG.START_OFFSET_NEGATIVE + in_offset);
 		}
-		var changeSet = {};
-		var changeArray = [];
+		const changeSet = {};
+		const changeArray = [];
 
-		if (!this._isPrimitive) {
-			// for custom array properties, we have to do a remove/insert instead:
-			this._removeRangeWithoutDirtying(in_offset, in_array.length);
-			this._insertRangeWithoutDirtying(in_offset, in_array);
-		} else {
+		if (this._isPrimitive) {
 			// does the reference array property not have a _dataArrayRef ??
 			// go through all the elements of in_array to check if the content of the given array
 			// is same as value of the array properties. If the values are same, we don't change it.
 			// Otherwise, we set them and generate corresponding changeset.
-			var j;
-			for (var i = 0; i < in_array.length; i++) {
+			let j;
+			for (let i = 0; i < in_array.length; i++) {
 				if (this._dataArrayGetValue(in_offset + i) !== in_array[i]) {
 					for (j = i + 1; j < in_array.length; j++) {
 						if (this._dataArrayGetValue(in_offset + j) === in_array[j]) {
@@ -858,6 +851,10 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 			}
 			changeSet["modify"] = changeArray;
 			this._updateChanges(changeSet);
+		} else {
+			// for custom array properties, we have to do a remove/insert instead:
+			this._removeRangeWithoutDirtying(in_offset, in_array.length);
+			this._insertRangeWithoutDirtying(in_offset, in_array);
 		}
 	}
 
@@ -905,7 +902,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 				: in_options.referenceResolutionMode;
 		var prop = this;
 		if (_.isArray(in_position)) {
-			var iterationStart = 0;
+			let iterationStart = 0;
 			var prop = this;
 			if (in_position[0] === PATH_TOKENS.UP) {
 				prop = prop.getParent();
@@ -922,14 +919,14 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 					MSG.GET_OUT_OF_RANGE + in_position[0],
 				);
 			}
-			for (var i = iterationStart; i < in_position.length && prop; i++) {
+			for (let i = iterationStart; i < in_position.length && prop; i++) {
 				if (
 					in_options.referenceResolutionMode === BaseProperty.REFERENCE_RESOLUTION.NO_LEAFS
 				) {
 					mode =
-						i !== in_position.length - 1
-							? BaseProperty.REFERENCE_RESOLUTION.ALWAYS
-							: BaseProperty.REFERENCE_RESOLUTION.NEVER;
+						i === in_position.length - 1
+							? BaseProperty.REFERENCE_RESOLUTION.NEVER
+							: BaseProperty.REFERENCE_RESOLUTION.ALWAYS;
 				}
 				if (in_position[i + 1] === PATH_TOKENS.REF) {
 					mode = BaseProperty.REFERENCE_RESOLUTION.NEVER;
@@ -955,11 +952,12 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 			default: {
 				var pos = Math.floor(in_position);
 				ConsoleUtils.assert(isFinite(pos), MSG.IN_POSITION_MUST_BE_NUMBER);
-				var result = this._dataArrayGetValue(pos);
-				if (in_options.referenceResolutionMode === BaseProperty.REFERENCE_RESOLUTION.ALWAYS) {
-					if (result instanceof Property.ReferenceProperty) {
-						result = result.ref;
-					}
+				let result = this._dataArrayGetValue(pos);
+				if (
+					in_options.referenceResolutionMode === BaseProperty.REFERENCE_RESOLUTION.ALWAYS &&
+					result instanceof Property.ReferenceProperty
+				) {
+					result = result.ref;
 				}
 				return result;
 			}
@@ -991,10 +989,10 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 * or for a Value Array: `[1, 3, 6]`
 	 */
 	getValues() {
-		var result = [];
-		var ids = this.getIds();
-		for (var i = 0; i < ids.length; i++) {
-			var child = this.get(ids[i]);
+		const result = [];
+		const ids = this.getIds();
+		for (let i = 0; i < ids.length; i++) {
+			const child = this.get(ids[i]);
 			result.push(child.getValues());
 		}
 		return result;
@@ -1014,19 +1012,60 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 		this._checkIsNotReadOnly(false);
 
 		// Iterator to process the changes in the ChangeSet in the correct order
-		var arrayIterator = new ArrayChangeSetIterator(in_changeSet);
+		const arrayIterator = new ArrayChangeSetIterator(in_changeSet);
 
-		if (!this._isPrimitive) {
+		if (this._isPrimitive) {
 			// Successively apply the changes from the changeSet
 			while (!arrayIterator.atEnd()) {
 				switch (arrayIterator.opDescription.type) {
-					case ArrayChangeSetIterator.types.INSERT:
+					case ArrayChangeSetIterator.types.INSERT: {
+						// Handle inserts
+						this._insertRangeWithoutDirtying(
+							arrayIterator.opDescription.operation[0] + arrayIterator.opDescription.offset,
+							this._deserializeArray(arrayIterator.opDescription.operation[1]),
+						);
+						break;
+					}
+					case ArrayChangeSetIterator.types.REMOVE: {
+						// Handle removes
+						let removeLength = arrayIterator.opDescription.operation[1];
+						if (_.isArray(removeLength) || _.isString(removeLength)) {
+							removeLength = removeLength.length;
+						}
+
+						this._removeRangeWithoutDirtying(
+							arrayIterator.opDescription.operation[0] + arrayIterator.opDescription.offset,
+							removeLength,
+						);
+						break;
+					}
+					case ArrayChangeSetIterator.types.MODIFY: {
+						// Handle modifies
+						this._modifyRangeWithoutDirtying(
+							arrayIterator.opDescription.operation[0] + arrayIterator.opDescription.offset,
+							this._deserializeArray(arrayIterator.opDescription.operation[1]),
+						);
+						break;
+					}
+					default: {
+						console.error(
+							`applyChangeset: ${MSG.UNKNOWN_OPERATION}${arrayIterator.opDescription.type}`,
+						);
+					}
+				}
+				arrayIterator.next();
+			}
+		} else {
+			// Successively apply the changes from the changeSet
+			while (!arrayIterator.atEnd()) {
+				switch (arrayIterator.opDescription.type) {
+					case ArrayChangeSetIterator.types.INSERT: {
 						// Handle inserts
 						var propertyDescriptions = arrayIterator.opDescription.operation[1];
-						var insertedPropertyInstances = [];
-						var scope = this._getScope();
+						const insertedPropertyInstances = [];
+						const scope = this._getScope();
 						for (var i = 0; i < propertyDescriptions.length; ++i) {
-							var createdProperty = Property.PropertyFactory._createProperty(
+							const createdProperty = Property.PropertyFactory._createProperty(
 								propertyDescriptions[i]["typeid"],
 								null,
 								undefined,
@@ -1043,9 +1082,10 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 							false,
 						);
 						break;
-					case ArrayChangeSetIterator.types.REMOVE:
+					}
+					case ArrayChangeSetIterator.types.REMOVE: {
 						// Handle removes
-						var numRemoved = arrayIterator.opDescription.operation[1];
+						let numRemoved = arrayIterator.opDescription.operation[1];
 						if (!_.isNumber(numRemoved)) {
 							numRemoved = numRemoved.length;
 						}
@@ -1054,13 +1094,14 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 							numRemoved,
 						);
 						break;
-					case ArrayChangeSetIterator.types.MODIFY:
+					}
+					case ArrayChangeSetIterator.types.MODIFY: {
 						// Handle modifies
 						var propertyDescriptions = arrayIterator.opDescription.operation[1];
-						var startIndex =
+						const startIndex =
 							arrayIterator.opDescription.operation[0] + arrayIterator.opDescription.offset;
 						for (var i = 0; i < propertyDescriptions.length; ++i) {
-							var modifiedProperty = this.get(startIndex + i, {
+							const modifiedProperty = this.get(startIndex + i, {
 								referenceResolutionMode: BaseProperty.REFERENCE_RESOLUTION.NEVER,
 							});
 							if (!modifiedProperty) {
@@ -1069,47 +1110,12 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 							modifiedProperty._applyChangeset(propertyDescriptions[i], false);
 						}
 						break;
-					default:
+					}
+					default: {
 						console.error(
-							"applyChangeset: " + MSG.UNKNOWN_OPERATION + arrayIterator.opDescription.type,
+							`applyChangeset: ${MSG.UNKNOWN_OPERATION}${arrayIterator.opDescription.type}`,
 						);
-				}
-				arrayIterator.next();
-			}
-		} else {
-			// Successively apply the changes from the changeSet
-			while (!arrayIterator.atEnd()) {
-				switch (arrayIterator.opDescription.type) {
-					case ArrayChangeSetIterator.types.INSERT:
-						// Handle inserts
-						this._insertRangeWithoutDirtying(
-							arrayIterator.opDescription.operation[0] + arrayIterator.opDescription.offset,
-							this._deserializeArray(arrayIterator.opDescription.operation[1]),
-						);
-						break;
-					case ArrayChangeSetIterator.types.REMOVE:
-						// Handle removes
-						var removeLength = arrayIterator.opDescription.operation[1];
-						if (_.isArray(removeLength) || _.isString(removeLength)) {
-							removeLength = removeLength.length;
-						}
-
-						this._removeRangeWithoutDirtying(
-							arrayIterator.opDescription.operation[0] + arrayIterator.opDescription.offset,
-							removeLength,
-						);
-						break;
-					case ArrayChangeSetIterator.types.MODIFY:
-						// Handle modifies
-						this._modifyRangeWithoutDirtying(
-							arrayIterator.opDescription.operation[0] + arrayIterator.opDescription.offset,
-							this._deserializeArray(arrayIterator.opDescription.operation[1]),
-						);
-						break;
-					default:
-						console.error(
-							"applyChangeset: " + MSG.UNKNOWN_OPERATION + arrayIterator.opDescription.type,
-						);
+					}
 				}
 				arrayIterator.next();
 			}
@@ -1143,8 +1149,8 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 		BaseProperty.prototype._cleanDirty.call(this, in_flags);
 
 		// null means no change, undefined means reset the changes
-		var pendingChanges = null,
-			dirtyChanges = null;
+		let pendingChanges = null;
+		let dirtyChanges = null;
 
 		if (
 			in_flags === undefined ||
@@ -1167,7 +1173,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 */
 	cleanDirty(in_dirtinessType) {
 		if (!this._isPrimitive) {
-			for (var i = 0; i < this._dataArrayGetLength(); ++i) {
+			for (let i = 0; i < this._dataArrayGetLength(); ++i) {
 				this._dataArrayGetValue(i).cleanDirty(in_dirtinessType);
 			}
 		}
@@ -1192,7 +1198,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 
 		// When the array contains named properties, we can use an efficient diffing algorithm, which
 		// takes advantage of the ability to identify entries in an unique way
-		var targetArray = in_serializedObj.insert[0][1];
+		const targetArray = in_serializedObj.insert[0][1];
 
 		// The algorithm below finds the mapping between the two given arrays which requires the smallest number of
 		// inserted and removed entries. These operations are determined via the following strategy:
@@ -1205,9 +1211,9 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 		//    these segments and compute modify instructions within the segments.
 
 		// 1) Map the GUIDs in the input ChangeSet to indices
-		var resultGuidToIndexMap = {};
+		const resultGuidToIndexMap = {};
 		for (var i = 0; i < targetArray.length; i++) {
-			var insertedProperty = targetArray[i];
+			const insertedProperty = targetArray[i];
 			if (
 				insertedProperty["String"] === undefined ||
 				insertedProperty["String"]["guid"] === undefined
@@ -1223,20 +1229,22 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 			resultGuidToIndexMap[guid] = i;
 		}
 
-		var initialArrayLength = this._dataArrayGetLength();
+		const initialArrayLength = this._dataArrayGetLength();
 
 		// Collect consecutive segments
-		var segmentStartPointsInInitialArray = [];
-		var segmentStartPointsInTargetArray = [];
-		var segmentLengths = [];
-		var segmentInterrupted = false;
+		const segmentStartPointsInInitialArray = [];
+		const segmentStartPointsInTargetArray = [];
+		const segmentLengths = [];
+		let segmentInterrupted = false;
 		for (var i = 0; i < initialArrayLength; i++) {
 			// Get the GUID of the entry
 			var guid = this._dataArrayGetValue(i).getGuid();
 
 			// Check where it is stored in the target array
-			var index = resultGuidToIndexMap[guid];
-			if (index !== undefined) {
+			const index = resultGuidToIndexMap[guid];
+			if (index === undefined) {
+				segmentInterrupted = true;
+			} else {
 				// Check whether we can append the entry to the existing sequence
 				if (
 					!segmentInterrupted &&
@@ -1252,27 +1260,27 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 					segmentLengths.push(1);
 					segmentInterrupted = false;
 				}
-			} else {
-				segmentInterrupted = true;
 			}
 		}
 
 		// 2) Get all segments in the array which we will keep (we try to keep as many as possible, so this maps
 		// to finding the longest monotone increasing sequence of sub-segments)
-		var orderedSegments = _getLongestIncreasingSubsequenceSegments(
+		const orderedSegments = _getLongestIncreasingSubsequenceSegments(
 			segmentStartPointsInTargetArray,
 			segmentLengths,
 		);
 
 		// 3) Now we have to convert this sequence of ordered segments to insert and remove commands
-		var changes = {};
+		const changes = {};
 
-		var lastPositionInInitialArray = 0;
-		var lastPositionInTargetArray = 0;
-		var offset = 0;
+		let lastPositionInInitialArray = 0;
+		let lastPositionInTargetArray = 0;
+		let offset = 0;
 		for (var i = 0; i <= orderedSegments.length; i++) {
-			var startPointInInitialArray, startPointInTargetArray, segmentLength;
-			var offsetChange = 0;
+			var startPointInInitialArray;
+			var startPointInTargetArray;
+			var segmentLength;
+			let offsetChange = 0;
 			if (i < orderedSegments.length) {
 				// Extract the information about the currently processed segment.
 				startPointInInitialArray = segmentStartPointsInInitialArray[orderedSegments[i]];
@@ -1304,13 +1312,16 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 			// to insert the elements between the two points
 			if (startPointInTargetArray > lastPositionInTargetArray) {
 				changes.insert = changes.insert || [];
-				let elementsToInsert = targetArray.slice(
+				const elementsToInsert = targetArray.slice(
 					lastPositionInTargetArray,
 					startPointInTargetArray,
 				);
 				changes.insert.push([lastPositionInInitialArray, deepCopy(elementsToInsert)]);
-				var scope = this._getScope();
-				var insertedProperties = deserializeNonPrimitiveArrayElements(elementsToInsert, scope);
+				const scope = this._getScope();
+				const insertedProperties = deserializeNonPrimitiveArrayElements(
+					elementsToInsert,
+					scope,
+				);
 				this._insertRangeWithoutDirtying(
 					lastPositionInInitialArray + offset,
 					insertedProperties,
@@ -1324,9 +1335,9 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 			offset += offsetChange;
 
 			// Recursively check the entries within the segment for modifications
-			for (var j = 0; j < segmentLength; j++) {
-				var existingEntry = this._dataArrayGetValue(startPointInInitialArray + j + offset);
-				var entryChanges = existingEntry._deserialize(
+			for (let j = 0; j < segmentLength; j++) {
+				const existingEntry = this._dataArrayGetValue(startPointInInitialArray + j + offset);
+				const entryChanges = existingEntry._deserialize(
 					targetArray[startPointInTargetArray + j],
 					false,
 					undefined,
@@ -1338,10 +1349,8 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 					// Make sure, the ChangeSet contains the typeid of the modified entry
 					entryChanges.typeid = existingEntry.getFullTypeid();
 
-					if (!changes.modify) {
-						changes.modify = [[startPointInInitialArray + j, [entryChanges]]];
-					} else {
-						var lastModifiedSequence = _.last(changes.modify);
+					if (changes.modify) {
+						const lastModifiedSequence = _.last(changes.modify);
 						if (
 							lastModifiedSequence[0] + lastModifiedSequence[1].length ===
 							startPointInInitialArray + j
@@ -1350,6 +1359,8 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 						} else {
 							changes.modify.push([startPointInInitialArray + j, [entryChanges]]);
 						}
+					} else {
+						changes.modify = [[startPointInInitialArray + j, [entryChanges]]];
 					}
 				}
 			}
@@ -1396,8 +1407,8 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 * @return {Array<property-properties.SerializedChangeSet>} the serialized object
 	 */
 	_serializeArray(in_array) {
-		var len = in_array.length;
-		var result = new Array(len);
+		const len = in_array.length;
+		const result = new Array(len);
 		if (this._isPrimitive) {
 			for (var i = 0; i < len; i++) {
 				result[i] = this._serializeValue(in_array[i]);
@@ -1443,14 +1454,14 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 			throw new Error(MSG.NO_NORMALIZED_CHANGESET);
 		}
 
-		var arrayLength = this._dataArrayGetLength();
+		const arrayLength = this._dataArrayGetLength();
 
 		if (!in_serializedObj.insert || !in_serializedObj.insert[0]) {
 			// we've got an empty object, so we have to wipe everything we've got
 			if (arrayLength > 0) {
 				this._clearRange(0, arrayLength);
 				this._setDirty(in_reportToView);
-				var removeChangeSet = {
+				const removeChangeSet = {
 					remove: [[0, arrayLength]],
 				};
 				this._updateChanges(removeChangeSet);
@@ -1461,11 +1472,11 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 			}
 		}
 
-		var scope = this._getScope();
+		const scope = this._getScope();
 
 		if (
 			Property.PropertyFactory.inheritsFrom(this.getTypeid(), "NamedProperty", {
-				scope: scope,
+				scope,
 			})
 		) {
 			return this._deserializeNamedPropertyArray(in_serializedObj, in_reportToView);
@@ -1473,7 +1484,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 			// most simplistic diff method: Remove all existing data and insert the new data
 
 			// The changes we will report as result of this function
-			var simpleChanges = {
+			const simpleChanges = {
 				insert: in_createChangeSet
 					? deepCopy(in_serializedObj.insert)
 					: in_serializedObj.insert,
@@ -1482,35 +1493,13 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 				simpleChanges.remove = [[0, arrayLength]];
 			}
 
-			if (!this._isPrimitive) {
-				var propertyDescriptions = in_serializedObj.insert[0][1];
-				var result = [];
-
-				for (var i = 0; i < propertyDescriptions.length; ++i) {
-					var createdProperty = Property.PropertyFactory._createProperty(
-						propertyDescriptions[i]["typeid"],
-						null,
-						undefined,
-						scope,
-					);
-					createdProperty._setParent(this);
-					createdProperty._deserialize(
-						propertyDescriptions[i],
-						false,
-						in_filteringOptions,
-						false,
-					);
-					result.push(createdProperty);
-				}
-				this._clearRange(0, this._dataArrayGetLength());
-				this._dataArrayInsertRange(0, result);
-			} else {
+			if (this._isPrimitive) {
 				// Check, whether there has been any change in the array at all
 				if (in_serializedObj.insert[0][1].length === this._dataArrayGetLength()) {
 					// We have to compare the two buffers
-					var buffer = this._dataArrayGetBuffer();
-					var changeSetArray = in_serializedObj.insert[0][1];
-					var len = buffer.length;
+					const buffer = this._dataArrayGetBuffer();
+					const changeSetArray = in_serializedObj.insert[0][1];
+					const len = buffer.length;
 					var i = 0;
 					if (this._typeid === "Int64" || this._typeid === "Uint64") {
 						// For (u)int64, we will compare (Ui/I)nt64 objects with arrays [low, high]
@@ -1535,6 +1524,28 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 				}
 				// set the actual array values to our array
 				this._dataArrayDeserialize(this._deserializeArray(in_serializedObj.insert[0][1]));
+			} else {
+				const propertyDescriptions = in_serializedObj.insert[0][1];
+				const result = [];
+
+				for (var i = 0; i < propertyDescriptions.length; ++i) {
+					const createdProperty = Property.PropertyFactory._createProperty(
+						propertyDescriptions[i]["typeid"],
+						null,
+						undefined,
+						scope,
+					);
+					createdProperty._setParent(this);
+					createdProperty._deserialize(
+						propertyDescriptions[i],
+						false,
+						in_filteringOptions,
+						false,
+					);
+					result.push(createdProperty);
+				}
+				this._clearRange(0, this._dataArrayGetLength());
+				this._dataArrayInsertRange(0, result);
 			}
 
 			// Update the dirty and pending changes
@@ -1552,23 +1563,24 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 		in_dirtinessType,
 		in_includeReferencedRepositories,
 	) {
-		var result = {};
+		const result = {};
 		if (in_basePropertyChangeset.remove && in_basePropertyChangeset.remove.length > 0) {
 			result.remove = deepCopy(in_basePropertyChangeset.remove);
 		}
 		// get the iterator over the changes:
-		var iterator = new ArrayChangeSetIterator(in_basePropertyChangeset);
-		var currentArrayIndex = 0;
-		var currentArraySize = this._dataArrayGetLength();
-		var op, opStartIndex;
+		const iterator = new ArrayChangeSetIterator(in_basePropertyChangeset);
+		let currentArrayIndex = 0;
+		const currentArraySize = this._dataArrayGetLength();
+		let op;
+		let opStartIndex;
 		while (!iterator.atEnd() || currentArrayIndex < currentArraySize) {
-			if (!iterator.atEnd()) {
-				op = iterator.opDescription;
-				opStartIndex = op.operation[0] + op.offset;
-			} else {
+			if (iterator.atEnd()) {
 				// no more ops
 				op = { offset: iterator.opDescription.offset };
 				opStartIndex = Number.MAX_VALUE;
+			} else {
+				op = iterator.opDescription;
+				opStartIndex = op.operation[0] + op.offset;
 			}
 
 			if (currentArrayIndex < opStartIndex) {
@@ -1577,7 +1589,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 				// we have to check if the element was modified (since that is not tracked)
 				if (this._dataArrayGetValue(currentArrayIndex)._isDirty(in_dirtinessType)) {
 					// check if we can combine modifies:
-					var lastModify = undefined;
+					let lastModify;
 					if (result.modify && result.modify.length > 0) {
 						lastModify = result.modify[result.modify.length - 1];
 						if (lastModify[0] + lastModify[1].length === currentArrayIndex - op.offset) {
@@ -1643,9 +1655,9 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 					}
 					case ArrayChangeSetIterator.types.INSERT: {
 						// we have to convert the inserts:
-						var currentInsert = op.operation;
-						var newInsert = [currentInsert[0], []];
-						for (var j = 0; j < currentInsert[1].length; ++j) {
+						const currentInsert = op.operation;
+						const newInsert = [currentInsert[0], []];
+						for (let j = 0; j < currentInsert[1].length; ++j) {
 							// TODO: we don't use the data from the changeset anymore, since we directly
 							// TODO: read the data from the array now - remove the data from the op and
 							// TODO: replace it with just the length instead
@@ -1675,8 +1687,9 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 						iterator.next(); // we've completely consumed that op
 						break;
 					}
-					default:
+					default: {
 						break;
+					}
 				}
 			}
 		}
@@ -1704,7 +1717,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 		in_dirtinessType,
 		in_includeReferencedRepositories,
 	) {
-		var result = AbstractStaticCollectionProperty.prototype._serialize.call(
+		const result = AbstractStaticCollectionProperty.prototype._serialize.call(
 			this,
 			in_dirtyOnly,
 			in_includeRootTypeid,
@@ -1774,22 +1787,22 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 * @param {function} printFct - Function to call for printing each property
 	 */
 	_prettyPrint(indent, externalId, printFct) {
-		printFct(indent + externalId + this.getId() + " (Array of " + this.getTypeid() + "): [");
-		if (!this._isPrimitive) {
-			this._prettyPrintChildren(indent, printFct);
-		} else {
-			var childIndent = indent + "  ";
-			var prefix = "";
-			var suffix = "";
+		printFct(`${indent + externalId + this.getId()} (Array of ${this.getTypeid()}): [`);
+		if (this._isPrimitive) {
+			const childIndent = `${indent}  `;
+			let prefix = "";
+			let suffix = "";
 			if (this.getTypeid() === "String") {
 				prefix = '"';
 				suffix = '"';
 			}
-			for (var i = 0; i < this._dataArrayGetLength(); i++) {
-				printFct(childIndent + i + ": " + prefix + this._dataArrayGetValue(i) + suffix);
+			for (let i = 0; i < this._dataArrayGetLength(); i++) {
+				printFct(`${childIndent + i}: ${prefix}${this._dataArrayGetValue(i)}${suffix}`);
 			}
+		} else {
+			this._prettyPrintChildren(indent, printFct);
 		}
-		printFct(indent + "]");
+		printFct(`${indent}]`);
 	}
 
 	/**
@@ -1800,11 +1813,11 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 */
 	_prettyPrintChildren(indent, printFct) {
 		indent += "  ";
-		var ids = this.getIds();
-		for (var i = 0; i < ids.length; i++) {
+		const ids = this.getIds();
+		for (let i = 0; i < ids.length; i++) {
 			this.get(ids[i], {
 				referenceResolutionMode: BaseProperty.REFERENCE_RESOLUTION.NEVER,
-			})._prettyPrint(indent, ids[i] + ": ", printFct);
+			})._prettyPrint(indent, `${ids[i]}: `, printFct);
 		}
 	}
 
@@ -1814,7 +1827,7 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 * @protected
 	 */
 	_toJson() {
-		var json = {
+		const json = {
 			id: this.getId(),
 			context: this._context,
 			typeid: this.getTypeid(),
@@ -1822,17 +1835,17 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 			value: [],
 		};
 
-		if (!this._isPrimitive) {
-			var ids = this.getIds();
-			for (var i = 0; i < ids.length; i++) {
+		if (this._isPrimitive) {
+			json.value = this.getValues();
+		} else {
+			const ids = this.getIds();
+			for (let i = 0; i < ids.length; i++) {
 				json.value.push(
 					this.get(ids[i], {
 						referenceResolutionMode: BaseProperty.REFERENCE_RESOLUTION.NEVER,
 					})._toJson(),
 				);
 			}
-		} else {
-			json.value = this.getValues();
 		}
 
 		return json;
@@ -1858,8 +1871,8 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 		// This really creates a generic array for custom type arrays. For primitive arrays, like
 		// 'StringArrayProperty' or 'Float32ArrayProperty', you need to overload this function.
 		this._dataArrayRef = new UniversalDataArray(in_length);
-		for (var i = 0; i < in_length; i++) {
-			var element = Property.PropertyFactory._createProperty(
+		for (let i = 0; i < in_length; i++) {
+			const element = Property.PropertyFactory._createProperty(
 				this.getTypeid(),
 				null,
 				undefined,
@@ -1948,9 +1961,9 @@ export class ArrayProperty extends AbstractStaticCollectionProperty {
 	 * @private
 	 */
 	_getScope() {
-		var scope = AbstractStaticCollectionProperty.prototype._getScope.call(this);
+		const scope = AbstractStaticCollectionProperty.prototype._getScope.call(this);
 
-		return scope !== undefined ? scope : this._scope;
+		return scope === undefined ? this._scope : scope;
 	}
 
 	/**

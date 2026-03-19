@@ -13,11 +13,14 @@ import isNumber from "lodash/isNumber.js";
 import isString from "lodash/isString.js";
 
 // @ts-ignore
-import { ApplyChangeSetOptions, ConflictInfo, SerializedChangeSet } from "../changeset.js";
+import type {
+	ApplyChangeSetOptions,
+	ConflictInfo,
+	SerializedChangeSet,
+} from "../changeset.js";
 import { TypeIdHelper } from "../helpers/typeidHelper.js";
 
-import {
-	ArrayChangeSetIterator,
+import type {
 	GenericOperation,
 	InsertOperation,
 	ModifyOperation,
@@ -28,6 +31,7 @@ import {
 	arrayModifyList,
 	arrayRemoveList,
 } from "./arrayChangesetIterator.js";
+import { ArrayChangeSetIterator } from "./arrayChangesetIterator.js";
 import { ConflictType } from "./changesetConflictTypes.js";
 
 const { MSG } = constants;
@@ -180,13 +184,14 @@ const getRangeForCurrentStateOperation = function (
 
 	io_operation.operation[0] += in_aOffset;
 	switch (io_operation.type) {
-		case ArrayChangeSetIterator.types.INSERT:
+		case ArrayChangeSetIterator.types.INSERT: {
 			io_resultingRange.begin = io_operation.operation[0];
 			io_resultingRange.end = io_operation.operation[0] + io_operation.operation[1].length;
 			io_resultingRange.op = io_operation;
 			io_resultingRange.flag = ArrayChangeSetRangeType.completeA;
 			return;
-		case ArrayChangeSetIterator.types.REMOVE:
+		}
+		case ArrayChangeSetIterator.types.REMOVE: {
 			io_resultingRange.begin = io_operation.operation[0];
 			io_resultingRange.end = io_operation.operation[0];
 			io_resultingRange.op = io_operation;
@@ -194,14 +199,17 @@ const getRangeForCurrentStateOperation = function (
 			(io_resultingRange as OperationRangeRemove).removeInsertOperation =
 				io_operation.removeInsertOperation;
 			return;
-		case ArrayChangeSetIterator.types.MODIFY:
+		}
+		case ArrayChangeSetIterator.types.MODIFY: {
 			io_resultingRange.begin = io_operation.operation[0];
 			io_resultingRange.end = io_operation.operation[0] + io_operation.operation[1].length;
 			io_resultingRange.op = io_operation;
 			io_resultingRange.flag = ArrayChangeSetRangeType.completeA;
 			return;
-		default:
+		}
+		default: {
 			throw new Error(`getRangeForCurrentStateOperation: ${MSG.UNKNOWN_OPERATION}`);
+		}
 	}
 };
 
@@ -239,12 +247,12 @@ const getRangeForAppliedOperation = function (
 
 	io_resultingRange.begin = in_operation.operation[0];
 	io_resultingRange.op._absoluteBegin = in_operation.operation[0];
-	io_resultingRange.flag = in_flag !== undefined ? in_flag : ArrayChangeSetRangeType.completeB;
+	io_resultingRange.flag = in_flag === undefined ? ArrayChangeSetRangeType.completeB : in_flag;
 
 	switch (in_operation.type) {
-		case ArrayChangeSetIterator.types.INSERT:
+		case ArrayChangeSetIterator.types.INSERT: {
 			io_resultingRange.end = in_operation.operation[0];
-			io_resultingRange.op.operation[1] = in_operation.operation[1].slice();
+			io_resultingRange.op.operation[1] = [...in_operation.operation[1]];
 			if (in_options && in_options.applyAfterMetaInformation) {
 				const metaInformation = in_options.applyAfterMetaInformation.get(
 					in_operation.operation[1],
@@ -257,24 +265,28 @@ const getRangeForAppliedOperation = function (
 				}
 			}
 			return;
-		case ArrayChangeSetIterator.types.REMOVE:
-			let numberOfRemovedElements = getOpLength(in_operation.operation);
+		}
+		case ArrayChangeSetIterator.types.REMOVE: {
+			const numberOfRemovedElements = getOpLength(in_operation.operation);
 
 			io_resultingRange.end = in_operation.operation[0] + numberOfRemovedElements;
 			io_resultingRange.op.operation[1] = Array.isArray(in_operation.operation[1])
-				? in_operation.operation[1].slice()
+				? [...in_operation.operation[1]]
 				: in_operation.operation[1];
 			io_resultingRange.removeInsertOperation = in_operation.removeInsertOperation;
 			return;
-		case ArrayChangeSetIterator.types.MODIFY:
+		}
+		case ArrayChangeSetIterator.types.MODIFY: {
 			io_resultingRange.end = in_operation.operation[0] + in_operation.operation[1].length;
-			io_resultingRange.op.operation[1] = in_operation.operation[1].slice();
+			io_resultingRange.op.operation[1] = [...in_operation.operation[1]];
 			if (in_operation.operation[2] !== undefined) {
-				io_resultingRange.op.operation[2] = in_operation.operation[2].slice();
+				io_resultingRange.op.operation[2] = [...in_operation.operation[2]];
 			}
 			return;
-		default:
+		}
+		default: {
 			throw new Error(`getRangeForCurrentStateOperation: ${MSG.UNKNOWN_OPERATION}`);
+		}
 	}
 };
 
@@ -296,14 +308,14 @@ const _splitArrayParameter = function (
 ) {
 	let firstTmp: any;
 	if (isString(in_data[1])) {
-		firstTmp = in_data[1].substr(0, in_start);
-		in_secondResult[1] = in_data[1].substr(in_start);
+		firstTmp = in_data[1].slice(0, Math.max(0, in_start));
+		in_secondResult[1] = in_data[1].slice(in_start);
 		if (in_firstResult) {
 			in_firstResult[1] = firstTmp;
 		}
 		if (in_data[2] !== undefined && isString(in_data[2])) {
-			firstTmp = in_data[2].substr(0, in_start);
-			in_secondResult[2] = in_data[2].substr(in_start);
+			firstTmp = in_data[2].slice(0, Math.max(0, in_start));
+			in_secondResult[2] = in_data[2].slice(in_start);
 			if (in_firstResult) {
 				in_firstResult[2] = firstTmp;
 			}
@@ -372,9 +384,9 @@ const _copyOperation = function (
 	if (in_sourceOperation.type === ArrayChangeSetIterator.types.REMOVE) {
 		in_targetOperation.operation[1] = in_sourceOperation.operation[1];
 	} else {
-		in_targetOperation.operation[1] = in_sourceOperation.operation[1].slice();
+		in_targetOperation.operation[1] = [...in_sourceOperation.operation[1]];
 		if (in_sourceOperation.operation[2] !== undefined) {
-			in_targetOperation.operation[2] = in_sourceOperation.operation[2].slice();
+			in_targetOperation.operation[2] = [...in_sourceOperation.operation[2]];
 		}
 	}
 };
@@ -475,11 +487,10 @@ const splitOverlapping = function (
 		let rangeStart = 0;
 		let matchFound = false;
 		let rangeLength = io_rangeB.op.operation[1].length;
-		const operationMetaInfo =
-			in_options &&
-			in_options.applyAfterMetaInformation &&
-			in_options.applyAfterMetaInformation.get(io_rangeB.op.operation[1]);
-		if (operationMetaInfo && operationMetaInfo.rebasedRemoveInsertRanges) {
+		const operationMetaInfo = in_options?.applyAfterMetaInformation?.get(
+			io_rangeB.op.operation[1],
+		);
+		if (operationMetaInfo?.rebasedRemoveInsertRanges) {
 			if (operationMetaInfo.currentInsertOffset === undefined) {
 				operationMetaInfo.currentInsertOffset = 0;
 				operationMetaInfo.currentRemoveOffset = 0;
@@ -652,24 +663,24 @@ const splitOverlapping = function (
 		if (
 			in_rebasing &&
 			io_rangeA.op.type === ArrayChangeSetIterator.types.REMOVE &&
-			io_rangeA.end === io_rangeB.begin
+			io_rangeA.end === io_rangeB.begin &&
+			in_options &&
+			in_options.applyAfterMetaInformation
 		) {
-			if (in_options && in_options.applyAfterMetaInformation) {
-				let length = io_rangeB.op.operation[1];
-				if (!isNumber(length)) {
-					length = length.length;
-				}
-
-				in_options.applyAfterMetaInformation.set(io_rangeB.op.operation[1], {
-					rebasedRemoveInsertRanges: [
-						{
-							rangeStart: 0,
-							rangeLength: length,
-							originalStartPosition: io_rangeA.end + io_rangeB.op.offset,
-						},
-					],
-				});
+			let length = io_rangeB.op.operation[1];
+			if (!isNumber(length)) {
+				length = length.length;
 			}
+
+			in_options.applyAfterMetaInformation.set(io_rangeB.op.operation[1], {
+				rebasedRemoveInsertRanges: [
+					{
+						rangeStart: 0,
+						rangeLength: length,
+						originalStartPosition: io_rangeA.end + io_rangeB.op.offset,
+					},
+				],
+			});
 		}
 		return;
 	}
@@ -832,10 +843,8 @@ const mergeWithLastIfPossible = function (
 					const currentMetaInfo = in_options.applyAfterMetaInformation.get(in_op.operation[1]);
 					if (previousMetaInfo || currentMetaInfo) {
 						// Get the range information attached to the segments that get merged
-						const previousRange =
-							(previousMetaInfo && previousMetaInfo.rebasedRemoveInsertRanges) || [];
-						const nextRange =
-							(currentMetaInfo && currentMetaInfo.rebasedRemoveInsertRanges) || [];
+						const previousRange = previousMetaInfo?.rebasedRemoveInsertRanges || [];
+						const nextRange = currentMetaInfo?.rebasedRemoveInsertRanges || [];
 
 						// Update the start index
 						for (let i = 0; i < nextRange.length; i++) {
@@ -882,7 +891,7 @@ const mergeWithLastIfPossible = function (
 			// We handle these in a post processing step instead
 			throw new Error("Should never happen");
 		}
-		case ArrayChangeSetIterator.types.MODIFY:
+		case ArrayChangeSetIterator.types.MODIFY: {
 			if (io_changeset.modify.length === 0) {
 				return false;
 			}
@@ -897,8 +906,10 @@ const mergeWithLastIfPossible = function (
 				return false;
 			}
 			break;
-		default:
+		}
+		default: {
 			throw new Error(`pushOp: ${MSG.UNKNOWN_OPERATION}${in_op.type}`);
+		}
 	}
 	return true;
 };
@@ -940,14 +951,11 @@ const pushOp = function (
 		if (
 			ArrayChangeSetIterator.types.INSERT === in_op.type &&
 			in_lastIteratorARemove !== undefined &&
-			in_segment.flag === ArrayChangeSetRangeType.completeB
+			in_segment.flag === ArrayChangeSetRangeType.completeB &&
+			in_lastIteratorARemove.position == in_op.operation[0] &&
+			in_lastIteratorARemove.offsetIncremented
 		) {
-			if (
-				in_lastIteratorARemove.position == in_op.operation[0] &&
-				in_lastIteratorARemove.offsetIncremented
-			) {
-				writeTargetIndex -= in_lastIteratorARemove.length;
-			}
+			writeTargetIndex -= in_lastIteratorARemove.length;
 		}
 		if (writeTargetIndex < 0) {
 			writeTargetIndex = 0; // TODO: investigate negative index!
@@ -994,10 +1002,10 @@ const pushOp = function (
 		}
 		case ArrayChangeSetIterator.types.MODIFY: {
 			if (!mergeWithLastIfPossible(in_op, io_changeset, writeTargetIndex, in_options)) {
-				if (in_op.operation[2] !== undefined) {
-					io_changeset.modify.push([writeTargetIndex, in_op.operation[1], in_op.operation[2]]);
-				} else {
+				if (in_op.operation[2] === undefined) {
 					io_changeset.modify.push([writeTargetIndex, in_op.operation[1]]);
+				} else {
+					io_changeset.modify.push([writeTargetIndex, in_op.operation[1], in_op.operation[2]]);
 				}
 			}
 			break;
@@ -1006,8 +1014,9 @@ const pushOp = function (
 			// nothing to do
 			break;
 		}
-		default:
+		default: {
 			throw new Error(`pushOp: ${MSG.UNKNOWN_OPERATION}${(in_op as any).type}`);
+		}
 	}
 };
 
@@ -1075,8 +1084,9 @@ const handleCombinations = function (in_segment: SegmentType, in_isPrimitiveType
 					}
 					break;
 				}
-				default:
+				default: {
 					throw new Error(`handleCombinations: ${MSG.UNKNOWN_OPERATION}${opB.type}`);
+				}
 			}
 			break;
 		}
@@ -1117,8 +1127,9 @@ const handleCombinations = function (in_segment: SegmentType, in_isPrimitiveType
 				break;
 			}
 		}
-		default:
+		default: {
 			throw new Error(`handleCombinations: ${MSG.UNKNOWN_OPERATION}${opA.type}`);
+		}
 	}
 };
 
@@ -1274,8 +1285,9 @@ const handleRebaseCombinations = function (
 					// non-conflicting insert - just keep B
 					break;
 				}
-				default:
+				default: {
 					throw new Error(`handleCombinations: ${MSG.UNKNOWN_OPERATION}${opB.type}`);
+				}
 			}
 			break;
 		}
@@ -1291,10 +1303,7 @@ const handleRebaseCombinations = function (
 					// to take the insert operation within the base changeset
 					// into account during rebasing, moving the rebased operation
 					// behind this insert
-					if (
-						in_segment.removeInsertOperationA &&
-						in_segment.removeInsertOperationA[0] === opB.operation[0]
-					) {
+					if (in_segment.removeInsertOperationA?.[0] === opB.operation[0]) {
 						handleInsert(
 							{
 								operation: in_segment.removeInsertOperationA as arrayInsertList,
@@ -1331,7 +1340,7 @@ const handleRebaseCombinations = function (
 					if (opB.operation[1].length > 0) {
 						delete opA._absoluteBegin;
 						delete opB.offset;
-						let conflict = {
+						const conflict = {
 							path: in_basePath, // TODO: We have to report the range or per element
 							type: ConflictType.ENTRY_MODIFIED_AFTER_REMOVE,
 							conflictingChange: cloneDeep(opB),
@@ -1344,8 +1353,9 @@ const handleRebaseCombinations = function (
 
 					break;
 				}
-				default:
+				default: {
 					throw new Error(`handleCombinations: ${MSG.UNKNOWN_OPERATION}${opB.type}`);
+				}
 			}
 			break;
 		}
@@ -1355,7 +1365,7 @@ const handleRebaseCombinations = function (
 				if (opB.type === ArrayChangeSetIterator.types.MODIFY && opB.operation[1].length > 0) {
 					delete opA._absoluteBegin;
 					delete opB.offset;
-					let conflict = {
+					const conflict = {
 						path: in_basePath, // TODO: We have to report the range or per element
 						type: ConflictType.COLLIDING_SET,
 						conflictingChange: cloneDeep(opB),
@@ -1372,7 +1382,7 @@ const handleRebaseCombinations = function (
 						opB.operation = null;
 						// If any, change the opB old value by the opA new value
 					} else if (opB.operation[2]) {
-						opB.operation[2] = opA.operation[1].slice();
+						opB.operation[2] = [...opA.operation[1]];
 					}
 				}
 				// WARNING: 'operation[1]' is 'string | number | genericArray'.  The cast to 'number'
@@ -1383,7 +1393,7 @@ const handleRebaseCombinations = function (
 				) {
 					delete opA._absoluteBegin;
 					delete opB.offset;
-					let conflict = {
+					const conflict = {
 						path: in_basePath, // TODO: We have to report the range or per element
 						type: ConflictType.REMOVE_AFTER_MODIFY,
 						conflictingChange: cloneDeep(opB),
@@ -1415,8 +1425,9 @@ const handleRebaseCombinations = function (
 				break;
 			}
 		}
-		default:
+		default: {
 			throw new Error(`handleCombinations: ${MSG.UNKNOWN_OPERATION}${opA.type}`);
+		}
 	}
 };
 
@@ -1436,7 +1447,7 @@ const applySegment = function (
 	in_options?: ApplyChangeSetOptions,
 ) {
 	if (!in_segment) {
-		throw Error("applySegment: in_segment is undefined!");
+		throw new Error("applySegment: in_segment is undefined!");
 	}
 
 	// No operation needs to be performed
@@ -1489,7 +1500,7 @@ const applyRebaseSegment = function (
 	in_options?: ApplyChangeSetOptions,
 ) {
 	if (!in_segment) {
-		throw Error("applySegment: in_segment is undefined!");
+		throw new Error("applySegment: in_segment is undefined!");
 	}
 	if (
 		in_segment.flag === ArrayChangeSetRangeType.completeB ||
@@ -1627,27 +1638,29 @@ export namespace ChangeSetArrayFunctions {
 				// offset has already been incremented by the remove. Therefore, the insert would
 				// be placed behind the remove. We detect this case and correct the offset accordingly
 				// in pushOp
-				if (opA.type === ArrayChangeSetIterator.types.REMOVE) {
-					if (!lastIteratorARemove || lastIteratorARemove.position !== opA.operation[0]) {
-						lastIteratorARemove = {
-							position: opA.operation[0],
-							length: getOpLength(opA.operation),
-							offsetIncremented: false,
-							currentIndex: opA.operation[0],
-						};
+				if (
+					opA.type === ArrayChangeSetIterator.types.REMOVE &&
+					lastIteratorARemove?.position !== opA.operation[0]
+				) {
+					lastIteratorARemove = {
+						position: opA.operation[0],
+						length: getOpLength(opA.operation),
+						offsetIncremented: false,
+						currentIndex: opA.operation[0],
+					};
 
-						// If there is already an insert operation at the beginning of the remove range
-						// we have to adjust the position to the end of this operation (an insert that is
-						// applied at the position of the remove would be shifted behind this insert)
-						if (opA.removeInsertOperation) {
-							if (opA.removeInsertOperation[0] + opA.offset === lastIteratorARemove.position) {
-								lastIteratorARemove.position += getOpLength(opA.removeInsertOperation);
-							}
-						}
+					// If there is already an insert operation at the beginning of the remove range
+					// we have to adjust the position to the end of this operation (an insert that is
+					// applied at the position of the remove would be shifted behind this insert)
+					if (
+						opA.removeInsertOperation &&
+						opA.removeInsertOperation[0] + opA.offset === lastIteratorARemove.position
+					) {
+						lastIteratorARemove.position += getOpLength(opA.removeInsertOperation);
 					}
 				}
 
-				let moreAs = iteratorA.next();
+				const moreAs = iteratorA.next();
 
 				// The offset will only be incremented as soon as the iterator reaches an operation at a different index.
 				// We detect this case and keep track, whether the remove has already been added to the offset or not.
@@ -1672,7 +1685,7 @@ export namespace ChangeSetArrayFunctions {
 				advanceIteratorB();
 			}
 			if (segment.flag === ArrayChangeSetRangeType.completeAcompleteB) {
-				let moreAs = iteratorA.next();
+				const moreAs = iteratorA.next();
 				getRangeForCurrentStateOperation(opA, moreAs ? opA.offset : 0, rangeA);
 				advanceIteratorB();
 			}
@@ -1920,11 +1933,10 @@ export namespace ChangeSetArrayFunctions {
 	) {
 		if (
 			isString(io_rebasePropertyChangeSetParent[in_key]) ||
-			(io_rebasePropertyChangeSetParent[in_key] &&
-				io_rebasePropertyChangeSetParent[in_key].hasOwnProperty("value"))
+			io_rebasePropertyChangeSetParent[in_key]?.hasOwnProperty("value")
 		) {
 			// other overwrites any old changes, we ignore them and report the conflict
-			let conflict = {
+			const conflict = {
 				path: in_basePath,
 				type: ConflictType.COLLIDING_SET,
 				conflictingChange: cloneDeep(in_ownPropertyChangeSet),
@@ -1944,11 +1956,11 @@ export namespace ChangeSetArrayFunctions {
 			}
 		} else if (
 			isString(in_ownPropertyChangeSet) ||
-			(in_ownPropertyChangeSet && in_ownPropertyChangeSet.hasOwnProperty("value"))
+			in_ownPropertyChangeSet?.hasOwnProperty("value")
 		) {
 			// we have a conflict since we cannot allow insert/remove/modify on an unknown state
 			// we just ignore other's modifications and take own's set
-			let conflict = {
+			const conflict = {
 				path: in_basePath,
 				type: ConflictType.COLLIDING_SET,
 				conflictingChange: cloneDeep(io_rebasePropertyChangeSetParent[in_key]),

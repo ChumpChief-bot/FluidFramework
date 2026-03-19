@@ -11,15 +11,15 @@ import { expect } from "chai";
 import { BoolDataArray, Int8DataArray, Int32DataArray, UniversalDataArray } from "../../index";
 let error;
 
-describe("BaseDataArray", function () {
-	it("should set, insert and remove some values in a (TypedArray) DataArray", function () {
+describe("BaseDataArray", () => {
+	it("should set, insert and remove some values in a (TypedArray) DataArray", () => {
 		const myDataArray = new Int32DataArray(5);
 		try {
 			myDataArray.set(0, [1, 2, 3, 4, 5]);
 			myDataArray.insertRange(2, [31, 32, 33]);
 			myDataArray.removeRange(3, 4);
-		} catch (e) {
-			error = e;
+		} catch (error_) {
+			error = error_;
 		} finally {
 			expect(error).to.equal(undefined);
 			expect(myDataArray.length).to.equal(4);
@@ -27,15 +27,15 @@ describe("BaseDataArray", function () {
 		}
 	});
 
-	it("should set, insert and remove some values in a UniversalArray", function () {
+	it("should set, insert and remove some values in a UniversalArray", () => {
 		const myDataArray = new UniversalDataArray(5);
 		try {
-			console.log("UniversalArray: ", myDataArray);
+			console.log("UniversalArray:", myDataArray);
 			myDataArray.set(0, ["1", "2", "3", "4", "5"]);
 			myDataArray.insertRange(2, ["31", "32", "33"]);
 			myDataArray.removeRange(3, 4);
-		} catch (e) {
-			error = e;
+		} catch (error_) {
+			error = error_;
 		} finally {
 			expect(error).to.equal(undefined);
 			expect(myDataArray.length).to.equal(4);
@@ -48,7 +48,7 @@ describe("BaseDataArray", function () {
 		}
 	});
 
-	it("should get all elements from array", function () {
+	it("should get all elements from array", () => {
 		const myDataArray = new Int8DataArray(5);
 		myDataArray.set(0, [1, 2, 3, 4, 5]);
 		const subArray = myDataArray.getValueRange(0, 5);
@@ -56,16 +56,16 @@ describe("BaseDataArray", function () {
 	});
 });
 
-describe("BoolDataArray", function () {
-	it("should set, insert and remove some values", function () {
+describe("BoolDataArray", () => {
+	it("should set, insert and remove some values", () => {
 		const myDataArray = new BoolDataArray(5);
 
 		try {
 			myDataArray.set(0, [1, 0, false, 1, true]);
 			myDataArray.insertRange(2, [1, 0, false]);
 			myDataArray.removeRange(3, 4);
-		} catch (e) {
-			error = e;
+		} catch (error_) {
+			error = error_;
 		} finally {
 			expect(error).to.equal(undefined);
 			expect(myDataArray.length).to.equal(4);
@@ -78,7 +78,7 @@ describe("BoolDataArray", function () {
 		}
 	});
 
-	it("should get all elements from array", function () {
+	it("should get all elements from array", () => {
 		const myDataArray = new BoolDataArray(5);
 		myDataArray.set(0, [true, false, true, false, false]);
 		const subArray = myDataArray.getValueRange(1, 4);

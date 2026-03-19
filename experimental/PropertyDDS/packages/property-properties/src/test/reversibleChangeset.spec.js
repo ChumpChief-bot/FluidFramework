@@ -14,39 +14,39 @@ const _ = require("lodash");
 const { PropertyFactory } = require("..");
 const deepCopy = _.cloneDeep;
 
-describe("Reversible ChangeSets", function () {
-	var testRevAndInvCS = function (
+describe("Reversible ChangeSets", () => {
+	const testRevAndInvCS = function (
 		initialProperty,
 		modificationFunction,
 		expectedRevCS,
 		expectedAfterCS,
 		expectedInverseCS,
 	) {
-		var initialChangeSet = new ChangeSet(initialProperty._serialize(false));
+		const initialChangeSet = new ChangeSet(initialProperty._serialize(false));
 		initialChangeSet.setIsNormalized(true);
-		var initialChangeSetBackup = deepCopy(initialChangeSet.getSerializedChangeSet());
+		const initialChangeSetBackup = deepCopy(initialChangeSet.getSerializedChangeSet());
 		initialProperty.cleanDirty();
 
-		var initialPropertyClone = initialProperty.clone();
-		var initialPropertyBackup = initialProperty.clone();
+		const initialPropertyClone = initialProperty.clone();
+		const initialPropertyBackup = initialProperty.clone();
 
 		modificationFunction(initialProperty);
 
-		var cs2 = new ChangeSet(initialProperty._serialize(true));
+		const cs2 = new ChangeSet(initialProperty._serialize(true));
 
-		var cs2Rev = cs2.clone();
+		const cs2Rev = cs2.clone();
 
 		cs2Rev._stripReversibleChangeSet();
 		expect(cs2.getSerializedChangeSet()).to.deep.equal(cs2Rev.getSerializedChangeSet());
 
 		cs2Rev._toReversibleChangeSet(initialChangeSet.getSerializedChangeSet());
 
-		var cs2Strip = cs2Rev.clone();
+		const cs2Strip = cs2Rev.clone();
 		cs2Strip._stripReversibleChangeSet();
 		expect(cs2.getSerializedChangeSet()).to.deep.equal(cs2Strip.getSerializedChangeSet());
 
 		cs2._toReversibleChangeSet(initialChangeSet.getSerializedChangeSet());
-		var csR = cs2.clone();
+		const csR = cs2.clone();
 		csR._toReversibleChangeSet(initialChangeSet.getSerializedChangeSet());
 
 		if (expectedRevCS) {
@@ -66,7 +66,7 @@ describe("Reversible ChangeSets", function () {
 			);
 		}
 		// now inverse the changeset
-		var inverseCS = cs2.clone();
+		const inverseCS = cs2.clone();
 		inverseCS.toInverseChangeSet();
 		if (expectedInverseCS) {
 			expect(inverseCS.getSerializedChangeSet()).to.deep.equal(expectedInverseCS);
@@ -82,8 +82,8 @@ describe("Reversible ChangeSets", function () {
 		);
 	};
 
-	before(function () {
-		var TaskSubjectParentTemplate = {
+	before(() => {
+		const TaskSubjectParentTemplate = {
 			typeid: "autodesk.tests:ChangeSetApplyAfterTask.parentTemplate-1.0.0",
 			properties: [
 				{
@@ -101,7 +101,7 @@ describe("Reversible ChangeSets", function () {
 				},
 			],
 		};
-		var TaskSubjectMemberTemplate = {
+		const TaskSubjectMemberTemplate = {
 			typeid: "autodesk.tests:ChangeSetApplyAfterTask.memberTemplate-1.0.0",
 			properties: [
 				{ id: "progress", typeid: "Uint32" },
@@ -109,7 +109,7 @@ describe("Reversible ChangeSets", function () {
 			],
 		};
 
-		var TaskSubjectTestTemplate = {
+		const TaskSubjectTestTemplate = {
 			typeid: "autodesk.tests:ChangeSetApplyAfterTask.nodeTemplate-1.0.0",
 			properties: [
 				{ id: "result", typeid: "NodeProperty" },
@@ -118,7 +118,7 @@ describe("Reversible ChangeSets", function () {
 		};
 
 		// Register the templates from the discussion document
-		var Vec3Template = {
+		const Vec3Template = {
 			typeid: "autodesk.test:vector3-1.0.0",
 			properties: [
 				{ id: "x", typeid: "Float32" },
@@ -127,7 +127,7 @@ describe("Reversible ChangeSets", function () {
 			],
 		};
 
-		var Point2DTemplate = {
+		const Point2DTemplate = {
 			typeid: "autodesk.test:point2d-1.0.0",
 			properties: [
 				{
@@ -143,27 +143,27 @@ describe("Reversible ChangeSets", function () {
 			],
 		};
 
-		var TestArrayFloat32 = {
+		const TestArrayFloat32 = {
 			typeid: "autodesk.test:test.arrayfloat32-1.0.0",
 			properties: [{ id: "data", typeid: "Float32", context: "array" }],
 		};
 
-		var SimpleStringTestPropertyTemplate = {
+		const SimpleStringTestPropertyTemplate = {
 			typeid: "autodesk.tests:DataStringTestProperty-1.0.0",
 			properties: [{ id: "data", typeid: "String" }],
 		};
 
-		var SimpleRefTestPropertyTemplate = {
+		const SimpleRefTestPropertyTemplate = {
 			typeid: "autodesk.tests:DataRefTestProperty-1.0.0",
 			properties: [{ id: "data", typeid: "Reference" }],
 		};
 
-		var SimpleMapTestPropertyTemplate = {
+		const SimpleMapTestPropertyTemplate = {
 			typeid: "autodesk.tests:MapTestPropertyID-1.0.0",
 			properties: [{ id: "data", typeid: "Float32", context: "map" }],
 		};
 
-		var TestPropertyTemplate = {
+		const TestPropertyTemplate = {
 			typeid: "autodesk.tests:MapTestNamedPropertyID-1.0.0",
 			inherits: ["NamedProperty"],
 			properties: [
@@ -172,12 +172,12 @@ describe("Reversible ChangeSets", function () {
 				{ id: "map", context: "map", typeid: "NamedProperty" },
 			],
 		};
-		var AnonymousTestPropertyTemplate = {
+		const AnonymousTestPropertyTemplate = {
 			typeid: "autodesk.tests:AnonymousMapTestPropertyID-1.0.0",
 			properties: [{ id: "stringProperty", typeid: "String" }],
 		};
 
-		var CuststomArrayTemplate = {
+		const CuststomArrayTemplate = {
 			typeid: "autodesk.tests:CustomArrayChangesetTestID-1.0.0",
 			properties: [
 				{
@@ -188,7 +188,7 @@ describe("Reversible ChangeSets", function () {
 			],
 		};
 
-		var TestEnumTemplate = {
+		const TestEnumTemplate = {
 			typeid: "autodesk.core:UnitsEnum-1.0.0",
 			inherits: "Enum",
 			annotation: { description: "The metric units" },
@@ -200,7 +200,7 @@ describe("Reversible ChangeSets", function () {
 		};
 		PropertyFactory._reregister(TestEnumTemplate);
 
-		var TestBaseContainingEnumTemplate = {
+		const TestBaseContainingEnumTemplate = {
 			typeid: "autodesk.core:CustomWithEnumID-1.0.0",
 			properties: [
 				{
@@ -210,7 +210,7 @@ describe("Reversible ChangeSets", function () {
 			],
 		};
 
-		var TestInheritsNodePropertyObject = {
+		const TestInheritsNodePropertyObject = {
 			inherits: ["NodeProperty"],
 			typeid: "autodesk.tests:SimpleInheritsNodeProperty-1.0.0",
 		};
@@ -234,12 +234,12 @@ describe("Reversible ChangeSets", function () {
 		PropertyFactory._reregister(TestArrayFloat32);
 	});
 
-	describe("Make inversible, apply and reverse for primitive properties.", function () {
-		it("should work for modifying Int8", function () {
-			var prop = PropertyFactory.create("Int8");
+	describe("Make inversible, apply and reverse for primitive properties.", () => {
+		it("should work for modifying Int8", () => {
+			const prop = PropertyFactory.create("Int8");
 			testRevAndInvCS(
 				prop,
-				function () {
+				() => {
 					prop.setValue(10);
 				},
 				{ oldValue: 0, value: 10 },
@@ -247,11 +247,11 @@ describe("Reversible ChangeSets", function () {
 				{ oldValue: 10, value: 0 },
 			);
 		});
-		it("should work for modifying Uint8", function () {
-			var prop = PropertyFactory.create("Uint8");
+		it("should work for modifying Uint8", () => {
+			const prop = PropertyFactory.create("Uint8");
 			testRevAndInvCS(
 				prop,
-				function () {
+				() => {
 					prop.setValue(10);
 				},
 				{ oldValue: 0, value: 10 },
@@ -259,11 +259,11 @@ describe("Reversible ChangeSets", function () {
 				{ oldValue: 10, value: 0 },
 			);
 		});
-		it("should work for modifying Int16", function () {
-			var prop = PropertyFactory.create("Int16");
+		it("should work for modifying Int16", () => {
+			const prop = PropertyFactory.create("Int16");
 			testRevAndInvCS(
 				prop,
-				function () {
+				() => {
 					prop.setValue(10);
 				},
 				{ oldValue: 0, value: 10 },
@@ -271,11 +271,11 @@ describe("Reversible ChangeSets", function () {
 				{ oldValue: 10, value: 0 },
 			);
 		});
-		it("should work for modifying Uint16", function () {
-			var prop = PropertyFactory.create("Uint16");
+		it("should work for modifying Uint16", () => {
+			const prop = PropertyFactory.create("Uint16");
 			testRevAndInvCS(
 				prop,
-				function () {
+				() => {
 					prop.setValue(10);
 				},
 				{ oldValue: 0, value: 10 },
@@ -283,11 +283,11 @@ describe("Reversible ChangeSets", function () {
 				{ oldValue: 10, value: 0 },
 			);
 		});
-		it("should work for modifying Int32", function () {
-			var prop = PropertyFactory.create("Int32");
+		it("should work for modifying Int32", () => {
+			const prop = PropertyFactory.create("Int32");
 			testRevAndInvCS(
 				prop,
-				function () {
+				() => {
 					prop.setValue(10);
 				},
 				{ oldValue: 0, value: 10 },
@@ -295,11 +295,11 @@ describe("Reversible ChangeSets", function () {
 				{ oldValue: 10, value: 0 },
 			);
 		});
-		it("should work for modifying Uint32", function () {
-			var prop = PropertyFactory.create("Uint32");
+		it("should work for modifying Uint32", () => {
+			const prop = PropertyFactory.create("Uint32");
 			testRevAndInvCS(
 				prop,
-				function () {
+				() => {
 					prop.setValue(10);
 				},
 				{ oldValue: 0, value: 10 },
@@ -307,11 +307,11 @@ describe("Reversible ChangeSets", function () {
 				{ oldValue: 10, value: 0 },
 			);
 		});
-		it("should work for modifying Int64", function () {
-			var prop = PropertyFactory.create("Int64");
+		it("should work for modifying Int64", () => {
+			const prop = PropertyFactory.create("Int64");
 			testRevAndInvCS(
 				prop,
-				function () {
+				() => {
 					prop.setValue(new Int64(10, 10));
 				},
 				{ oldValue: [0, 0], value: [10, 10] },
@@ -319,11 +319,11 @@ describe("Reversible ChangeSets", function () {
 				{ oldValue: [10, 10], value: [0, 0] },
 			);
 		});
-		it("should work for modifying Uint64", function () {
-			var prop = PropertyFactory.create("Uint64");
+		it("should work for modifying Uint64", () => {
+			const prop = PropertyFactory.create("Uint64");
 			testRevAndInvCS(
 				prop,
-				function () {
+				() => {
 					prop.setValue(new Uint64(10, 10));
 				},
 				{ oldValue: [0, 0], value: [10, 10] },
@@ -331,11 +331,11 @@ describe("Reversible ChangeSets", function () {
 				{ oldValue: [10, 10], value: [0, 0] },
 			);
 		});
-		it("should work for modifying Float32", function () {
-			var prop = PropertyFactory.create("Float32");
+		it("should work for modifying Float32", () => {
+			const prop = PropertyFactory.create("Float32");
 			testRevAndInvCS(
 				prop,
-				function () {
+				() => {
 					prop.setValue(0.5);
 				},
 				{ oldValue: 0, value: 0.5 },
@@ -343,11 +343,11 @@ describe("Reversible ChangeSets", function () {
 				{ oldValue: 0.5, value: 0 },
 			);
 		});
-		it("should work for modifying Float64", function () {
-			var prop = PropertyFactory.create("Float64");
+		it("should work for modifying Float64", () => {
+			const prop = PropertyFactory.create("Float64");
 			testRevAndInvCS(
 				prop,
-				function () {
+				() => {
 					prop.setValue(0.5);
 				},
 				{ oldValue: 0, value: 0.5 },
@@ -355,11 +355,11 @@ describe("Reversible ChangeSets", function () {
 				{ oldValue: 0.5, value: 0 },
 			);
 		});
-		it("should work for modifying Bool", function () {
-			var prop = PropertyFactory.create("Bool");
+		it("should work for modifying Bool", () => {
+			const prop = PropertyFactory.create("Bool");
 			testRevAndInvCS(
 				prop,
-				function () {
+				() => {
 					prop.setValue(true);
 				},
 				{ oldValue: false, value: true },
@@ -369,11 +369,11 @@ describe("Reversible ChangeSets", function () {
 		});
 		// These tests have been disabled, since the interface of
 		// the ChangeSet class is ambiguous when inserting a string
-		it.skip("@bugfix should work for modifying String", function () {
-			var prop = PropertyFactory.create("String");
+		it.skip("@bugfix should work for modifying String", () => {
+			const prop = PropertyFactory.create("String");
 			testRevAndInvCS(
 				prop,
-				function () {
+				() => {
 					prop.setValue("test");
 				},
 				{ oldValue: "", value: "test" },
@@ -383,11 +383,11 @@ describe("Reversible ChangeSets", function () {
 		});
 		// These tests have been disabled, since the interface of
 		// the ChangeSet class is ambiguous when inserting a string
-		it.skip("@bugfix should work for modifying Reference", function () {
-			var prop = PropertyFactory.create("Reference");
+		it.skip("@bugfix should work for modifying Reference", () => {
+			const prop = PropertyFactory.create("Reference");
 			testRevAndInvCS(
 				prop,
-				function () {
+				() => {
 					prop.setValue("/");
 				},
 				{ oldValue: "", value: "/" },
@@ -397,14 +397,14 @@ describe("Reversible ChangeSets", function () {
 		});
 	});
 
-	describe("Make inversible, apply and reverse for primitive properties in a NodeProperty.", function () {
-		it("should work for modifying Int8", function () {
-			var node = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("Int8");
+	describe("Make inversible, apply and reverse for primitive properties in a NodeProperty.", () => {
+		it("should work for modifying Int8", () => {
+			const node = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("Int8");
 			node.insert("prop", prop);
 			testRevAndInvCS(
 				node,
-				function () {
+				() => {
 					prop.setValue(10);
 				},
 				{ modify: { Int8: { prop: { oldValue: 0, value: 10 } } } },
@@ -412,13 +412,13 @@ describe("Reversible ChangeSets", function () {
 				{ modify: { Int8: { prop: { oldValue: 10, value: 0 } } } },
 			);
 		});
-		it("should work for modifying Uint8", function () {
-			var node = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("Uint8");
+		it("should work for modifying Uint8", () => {
+			const node = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("Uint8");
 			node.insert("prop", prop);
 			testRevAndInvCS(
 				node,
-				function () {
+				() => {
 					prop.setValue(10);
 				},
 				{ modify: { Uint8: { prop: { oldValue: 0, value: 10 } } } },
@@ -426,13 +426,13 @@ describe("Reversible ChangeSets", function () {
 				{ modify: { Uint8: { prop: { oldValue: 10, value: 0 } } } },
 			);
 		});
-		it("should work for modifying Int16", function () {
-			var node = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("Int16");
+		it("should work for modifying Int16", () => {
+			const node = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("Int16");
 			node.insert("prop", prop);
 			testRevAndInvCS(
 				node,
-				function () {
+				() => {
 					prop.setValue(10);
 				},
 				{ modify: { Int16: { prop: { oldValue: 0, value: 10 } } } },
@@ -440,13 +440,13 @@ describe("Reversible ChangeSets", function () {
 				{ modify: { Int16: { prop: { oldValue: 10, value: 0 } } } },
 			);
 		});
-		it("should work for modifying Uint16", function () {
-			var node = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("Uint16");
+		it("should work for modifying Uint16", () => {
+			const node = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("Uint16");
 			node.insert("prop", prop);
 			testRevAndInvCS(
 				node,
-				function () {
+				() => {
 					prop.setValue(10);
 				},
 				{ modify: { Uint16: { prop: { oldValue: 0, value: 10 } } } },
@@ -454,13 +454,13 @@ describe("Reversible ChangeSets", function () {
 				{ modify: { Uint16: { prop: { oldValue: 10, value: 0 } } } },
 			);
 		});
-		it("should work for modifying Int32", function () {
-			var node = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("Int32");
+		it("should work for modifying Int32", () => {
+			const node = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("Int32");
 			node.insert("prop", prop);
 			testRevAndInvCS(
 				node,
-				function () {
+				() => {
 					prop.setValue(10);
 				},
 				{ modify: { Int32: { prop: { oldValue: 0, value: 10 } } } },
@@ -468,13 +468,13 @@ describe("Reversible ChangeSets", function () {
 				{ modify: { Int32: { prop: { oldValue: 10, value: 0 } } } },
 			);
 		});
-		it("should work for modifying Uint32", function () {
-			var node = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("Uint32");
+		it("should work for modifying Uint32", () => {
+			const node = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("Uint32");
 			node.insert("prop", prop);
 			testRevAndInvCS(
 				node,
-				function () {
+				() => {
 					prop.setValue(10);
 				},
 				{ modify: { Uint32: { prop: { oldValue: 0, value: 10 } } } },
@@ -482,13 +482,13 @@ describe("Reversible ChangeSets", function () {
 				{ modify: { Uint32: { prop: { oldValue: 10, value: 0 } } } },
 			);
 		});
-		it("should work for modifying Int64", function () {
-			var node = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("Int64");
+		it("should work for modifying Int64", () => {
+			const node = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("Int64");
 			node.insert("prop", prop);
 			testRevAndInvCS(
 				node,
-				function () {
+				() => {
 					prop.setValue(new Int64(10, 10));
 				},
 				{ modify: { Int64: { prop: { oldValue: [0, 0], value: [10, 10] } } } },
@@ -496,13 +496,13 @@ describe("Reversible ChangeSets", function () {
 				{ modify: { Int64: { prop: { oldValue: [10, 10], value: [0, 0] } } } },
 			);
 		});
-		it("should work for modifying Uint64", function () {
-			var node = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("Uint64");
+		it("should work for modifying Uint64", () => {
+			const node = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("Uint64");
 			node.insert("prop", prop);
 			testRevAndInvCS(
 				node,
-				function () {
+				() => {
 					prop.setValue(new Uint64(10, 10));
 				},
 				{ modify: { Uint64: { prop: { oldValue: [0, 0], value: [10, 10] } } } },
@@ -510,13 +510,13 @@ describe("Reversible ChangeSets", function () {
 				{ modify: { Uint64: { prop: { oldValue: [10, 10], value: [0, 0] } } } },
 			);
 		});
-		it("should work for modifying Float32", function () {
-			var node = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("Float32");
+		it("should work for modifying Float32", () => {
+			const node = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("Float32");
 			node.insert("prop", prop);
 			testRevAndInvCS(
 				node,
-				function () {
+				() => {
 					prop.setValue(0.5);
 				},
 				{ modify: { Float32: { prop: { oldValue: 0, value: 0.5 } } } },
@@ -524,13 +524,13 @@ describe("Reversible ChangeSets", function () {
 				{ modify: { Float32: { prop: { oldValue: 0.5, value: 0 } } } },
 			);
 		});
-		it("should work for modifying Float64", function () {
-			var node = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("Float64");
+		it("should work for modifying Float64", () => {
+			const node = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("Float64");
 			node.insert("prop", prop);
 			testRevAndInvCS(
 				node,
-				function () {
+				() => {
 					prop.setValue(0.5);
 				},
 				{ modify: { Float64: { prop: { oldValue: 0, value: 0.5 } } } },
@@ -538,13 +538,13 @@ describe("Reversible ChangeSets", function () {
 				{ modify: { Float64: { prop: { oldValue: 0.5, value: 0 } } } },
 			);
 		});
-		it("should work for modifying Bool", function () {
-			var node = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("Bool");
+		it("should work for modifying Bool", () => {
+			const node = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("Bool");
 			node.insert("prop", prop);
 			testRevAndInvCS(
 				node,
-				function () {
+				() => {
 					prop.setValue(true);
 				},
 				{ modify: { Bool: { prop: { oldValue: false, value: true } } } },
@@ -552,13 +552,13 @@ describe("Reversible ChangeSets", function () {
 				{ modify: { Bool: { prop: { oldValue: true, value: false } } } },
 			);
 		});
-		it("should work for modifying String", function () {
-			var node = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("String");
+		it("should work for modifying String", () => {
+			const node = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("String");
 			node.insert("prop", prop);
 			testRevAndInvCS(
 				node,
-				function () {
+				() => {
 					prop.setValue("test");
 				},
 				{ modify: { String: { prop: { oldValue: "", value: "test" } } } },
@@ -566,13 +566,13 @@ describe("Reversible ChangeSets", function () {
 				{ modify: { String: { prop: { oldValue: "test", value: "" } } } },
 			);
 		});
-		it("should work for modifying Reference", function () {
-			var node = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("Reference");
+		it("should work for modifying Reference", () => {
+			const node = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("Reference");
 			node.insert("prop", prop);
 			testRevAndInvCS(
 				node,
-				function () {
+				() => {
 					prop.setValue("/");
 				},
 				{ modify: { Reference: { prop: { oldValue: "", value: "/" } } } },
@@ -582,63 +582,63 @@ describe("Reversible ChangeSets", function () {
 		});
 	});
 
-	describe("apply reversible ChangeSets on all properties", function () {
-		it("should work for primitive properties", function () {
-			var prop = PropertyFactory.create("autodesk.test:vector3-1.0.0");
-			var propCopy = PropertyFactory.create("autodesk.test:vector3-1.0.0");
+	describe("apply reversible ChangeSets on all properties", () => {
+		it("should work for primitive properties", () => {
+			const prop = PropertyFactory.create("autodesk.test:vector3-1.0.0");
+			const propCopy = PropertyFactory.create("autodesk.test:vector3-1.0.0");
 			prop._properties.x.value = 2;
-			var changeSet = new ChangeSet(prop._serialize(true));
+			const changeSet = new ChangeSet(prop._serialize(true));
 			changeSet._toReversibleChangeSet(propCopy._serialize(false));
 			propCopy.applyChangeSet(changeSet.getSerializedChangeSet());
 			expect(prop._serialize()).to.deep.equal(propCopy._serialize());
 			expect(prop._serialize(true)).to.deep.equal(propCopy._serialize(true));
 		});
 
-		it("should work for string properties", function () {
-			var prop = PropertyFactory.create("autodesk.tests:DataStringTestProperty-1.0.0");
-			var propCopy = PropertyFactory.create("autodesk.tests:DataStringTestProperty-1.0.0");
+		it("should work for string properties", () => {
+			const prop = PropertyFactory.create("autodesk.tests:DataStringTestProperty-1.0.0");
+			const propCopy = PropertyFactory.create("autodesk.tests:DataStringTestProperty-1.0.0");
 			prop._properties.data.value = "A";
-			var changeSet = new ChangeSet(prop._serialize(true));
+			const changeSet = new ChangeSet(prop._serialize(true));
 			changeSet._toReversibleChangeSet(propCopy._serialize(false));
 			propCopy.applyChangeSet(changeSet.getSerializedChangeSet());
 			expect(prop._serialize()).to.deep.equal(propCopy._serialize());
 			expect(prop._serialize(true)).to.deep.equal(propCopy._serialize(true));
 		});
 
-		it("should work for reference properties", function () {
-			var root = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("autodesk.tests:DataRefTestProperty-1.0.0");
-			var propCopy = PropertyFactory.create("autodesk.tests:DataRefTestProperty-1.0.0");
-			var target = PropertyFactory.create("String");
+		it("should work for reference properties", () => {
+			const root = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("autodesk.tests:DataRefTestProperty-1.0.0");
+			const propCopy = PropertyFactory.create("autodesk.tests:DataRefTestProperty-1.0.0");
+			const target = PropertyFactory.create("String");
 			root.insert("target", target);
 			root.insert("reference", prop);
 			root.insert("referenceCopy", propCopy);
 			prop._properties.data.set(target);
-			var changeSet = new ChangeSet(prop._serialize(true));
+			const changeSet = new ChangeSet(prop._serialize(true));
 			changeSet._toReversibleChangeSet(propCopy._serialize(false));
 			propCopy.applyChangeSet(changeSet.getSerializedChangeSet());
 			expect(prop._serialize()).to.deep.equal(propCopy._serialize());
 			expect(prop._serialize(true)).to.deep.equal(propCopy._serialize(true));
 		});
 
-		it("should work for enum properties", function () {
-			var prop = PropertyFactory.create("autodesk.core:CustomWithEnumID-1.0.0");
-			var propCopy = PropertyFactory.create("autodesk.core:CustomWithEnumID-1.0.0");
+		it("should work for enum properties", () => {
+			const prop = PropertyFactory.create("autodesk.core:CustomWithEnumID-1.0.0");
+			const propCopy = PropertyFactory.create("autodesk.core:CustomWithEnumID-1.0.0");
 			prop._properties.data.value = "cm";
-			var changeSet = new ChangeSet(prop._serialize(true));
+			const changeSet = new ChangeSet(prop._serialize(true));
 			changeSet._toReversibleChangeSet(propCopy._serialize(false));
 			propCopy.applyChangeSet(changeSet.getSerializedChangeSet());
 			expect(prop._serialize()).to.deep.equal(propCopy._serialize());
 			expect(prop._serialize(true)).to.deep.equal(propCopy._serialize(true));
 		});
 
-		it("should work for indexed collections of complex types", function () {
-			var prop = PropertyFactory.create("autodesk.tests:MapTestNamedPropertyID-1.0.0");
-			var propCopy = PropertyFactory.create("autodesk.tests:MapTestNamedPropertyID-1.0.0");
+		it("should work for indexed collections of complex types", () => {
+			const prop = PropertyFactory.create("autodesk.tests:MapTestNamedPropertyID-1.0.0");
+			const propCopy = PropertyFactory.create("autodesk.tests:MapTestNamedPropertyID-1.0.0");
 
-			var A = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
-			var B = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
-			var C = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const A = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const B = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const C = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
 			prop._properties.map.insert("A", A);
 			prop._properties.map.insert("B", B);
 			prop._properties.map.insert("C", C);
@@ -650,16 +650,16 @@ describe("Reversible ChangeSets", function () {
 			prop._properties.map.remove("B");
 			prop._properties.map.get("A")._properties.stringProperty.value = "hello";
 
-			var changeSet = new ChangeSet(prop._serialize(true));
+			const changeSet = new ChangeSet(prop._serialize(true));
 			changeSet._toReversibleChangeSet(propCopy._serialize(false));
 			propCopy.applyChangeSet(changeSet.getSerializedChangeSet());
 			expect(prop._serialize()).to.deep.equal(propCopy._serialize());
 			expect(prop._serialize(true)).to.deep.equal(propCopy._serialize(true));
 		});
 
-		it("should work for indexed collections of primitive types", function () {
-			var prop = PropertyFactory.create("autodesk.tests:MapTestPropertyID-1.0.0");
-			var propCopy = PropertyFactory.create("autodesk.tests:MapTestPropertyID-1.0.0");
+		it("should work for indexed collections of primitive types", () => {
+			const prop = PropertyFactory.create("autodesk.tests:MapTestPropertyID-1.0.0");
+			const propCopy = PropertyFactory.create("autodesk.tests:MapTestPropertyID-1.0.0");
 
 			prop._properties.data.insert("A", 1);
 			prop._properties.data.insert("B", 2);
@@ -672,20 +672,22 @@ describe("Reversible ChangeSets", function () {
 			prop._properties.data.remove("B");
 			prop._properties.data.set("C", 99);
 
-			var changeSet = new ChangeSet(prop._serialize(true));
+			const changeSet = new ChangeSet(prop._serialize(true));
 			changeSet._toReversibleChangeSet(propCopy._serialize(false));
 			propCopy.applyChangeSet(changeSet.getSerializedChangeSet());
 			expect(prop._serialize()).to.deep.equal(propCopy._serialize());
 			expect(prop._serialize(true)).to.deep.equal(propCopy._serialize(true));
 		});
 
-		it("should work for custom array properties", function () {
-			var prop = PropertyFactory.create("autodesk.tests:CustomArrayChangesetTestID-1.0.0");
-			var propCopy = PropertyFactory.create("autodesk.tests:CustomArrayChangesetTestID-1.0.0");
+		it("should work for custom array properties", () => {
+			const prop = PropertyFactory.create("autodesk.tests:CustomArrayChangesetTestID-1.0.0");
+			const propCopy = PropertyFactory.create(
+				"autodesk.tests:CustomArrayChangesetTestID-1.0.0",
+			);
 
-			var A = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
-			var B = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
-			var C = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const A = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const B = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const C = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
 			prop._properties.data.insertRange(0, [A, B, C]);
 			propCopy.deserialize(prop.serialize());
 
@@ -695,8 +697,8 @@ describe("Reversible ChangeSets", function () {
 			prop._properties.data.get(2)._properties.stringProperty.value = "hello";
 			prop._properties.data.removeRange(1, 1);
 
-			var changeSet = new ChangeSet(prop.serialize({ dirtyOnly: true }));
-			var baseState = propCopy.serialize({ dirtyOnly: false });
+			const changeSet = new ChangeSet(prop.serialize({ dirtyOnly: true }));
+			const baseState = propCopy.serialize({ dirtyOnly: false });
 			changeSet._toReversibleChangeSet(baseState);
 			propCopy.applyChangeSet(changeSet.getSerializedChangeSet());
 			expect(prop.serialize()).to.deep.equal(propCopy.serialize());
@@ -705,9 +707,9 @@ describe("Reversible ChangeSets", function () {
 			);
 		});
 
-		it("should work for primitive array properties", function () {
-			var prop = PropertyFactory.create("autodesk.test:test.arrayfloat32-1.0.0");
-			var propCopy = PropertyFactory.create("autodesk.test:test.arrayfloat32-1.0.0");
+		it("should work for primitive array properties", () => {
+			const prop = PropertyFactory.create("autodesk.test:test.arrayfloat32-1.0.0");
+			const propCopy = PropertyFactory.create("autodesk.test:test.arrayfloat32-1.0.0");
 			prop._properties.data.insertRange(0, [10, 11, 12, 13, 14, 15, 16]);
 			propCopy._properties.data.insertRange(0, [10, 11, 12, 13, 14, 15, 16]);
 
@@ -717,7 +719,7 @@ describe("Reversible ChangeSets", function () {
 			prop._properties.data.setRange(4, [24, 25]);
 			prop._properties.data.removeRange(1, 2);
 
-			var changeSet = new ChangeSet(prop.serialize({ dirtyOnly: true }));
+			const changeSet = new ChangeSet(prop.serialize({ dirtyOnly: true }));
 			changeSet._toReversibleChangeSet(propCopy.serialize({ dirtyOnly: false }));
 			propCopy.applyChangeSet(changeSet.getSerializedChangeSet());
 			expect(prop.serialize()).to.deep.equal(propCopy.serialize());
@@ -726,21 +728,21 @@ describe("Reversible ChangeSets", function () {
 			);
 		});
 
-		it("should work for node properties", function () {
-			var prop = PropertyFactory.create("NodeProperty");
-			var propCopy = PropertyFactory.create("NodeProperty");
+		it("should work for node properties", () => {
+			const prop = PropertyFactory.create("NodeProperty");
+			const propCopy = PropertyFactory.create("NodeProperty");
 
-			var A = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
-			var B = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
-			var C = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
-			var D = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const A = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const B = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const C = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const D = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
 
 			prop.insert("A", A);
 			prop.insert("B", B);
 			prop.insert("C", C);
 			prop.insert("D", D);
 
-			var initialChangeset = prop.serialize({ dirtyOnly: false });
+			const initialChangeset = prop.serialize({ dirtyOnly: false });
 			propCopy.deserialize(initialChangeset);
 
 			prop.cleanDirty();
@@ -750,7 +752,7 @@ describe("Reversible ChangeSets", function () {
 			prop.remove("B");
 			prop.remove("C");
 
-			var changeSet = new ChangeSet(prop.serialize({ dirtyOnly: true }));
+			const changeSet = new ChangeSet(prop.serialize({ dirtyOnly: true }));
 			changeSet._toReversibleChangeSet(initialChangeset);
 			propCopy.applyChangeSet(changeSet.getSerializedChangeSet());
 			expect(prop.serialize()).to.deep.equal(propCopy.serialize());
@@ -759,26 +761,28 @@ describe("Reversible ChangeSets", function () {
 			);
 		});
 
-		it("should work for inherits node properties", function () {
-			var root = PropertyFactory.create("NodeProperty");
-			var prop = PropertyFactory.create("autodesk.tests:SimpleInheritsNodeProperty-1.0.0");
+		it("should work for inherits node properties", () => {
+			const root = PropertyFactory.create("NodeProperty");
+			const prop = PropertyFactory.create("autodesk.tests:SimpleInheritsNodeProperty-1.0.0");
 			root.insert("prop", prop);
 
-			var rootCopy = PropertyFactory.create("NodeProperty");
-			var propCopy = PropertyFactory.create("autodesk.tests:SimpleInheritsNodeProperty-1.0.0");
+			const rootCopy = PropertyFactory.create("NodeProperty");
+			const propCopy = PropertyFactory.create(
+				"autodesk.tests:SimpleInheritsNodeProperty-1.0.0",
+			);
 			rootCopy.insert("prop", propCopy);
 
-			var A = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
-			var B = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
-			var C = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
-			var D = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const A = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const B = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const C = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			const D = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
 
 			prop.insert("A", A);
 			prop.insert("B", B);
 			prop.insert("C", C);
 			prop.insert("D", D);
 
-			var initialChangeset = root.serialize({ dirtyOnly: false });
+			const initialChangeset = root.serialize({ dirtyOnly: false });
 			rootCopy.deserialize(initialChangeset);
 
 			root.cleanDirty();
@@ -788,7 +792,7 @@ describe("Reversible ChangeSets", function () {
 			prop.remove("B");
 			prop.remove("C");
 
-			var changeSet = new ChangeSet(root.serialize({ dirtyOnly: true }));
+			const changeSet = new ChangeSet(root.serialize({ dirtyOnly: true }));
 			changeSet._toReversibleChangeSet(initialChangeset);
 			rootCopy.applyChangeSet(changeSet.getSerializedChangeSet());
 			expect(root.serialize()).to.deep.equal(rootCopy.serialize());
@@ -798,14 +802,14 @@ describe("Reversible ChangeSets", function () {
 		});
 	});
 
-	describe("Apply with reversible ChangeSets", function () {
-		var overlapApplyTest = function (
+	describe("Apply with reversible ChangeSets", () => {
+		const overlapApplyTest = function (
 			in_type,
 			in_inputArrayOperations1,
 			in_inputArrayOperations2,
 			in_outputArrayOperations,
 		) {
-			var convertModificationSetToArray = function (in_modificationSet) {
+			const convertModificationSetToArray = function (in_modificationSet) {
 				return in_modificationSet.map((x) => {
 					return x[2] === undefined
 						? [x[0], x[1].split("")]
@@ -813,19 +817,19 @@ describe("Reversible ChangeSets", function () {
 				});
 			};
 
-			var performApplyTest = function (
+			const performApplyTest = function (
 				in_typeid,
 				inputArrayOperations1,
 				inputArrayOperations2,
 				outputArrayOperations,
 			) {
-				var CS1 = new ChangeSet({
+				const CS1 = new ChangeSet({
 					modify: { [in_typeid]: { arr: { [in_type]: inputArrayOperations1 } } },
 				});
-				var CS2 = {
+				const CS2 = {
 					modify: { [in_typeid]: { arr: { [in_type]: inputArrayOperations2 } } },
 				};
-				var CS2_copy = deepCopy(CS2);
+				const CS2_copy = deepCopy(CS2);
 				CS1.applyChangeSet(CS2);
 
 				// CS2 should be unchanged
@@ -837,7 +841,7 @@ describe("Reversible ChangeSets", function () {
 				});
 			};
 
-			it("on strings", function () {
+			it("on strings", () => {
 				performApplyTest(
 					"String",
 					deepCopy(in_inputArrayOperations1),
@@ -846,7 +850,7 @@ describe("Reversible ChangeSets", function () {
 				);
 			});
 
-			it("on arrays", function () {
+			it("on arrays", () => {
 				performApplyTest(
 					"array<String>",
 					convertModificationSetToArray(in_inputArrayOperations1),
@@ -856,7 +860,7 @@ describe("Reversible ChangeSets", function () {
 			});
 		};
 
-		describe("for overlapping modifies 1", function () {
+		describe("for overlapping modifies 1", () => {
 			overlapApplyTest(
 				"modify",
 				[[3, "abc", "123"]],
@@ -865,7 +869,7 @@ describe("Reversible ChangeSets", function () {
 			);
 		});
 
-		describe("for overlapping modifies 2", function () {
+		describe("for overlapping modifies 2", () => {
 			overlapApplyTest(
 				"modify",
 				[[0, "abc", "123"]],
@@ -875,15 +879,15 @@ describe("Reversible ChangeSets", function () {
 		});
 	});
 
-	describe("Rebase with reversible ChangeSets", function () {
-		var overlapRebaseTest = function (
+	describe("Rebase with reversible ChangeSets", () => {
+		const overlapRebaseTest = function (
 			in_type,
 			in_inputArrayOperations1,
 			in_inputArrayOperations2,
 			in_outputArrayOperations,
 			in_expectedConflicts,
 		) {
-			var convertModificationSetToArray = function (in_modificationSet) {
+			const convertModificationSetToArray = function (in_modificationSet) {
 				return in_modificationSet.map((x) => {
 					return x[2] === undefined
 						? [x[0], x[1].split("")]
@@ -891,18 +895,18 @@ describe("Reversible ChangeSets", function () {
 				});
 			};
 
-			var performRebaseTest = function (
+			const performRebaseTest = function (
 				in_typeid,
 				inputArrayOperations1,
 				inputArrayOperations2,
 				outputArrayOperations,
 			) {
-				var conflicts = [];
-				var CS1_initial = {
+				const conflicts = [];
+				const CS1_initial = {
 					modify: { [in_typeid]: { arr: { [in_type]: inputArrayOperations1 } } },
 				};
-				var CS1 = new ChangeSet(deepCopy(CS1_initial));
-				var CS2 = {
+				const CS1 = new ChangeSet(deepCopy(CS1_initial));
+				const CS2 = {
 					modify: { [in_typeid]: { arr: { [in_type]: inputArrayOperations2 } } },
 				};
 				CS1._rebaseChangeSet(CS2, conflicts);
@@ -919,7 +923,7 @@ describe("Reversible ChangeSets", function () {
 				});
 			};
 
-			it("on strings", function () {
+			it("on strings", () => {
 				performRebaseTest(
 					"String",
 					in_inputArrayOperations1,
@@ -928,7 +932,7 @@ describe("Reversible ChangeSets", function () {
 				);
 			});
 
-			it("on arrays", function () {
+			it("on arrays", () => {
 				performRebaseTest(
 					"array<String>",
 					convertModificationSetToArray(in_inputArrayOperations1),
@@ -938,7 +942,7 @@ describe("Reversible ChangeSets", function () {
 			});
 		};
 
-		describe("for overlapping removes", function () {
+		describe("for overlapping removes", () => {
 			overlapRebaseTest(
 				"remove",
 				[
@@ -951,11 +955,11 @@ describe("Reversible ChangeSets", function () {
 			);
 		});
 
-		describe("for overlapping removes 2", function () {
+		describe("for overlapping removes 2", () => {
 			overlapRebaseTest("remove", [[2, "C>"]], [[0, "ABC"]], [[0, "AB"]], 0);
 		});
 
-		describe("for overlapping removes 3", function () {
+		describe("for overlapping removes 3", () => {
 			overlapRebaseTest(
 				"remove",
 				[[2, "CD>"]],
@@ -968,7 +972,7 @@ describe("Reversible ChangeSets", function () {
 			);
 		});
 
-		describe("for overlapping modifies", function () {
+		describe("for overlapping modifies", () => {
 			overlapRebaseTest(
 				"modify",
 				[
@@ -981,7 +985,7 @@ describe("Reversible ChangeSets", function () {
 			);
 		});
 
-		describe("for overlapping modifies 2", function () {
+		describe("for overlapping modifies 2", () => {
 			overlapRebaseTest(
 				"modify",
 				[[2, "C>", ".."]],
@@ -991,7 +995,7 @@ describe("Reversible ChangeSets", function () {
 			);
 		});
 
-		describe("for overlapping modifies 3", function () {
+		describe("for overlapping modifies 3", () => {
 			overlapRebaseTest(
 				"modify",
 				[[2, "CD>", ".."]],
@@ -1007,8 +1011,8 @@ describe("Reversible ChangeSets", function () {
 			);
 		});
 
-		it("for array modify rebases", function () {
-			var CS = new ChangeSet({
+		it("for array modify rebases", () => {
+			const CS = new ChangeSet({
 				"array<Float32>": {
 					elements: {
 						modify: [[1, [1, 2, 3], [0, 1, 2]]],
@@ -1016,7 +1020,7 @@ describe("Reversible ChangeSets", function () {
 				},
 			});
 
-			var rebasedCS = CS._rebaseChangeSet(
+			const rebasedCS = CS._rebaseChangeSet(
 				{
 					"array<Float32>": {
 						elements: {
@@ -1030,35 +1034,35 @@ describe("Reversible ChangeSets", function () {
 		});
 	});
 
-	describe("applying reversible CS to primitive string types", function () {
-		it("should work for strings", function () {
-			var CS = new ChangeSet({ String: { test: { value: "10", oldValue: "9" } } });
+	describe("applying reversible CS to primitive string types", () => {
+		it("should work for strings", () => {
+			const CS = new ChangeSet({ String: { test: { value: "10", oldValue: "9" } } });
 			CS.applyChangeSet({ String: { test: { value: "8", oldValue: "10" } } });
 			expect(CS.getSerializedChangeSet()).to.deep.equal({
 				String: { test: { value: "8", oldValue: "9" } },
 			});
 		});
 
-		it("should work for strings", function () {
-			var CS = new ChangeSet({ Float64: { test: { value: 10, oldValue: 9 } } });
+		it("should work for strings", () => {
+			const CS = new ChangeSet({ Float64: { test: { value: 10, oldValue: 9 } } });
 			CS.applyChangeSet({ Float64: { test: { value: 8, oldValue: 10 } } });
 			expect(CS.getSerializedChangeSet()).to.deep.equal({
 				Float64: { test: { value: 8, oldValue: 9 } },
 			});
 		});
 
-		it("should work for bool", function () {
+		it("should work for bool", () => {
 			// TODO: This should become a NOP
-			var CS = new ChangeSet({ Bool: { test: { value: false, oldValue: true } } });
+			const CS = new ChangeSet({ Bool: { test: { value: false, oldValue: true } } });
 			CS.applyChangeSet({ Bool: { test: { value: true, oldValue: false } } });
 			expect(CS.getSerializedChangeSet()).to.deep.equal({
 				Bool: { test: { value: true, oldValue: true } },
 			});
 		});
 
-		it("should work for bool", function () {
+		it("should work for bool", () => {
 			// TODO: This should become a NOP
-			var CS = new ChangeSet({});
+			const CS = new ChangeSet({});
 			CS.applyChangeSet({ Bool: { test: { value: true, oldValue: false } } });
 			expect(CS.getSerializedChangeSet()).to.deep.equal({
 				Bool: { test: { value: true, oldValue: false } },
@@ -1066,9 +1070,9 @@ describe("Reversible ChangeSets", function () {
 		});
 	});
 
-	describe("_stripReversibleChangeSet should", function () {
-		it("correctly handle removes at the root", function () {
-			var CS = new ChangeSet({
+	describe("_stripReversibleChangeSet should", () => {
+		it("correctly handle removes at the root", () => {
+			const CS = new ChangeSet({
 				remove: {
 					String: {
 						testString: "abcde",
@@ -1080,52 +1084,52 @@ describe("Reversible ChangeSets", function () {
 				remove: ["testString"],
 			});
 		});
-		it("ignore the root when passing it a flag", function () {
-			var SCS = {
+		it("ignore the root when passing it a flag", () => {
+			const SCS = {
 				remove: {
 					String: {
 						testString: "abcde",
 					},
 				},
 			};
-			var CS = new ChangeSet(SCS);
+			const CS = new ChangeSet(SCS);
 			CS._stripReversibleChangeSet(true);
 			expect(CS.getSerializedChangeSet()).to.deep.equal(SCS);
 		});
 	});
 
-	describe("should return a minimal CS when squashing", function () {
-		it("matching primitive type remove/insert combinations in a polymorphic indexed collection", function () {
+	describe("should return a minimal CS when squashing", () => {
+		it("matching primitive type remove/insert combinations in a polymorphic indexed collection", () => {
 			// These two operations should cancel out
-			var CS1 = new ChangeSet({ remove: { String: { A: "A" } } });
-			var CS2 = new ChangeSet({ insert: { String: { A: "A" } } });
+			const CS1 = new ChangeSet({ remove: { String: { A: "A" } } });
+			const CS2 = new ChangeSet({ insert: { String: { A: "A" } } });
 			CS1.applyChangeSet(CS2);
 			expect(CS1.getSerializedChangeSet()).to.deep.equal({});
 		});
-		it("non matching primitive type remove/insert combinations in a polymorphic indexed collection", function () {
+		it("non matching primitive type remove/insert combinations in a polymorphic indexed collection", () => {
 			// These two operations should result in a modify
-			var CS1 = new ChangeSet({ remove: { String: { A: "A" } } });
-			var CS2 = new ChangeSet({ insert: { String: { A: "B" } } });
+			const CS1 = new ChangeSet({ remove: { String: { A: "A" } } });
+			const CS2 = new ChangeSet({ insert: { String: { A: "B" } } });
 			CS1.applyChangeSet(CS2);
 			expect(CS1.getSerializedChangeSet()).to.deep.equal({ modify: { String: { A: "B" } } });
 		});
-		it("matching remove/insert combinations in a primitive type indexed collection", function () {
+		it("matching remove/insert combinations in a primitive type indexed collection", () => {
 			// These two operations should cancel out
-			var CS1 = new ChangeSet({
+			const CS1 = new ChangeSet({
 				modify: { "map<String>": { test: { remove: { A: "A" } } } },
 			});
-			var CS2 = new ChangeSet({
+			const CS2 = new ChangeSet({
 				modify: { "map<String>": { test: { insert: { A: "A" } } } },
 			});
 			CS1.applyChangeSet(CS2);
 			expect(CS1.getSerializedChangeSet()).to.deep.equal({});
 		});
-		it("non matching primitive type remove/insert combinations in a polymorphic indexed collection", function () {
+		it("non matching primitive type remove/insert combinations in a polymorphic indexed collection", () => {
 			// These two operations should result in a modify
-			var CS1 = new ChangeSet({
+			const CS1 = new ChangeSet({
 				modify: { "map<String>": { test: { remove: { A: "A" } } } },
 			});
-			var CS2 = new ChangeSet({
+			const CS2 = new ChangeSet({
 				modify: { "map<String>": { test: { insert: { A: "B" } } } },
 			});
 			CS1.applyChangeSet(CS2);
@@ -1133,17 +1137,17 @@ describe("Reversible ChangeSets", function () {
 				modify: { "map<String>": { test: { modify: { A: "B" } } } },
 			});
 		});
-		it("matching complex type remove/insert combinations in a polymorphic indexed collection", function () {
+		it("matching complex type remove/insert combinations in a polymorphic indexed collection", () => {
 			// These two operations should cancel out
-			var CS1 = new ChangeSet({ remove: { "RepositoryTest:Nametag-1.0.0": { name: "A" } } });
-			var CS2 = new ChangeSet({ insert: { "RepositoryTest:Nametag-1.0.0": { name: "A" } } });
+			const CS1 = new ChangeSet({ remove: { "RepositoryTest:Nametag-1.0.0": { name: "A" } } });
+			const CS2 = new ChangeSet({ insert: { "RepositoryTest:Nametag-1.0.0": { name: "A" } } });
 			CS1.applyChangeSet(CS2);
 			expect(CS1.getSerializedChangeSet()).to.deep.equal({});
 		});
-		it("non matching complex type remove/insert combinations in a polymorphic indexed collection", function () {
+		it("non matching complex type remove/insert combinations in a polymorphic indexed collection", () => {
 			// TODO: How should we treat these operations? Should they be rewritten to a modify?
-			var CS1 = new ChangeSet({ remove: { "RepositoryTest:Nametag-1.0.0": { name: "A" } } });
-			var CS2 = new ChangeSet({ insert: { "RepositoryTest:Nametag-1.0.0": { name: "B" } } });
+			const CS1 = new ChangeSet({ remove: { "RepositoryTest:Nametag-1.0.0": { name: "A" } } });
+			const CS2 = new ChangeSet({ insert: { "RepositoryTest:Nametag-1.0.0": { name: "B" } } });
 			CS1.applyChangeSet(CS2);
 			expect(CS1.getSerializedChangeSet()).to.deep.equal({
 				remove: { "RepositoryTest:Nametag-1.0.0": { name: "A" } },
@@ -1151,12 +1155,12 @@ describe("Reversible ChangeSets", function () {
 			});
 		});
 
-		it("matching primitive type remove/insert operations in primitive type arrays", function () {
+		it("matching primitive type remove/insert operations in primitive type arrays", () => {
 			// These two operations should cancel out
-			var CS1 = new ChangeSet({
+			const CS1 = new ChangeSet({
 				modify: { "array<String>": { test: { remove: [[0, ["A", "B", "C"]]] } } },
 			});
-			var CS2 = new ChangeSet({
+			const CS2 = new ChangeSet({
 				modify: { "array<String>": { test: { insert: [[0, ["A", "B", "C"]]] } } },
 			});
 			CS1.applyChangeSet(CS2);
@@ -1164,12 +1168,12 @@ describe("Reversible ChangeSets", function () {
 		});
 	});
 
-	it("should work for primitive array properties", function () {
-		var prop = PropertyFactory.create("autodesk.test:test.arrayfloat32-1.0.0");
+	it("should work for primitive array properties", () => {
+		const prop = PropertyFactory.create("autodesk.test:test.arrayfloat32-1.0.0");
 		prop._properties.data.insertRange(0, [10, 11, 12, 13, 14, 15, 16]);
 		testRevAndInvCS(
 			prop,
-			function (in_prop) {
+			(in_prop) => {
 				in_prop._properties.data.setRange(1, [21, 22]);
 				in_prop._properties.data.removeRange(4, 3);
 				in_prop._properties.data.insert(0, 9);
@@ -1202,11 +1206,11 @@ describe("Reversible ChangeSets", function () {
 		);
 	});
 
-	it("should work for insertions into empty primitive array properties", function () {
-		var prop = PropertyFactory.create("autodesk.test:test.arrayfloat32-1.0.0");
+	it("should work for insertions into empty primitive array properties", () => {
+		const prop = PropertyFactory.create("autodesk.test:test.arrayfloat32-1.0.0");
 		testRevAndInvCS(
 			prop,
-			function (in_prop) {
+			(in_prop) => {
 				in_prop._properties.data.insertRange(0, [1, 2, 3]);
 			},
 			{
@@ -1233,8 +1237,8 @@ describe("Reversible ChangeSets", function () {
 		);
 	});
 
-	it("should not crash with an empty input if it is not needed in the actual CS", function () {
-		var initialCS = {
+	it("should not crash with an empty input if it is not needed in the actual CS", () => {
+		const initialCS = {
 			NodeProperty: {
 				insert: {
 					NodeProperty: {
@@ -1243,17 +1247,17 @@ describe("Reversible ChangeSets", function () {
 				},
 			},
 		};
-		var CS = new ChangeSet(deepCopy(initialCS));
+		const CS = new ChangeSet(deepCopy(initialCS));
 		CS._toReversibleChangeSet({});
 		expect(CS.getSerializedChangeSet()).to.deep.equal(initialCS);
 	});
 
-	it("should work for inserts, even if the corresponding property is missing in the initial state", function () {
+	it("should work for inserts, even if the corresponding property is missing in the initial state", () => {
 		// This test checks, whether changesets with insert work, even if the corresponding property is not present in the
 		// initial changeset. Since the initial changeset is not needed for the insert, we don't need to throw an
 		// error in that case. This type of situation can occur in the materialized history, if an insert happens right
 		// at a chunk boundary.
-		var initialCS = {
+		const initialCS = {
 			NodeProperty: {
 				test: {
 					insert: {
@@ -1264,20 +1268,20 @@ describe("Reversible ChangeSets", function () {
 				},
 			},
 		};
-		var CS = new ChangeSet(deepCopy(initialCS));
+		const CS = new ChangeSet(deepCopy(initialCS));
 		CS._toReversibleChangeSet({});
 		expect(CS.getSerializedChangeSet()).to.deep.equal(initialCS);
 	});
 
-	it("should work for simple primitive properties", function () {
-		var cs = new ChangeSet({
+	it("should work for simple primitive properties", () => {
+		const cs = new ChangeSet({
 			insert: {
 				Float32: {
 					myFloat: 23,
 				},
 			},
 		});
-		var cs2 = new ChangeSet({
+		const cs2 = new ChangeSet({
 			modify: {
 				Float32: {
 					myFloat: 42,
@@ -1285,14 +1289,14 @@ describe("Reversible ChangeSets", function () {
 			},
 		});
 
-		var cs2Rev = cs2.clone();
+		const cs2Rev = cs2.clone();
 
 		cs2Rev._stripReversibleChangeSet();
 		expect(cs2.getSerializedChangeSet()).to.deep.equal(cs2Rev.getSerializedChangeSet());
 
 		cs2Rev._toReversibleChangeSet(cs.getSerializedChangeSet());
 
-		var cs2Strip = cs2Rev.clone();
+		const cs2Strip = cs2Rev.clone();
 		cs2Strip._stripReversibleChangeSet();
 		expect(cs2.getSerializedChangeSet()).to.deep.equal(cs2Strip.getSerializedChangeSet());
 
@@ -1307,7 +1311,7 @@ describe("Reversible ChangeSets", function () {
 			insert: { Float32: { myFloat: 42 } },
 		});
 
-		var invCS = cs2Rev.clone();
+		const invCS = cs2Rev.clone();
 		invCS.toInverseChangeSet();
 		expect(invCS.getSerializedChangeSet()).to.deep.equal({
 			modify: { Float32: { myFloat: { value: 23, oldValue: 42 } } },
@@ -1320,11 +1324,11 @@ describe("Reversible ChangeSets", function () {
 		});
 	});
 
-	it("should work for templated properties", function () {
-		var prop = PropertyFactory.create("autodesk.test:point2d-1.0.0");
+	it("should work for templated properties", () => {
+		const prop = PropertyFactory.create("autodesk.test:point2d-1.0.0");
 		testRevAndInvCS(
 			prop,
-			function (in_prop) {
+			(in_prop) => {
 				in_prop._properties.position.x.value = 2;
 				in_prop._properties.normal.y.value = 4;
 				in_prop._properties.temperature.value = 21;
@@ -1361,12 +1365,12 @@ describe("Reversible ChangeSets", function () {
 		);
 	});
 
-	it("should work for string properties initialized by set", function () {
-		var prop = PropertyFactory.create("autodesk.tests:DataStringTestProperty-1.0.0");
+	it("should work for string properties initialized by set", () => {
+		const prop = PropertyFactory.create("autodesk.tests:DataStringTestProperty-1.0.0");
 		prop._properties.data.value = "Hello world";
 		testRevAndInvCS(
 			prop,
-			function (in_prop) {
+			(in_prop) => {
 				in_prop._properties.data.setRange(1, "aih");
 				in_prop._properties.data.removeRange(6, 5);
 				in_prop._properties.data.insertRange(0, "Hi, ");
@@ -1393,12 +1397,12 @@ describe("Reversible ChangeSets", function () {
 		);
 	});
 
-	it("should work for string properties initialized by insert", function () {
-		var prop = PropertyFactory.create("autodesk.tests:DataStringTestProperty-1.0.0");
+	it("should work for string properties initialized by insert", () => {
+		const prop = PropertyFactory.create("autodesk.tests:DataStringTestProperty-1.0.0");
 		prop._properties.data.insert(0, "Hello world");
 		testRevAndInvCS(
 			prop,
-			function (in_prop) {
+			(in_prop) => {
 				in_prop._properties.data.setRange(1, "aih");
 				in_prop._properties.data.removeRange(6, 5);
 				in_prop._properties.data.insertRange(0, "Hi, ");
@@ -1425,16 +1429,16 @@ describe("Reversible ChangeSets", function () {
 		);
 	});
 
-	it("should work for primitive map properties", function () {
-		var property = PropertyFactory.create("autodesk.tests:MapTestPropertyID-1.0.0");
-		var prop = property._properties.data;
+	it("should work for primitive map properties", () => {
+		const property = PropertyFactory.create("autodesk.tests:MapTestPropertyID-1.0.0");
+		const prop = property._properties.data;
 		prop.insert("A", 3);
 		prop.insert("B", 4);
 		prop.insert("C", 5);
 		prop.insert("D", 6);
 		testRevAndInvCS(
 			property,
-			function (myProp) {
+			(myProp) => {
 				myProp._properties.data.set("A", 7);
 				myProp._properties.data.remove("B");
 				myProp._properties.data.remove("C");
@@ -1469,21 +1473,21 @@ describe("Reversible ChangeSets", function () {
 		);
 	});
 
-	it("should work for custom map properties", function () {
-		var rootNode = PropertyFactory.create("autodesk.tests:MapTestNamedPropertyID-1.0.0");
+	it("should work for custom map properties", () => {
+		const rootNode = PropertyFactory.create("autodesk.tests:MapTestNamedPropertyID-1.0.0");
 
-		var A = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
-		var B = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
-		var C = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
-		var D = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+		const A = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+		const B = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+		const C = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+		const D = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
 		rootNode._properties.map.insert("A", A);
 		rootNode._properties.map.insert("B", B);
 		rootNode._properties.map.insert("C", C);
 		rootNode._properties.map.insert("D", D);
 		testRevAndInvCS(
 			rootNode,
-			function (myProp) {
-				var F = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
+			(myProp) => {
+				const F = PropertyFactory.create("autodesk.tests:AnonymousMapTestPropertyID-1.0.0");
 				myProp._properties.map.remove("B");
 				myProp._properties.map.remove("C");
 				myProp._properties.map.insert("F", F);
@@ -1537,8 +1541,8 @@ describe("Reversible ChangeSets", function () {
 		);
 	});
 
-	it("should test reversible changeset for a NodeProperty", function () {
-		var originalChangeSet = {
+	it("should test reversible changeset for a NodeProperty", () => {
+		const originalChangeSet = {
 			insert: {
 				"autodesk.tests:AnonymousMapTestPropertyID-1.0.0": {
 					F: { String: { stringProperty: "" } },
@@ -1551,7 +1555,7 @@ describe("Reversible ChangeSets", function () {
 				},
 			},
 		};
-		var parentChangeSet = {
+		const parentChangeSet = {
 			insert: {
 				"autodesk.tests:AnonymousMapTestPropertyID-1.0.0": {
 					A: { String: { stringProperty: "" } },
@@ -1561,7 +1565,7 @@ describe("Reversible ChangeSets", function () {
 			},
 		};
 
-		var changeSet = new ChangeSet(originalChangeSet);
+		const changeSet = new ChangeSet(originalChangeSet);
 		changeSet._toReversibleChangeSet(parentChangeSet);
 
 		expect(changeSet.getSerializedChangeSet()).to.eql({
@@ -1618,7 +1622,7 @@ describe("Reversible ChangeSets", function () {
 			},
 		});
 
-		var originalChangeSet2 = {
+		const originalChangeSet2 = {
 			insert: {
 				"mysample:point2d-1.0.0": {
 					"7485af0e-c992-af6a-ef36-6a024eb4b4e5---2": {
@@ -1634,9 +1638,9 @@ describe("Reversible ChangeSets", function () {
 			},
 		};
 
-		var parentChangeSet2 = {};
+		const parentChangeSet2 = {};
 
-		var changeSet2 = new ChangeSet(originalChangeSet2);
+		const changeSet2 = new ChangeSet(originalChangeSet2);
 		changeSet2._toReversibleChangeSet(parentChangeSet2);
 
 		expect(changeSet2.getSerializedChangeSet()).to.eql(changeSet2.getSerializedChangeSet());
@@ -1659,8 +1663,8 @@ describe("Reversible ChangeSets", function () {
 		});
 	});
 
-	it("should test reversible changeset for an array of non primitive types", function () {
-		var originalChangeSet = {
+	it("should test reversible changeset for an array of non primitive types", () => {
+		const originalChangeSet = {
 			modify: {
 				"array<mysample:point2d-1.0.0>": {
 					test2: {
@@ -1682,7 +1686,7 @@ describe("Reversible ChangeSets", function () {
 			},
 		};
 
-		var parentChangeSet = {
+		const parentChangeSet = {
 			insert: {
 				"mysample:point2d-1.0.0": {
 					test: {
@@ -1746,7 +1750,7 @@ describe("Reversible ChangeSets", function () {
 			},
 		};
 
-		var changeSet = new ChangeSet(originalChangeSet);
+		const changeSet = new ChangeSet(originalChangeSet);
 		changeSet._toReversibleChangeSet(parentChangeSet);
 
 		expect(changeSet.getSerializedChangeSet()).to.eql({
@@ -1802,8 +1806,8 @@ describe("Reversible ChangeSets", function () {
 		});
 	});
 
-	it("should correctly reverse inserts of strings", function () {
-		let CS = new ChangeSet({
+	it("should correctly reverse inserts of strings", () => {
+		const CS = new ChangeSet({
 			insert: {
 				String: {
 					test: "xxx",
@@ -1820,8 +1824,8 @@ describe("Reversible ChangeSets", function () {
 		});
 	});
 
-	it("should correctly reverse inserts of literal strings within NodeProperties", function () {
-		let CS = new ChangeSet({
+	it("should correctly reverse inserts of literal strings within NodeProperties", () => {
+		const CS = new ChangeSet({
 			modify: {
 				NodeProperty: {
 					test: {
@@ -1850,18 +1854,18 @@ describe("Reversible ChangeSets", function () {
 		});
 	});
 
-	it("@regression should not fail when building reversible change sets", function () {
-		var parentChangeSet =
+	it("@regression should not fail when building reversible change sets", () => {
+		const parentChangeSet =
 			require("./validation/reversibleChangeSetTestData.js").parentChangeSet;
-		var originalChangeSet =
+		const originalChangeSet =
 			require("./validation/reversibleChangeSetTestData.js").originalChangeSet;
 
-		var changeSet = new ChangeSet(originalChangeSet);
+		const changeSet = new ChangeSet(originalChangeSet);
 		changeSet._toReversibleChangeSet(parentChangeSet);
 	});
 
-	it("@regression should not fail when creating a reversible change set", function () {
-		var cs = {
+	it("@regression should not fail when creating a reversible change set", () => {
+		const cs = {
 			modify: {
 				"autodesk.compute:graph-1.0.0": {
 					"5eb6ebe1-92c8-52fa-984b-b0b65c46d2a7": {
@@ -1909,7 +1913,7 @@ describe("Reversible ChangeSets", function () {
 				},
 			},
 		};
-		var parent = {
+		const parent = {
 			insert: {
 				"autodesk.compute:graph-1.0.0": {
 					"5eb6ebe1-92c8-52fa-984b-b0b65c46d2a7": {
@@ -1954,7 +1958,7 @@ describe("Reversible ChangeSets", function () {
 			},
 		};
 
-		var b = new ChangeSet(cs);
+		const b = new ChangeSet(cs);
 		b._toReversibleChangeSet(parent);
 	});
 });

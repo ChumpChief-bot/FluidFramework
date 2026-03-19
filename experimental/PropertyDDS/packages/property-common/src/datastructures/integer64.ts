@@ -107,7 +107,7 @@ function _stringToInt64(in_signed: boolean, in_string: string, in_radix = 10): n
 	ConsoleUtils.assert(!negative || in_signed, MSG.CANNOT_UPDATE_TO_NEGATIVE + string);
 
 	while (position < string.length) {
-		const digit = parseInt(string[position++], in_radix);
+		const digit = Number.parseInt(string[position++], in_radix);
 		if (isNaN(digit)) {
 			throw new TypeError(MSG.CANNOT_PARSE_INVALID_CHARACTERS + string);
 		}

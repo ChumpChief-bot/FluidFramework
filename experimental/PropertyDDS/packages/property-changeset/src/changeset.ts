@@ -175,7 +175,7 @@ export class ChangeSet {
 				isObject(changes) && (changes as SerializedChangeSet).value !== undefined
 					? (changes as SerializedChangeSet).value
 					: changes;
-			this._changes = Array.isArray(oldValue) ? oldValue.slice() : oldValue;
+			this._changes = Array.isArray(oldValue) ? [...oldValue] : oldValue;
 		} else {
 			this._performApplyAfterOnProperty(
 				this._changes,
@@ -267,17 +267,14 @@ export class ChangeSet {
 		in_baseKey: string,
 		in_appliedValue: SerializedChangeSet,
 	) {
-		const newValue =
-			in_appliedValue && in_appliedValue.hasOwnProperty("value")
-				? in_appliedValue.value
-				: in_appliedValue;
-		if (io_baseChanges[in_baseKey] && io_baseChanges[in_baseKey].hasOwnProperty("value")) {
+		const newValue = in_appliedValue?.hasOwnProperty("value")
+			? in_appliedValue.value
+			: in_appliedValue;
+		if (io_baseChanges[in_baseKey]?.hasOwnProperty("value")) {
 			io_baseChanges[in_baseKey].value = newValue;
 		} else {
 			io_baseChanges[in_baseKey] =
-				io_baseChanges[in_baseKey] === undefined &&
-				in_appliedValue &&
-				in_appliedValue.hasOwnProperty("oldValue")
+				io_baseChanges[in_baseKey] === undefined && in_appliedValue?.hasOwnProperty("oldValue")
 					? {
 							value: newValue,
 							oldValue: in_appliedValue.oldValue,
@@ -323,27 +320,24 @@ export class ChangeSet {
 			}
 		} else if (splitTypeid.context === "array" || splitTypeid.typeid === "String") {
 			in_baseChanges[in_changedKey] =
-				in_baseChanges[in_changedKey] !== undefined ? in_baseChanges[in_changedKey] : {};
+				in_baseChanges[in_changedKey] === undefined ? {} : in_baseChanges[in_changedKey];
 			let baseIsSetChange = false;
 			let oldValue;
 			if (
 				splitTypeid.typeid === "String" &&
 				(isString(in_baseChanges[in_changedKey]) ||
-					(in_baseChanges[in_changedKey] &&
-						in_baseChanges[in_changedKey].hasOwnProperty("value")))
+					in_baseChanges[in_changedKey]?.hasOwnProperty("value"))
 			) {
 				oldValue = in_baseChanges[in_changedKey].oldValue;
 				// we need to convert the format to allow the application of the changes
 				// since _performApplyAfterOnPropertyArray only understands insert/modify/remove commands
-				in_baseChanges[in_changedKey] =
-					in_baseChanges[in_changedKey] &&
-					in_baseChanges[in_changedKey].hasOwnProperty("value")
-						? {
-								insert: [[0, in_baseChanges[in_changedKey].value]],
-							}
-						: {
-								insert: [[0, in_baseChanges[in_changedKey]]],
-							};
+				in_baseChanges[in_changedKey] = in_baseChanges[in_changedKey]?.hasOwnProperty("value")
+					? {
+							insert: [[0, in_baseChanges[in_changedKey].value]],
+						}
+					: {
+							insert: [[0, in_baseChanges[in_changedKey]]],
+						};
 				baseIsSetChange = true;
 			}
 			let appliedChanges = in_appliedPropertyChanges[in_changedKey];
@@ -375,12 +369,12 @@ export class ChangeSet {
 						? ""
 						: in_baseChanges[in_changedKey].insert[0][1];
 					in_baseChanges[in_changedKey] =
-						oldValue !== undefined
-							? {
+						oldValue === undefined
+							? newValue
+							: {
 									value: newValue,
 									oldValue,
-								}
-							: newValue;
+								};
 				}
 			}
 
@@ -401,10 +395,10 @@ export class ChangeSet {
 				// 64 bit integers (until javascript natively supports them)
 				if (splitTypeid.typeid === "Int64" || splitTypeid.typeid === "Uint64") {
 					let appliedVal = in_appliedPropertyChanges[in_changedKey];
-					if (appliedVal && appliedVal.hasOwnProperty("value")) {
+					if (appliedVal?.hasOwnProperty("value")) {
 						appliedVal = appliedVal.value;
 					}
-					this._applyValue(in_baseChanges, in_changedKey, appliedVal.slice());
+					this._applyValue(in_baseChanges, in_changedKey, [...appliedVal]);
 				} else {
 					this._applyValue(
 						in_baseChanges,
@@ -505,12 +499,9 @@ export class ChangeSet {
 				conflictingChange: templateMismatchChangeSet,
 			};
 
-			each(typeids, function (typeid) {
+			each(typeids, (typeid) => {
 				const template = io_rebasePropertyChangeSet.insertTemplates[typeid];
-				if (
-					in_ownPropertyChangeSet.insertTemplates &&
-					in_ownPropertyChangeSet.insertTemplates[typeid]
-				) {
+				if (in_ownPropertyChangeSet.insertTemplates?.[typeid]) {
 					const isEqual = TemplateValidator.Utils.psetDeepEquals(
 						template,
 						in_ownPropertyChangeSet.insertTemplates[template.typeid],
@@ -560,7 +551,7 @@ export class ChangeSet {
 						const tempPaths = Object.keys(in_ownPropertyChangeSet.modify[tempTypeid]);
 						for (let z = 0; z < tempPaths.length; z++) {
 							if (tempPaths[z] in io_rebasePropertyChangeSet.modify[tempTypeid]) {
-								let rebasedPropContent =
+								const rebasedPropContent =
 									io_rebasePropertyChangeSet.modify[tempTypeid][tempPaths[z]];
 								if (isObject(rebasedPropContent) && "oldValue" in rebasedPropContent) {
 									(rebasedPropContent as SerializedChangeSet).oldValue =
@@ -579,16 +570,15 @@ export class ChangeSet {
 						typeid in io_rebasePropertyChangeSet &&
 						paths[j] in io_rebasePropertyChangeSet[typeid]
 					) {
-						let rebasedPropContent = io_rebasePropertyChangeSet[typeid][paths[j]];
-						if (isObject(rebasedPropContent) && "oldValue" in rebasedPropContent) {
-							// if oldValue already be update above, we don't need to update
-							if (
-								io_rebasePropertyChangeSet[typeid][paths[j]].oldValue !==
+						const rebasedPropContent = io_rebasePropertyChangeSet[typeid][paths[j]];
+						if (
+							isObject(rebasedPropContent) &&
+							"oldValue" in rebasedPropContent && // if oldValue already be update above, we don't need to update
+							io_rebasePropertyChangeSet[typeid][paths[j]].oldValue !==
 								in_ownPropertyChangeSet[typeid][paths[j]].value
-							) {
-								io_rebasePropertyChangeSet[typeid][paths[j]].oldValue =
-									in_ownPropertyChangeSet[typeid][paths[j]].value;
-							}
+						) {
+							io_rebasePropertyChangeSet[typeid][paths[j]].oldValue =
+								in_ownPropertyChangeSet[typeid][paths[j]].value;
 						}
 					}
 				}
@@ -765,7 +755,7 @@ export class ChangeSet {
 		if (opType === "modify") {
 			const type = in_context.getTypeid();
 			const splitType = in_context.getSplitTypeID();
-			let nestedChangeset = in_context.getNestedChangeSet();
+			const nestedChangeset = in_context.getNestedChangeSet();
 
 			let current = in_context.getUserData().parallelState;
 			if (in_context.getPropertyContainerType() === "root") {
@@ -775,11 +765,11 @@ export class ChangeSet {
 					current = current.insert;
 				}
 
-				if (in_context.getPropertyContainerType() !== "array") {
-					current = current && current[in_context.getTypeid()];
-					current = current && current[in_context.getLastSegment()];
+				if (in_context.getPropertyContainerType() === "array") {
+					current = current?.[0][1][in_context.getLastSegment()];
 				} else {
-					current = current && current[0][1][in_context.getLastSegment()];
+					current = current?.[in_context.getTypeid()];
+					current = current?.[in_context.getLastSegment()];
 				}
 			}
 
@@ -796,7 +786,7 @@ export class ChangeSet {
 						}. Making primitive value reversible.`,
 					);
 				}
-				let oldValue = current;
+				const oldValue = current;
 
 				// store it in reversibleChangeSet
 				if (type === "String" && !isString(nestedChangeset)) {
@@ -807,16 +797,16 @@ export class ChangeSet {
 					}
 					if (nestedChangeset.modify) {
 						for (let i = 0; i < nestedChangeset.modify.length; i++) {
-							let entry = nestedChangeset.modify[i];
-							let entryOffset = entry[0];
+							const entry = nestedChangeset.modify[i];
+							const entryOffset = entry[0];
 							const entryLength = entry[1].length;
 							entry[2] = oldString.slice(entryOffset, entryOffset + entryLength);
 						}
 					}
 					if (nestedChangeset.remove) {
 						for (let i = 0; i < nestedChangeset.remove.length; i++) {
-							let entry = nestedChangeset.remove[i];
-							let entryOffset = entry[0];
+							const entry = nestedChangeset.remove[i];
+							const entryOffset = entry[0];
 
 							let removeRangeLength = entry[1];
 							if (isString(removeRangeLength)) {
@@ -826,7 +816,7 @@ export class ChangeSet {
 						}
 					}
 				} else {
-					if (nestedChangeset && nestedChangeset.hasOwnProperty("value")) {
+					if (nestedChangeset?.hasOwnProperty("value")) {
 						nestedChangeset.oldValue = oldValue;
 					} else {
 						const newChangeSet = {
@@ -842,27 +832,25 @@ export class ChangeSet {
 						`${MSG.INVALID_PATH + in_context.getFullPath()}. Making array value reversible.`,
 					);
 				}
-				let oldValue = current.insert ? current.insert[0][1] : [];
+				const oldValue = current.insert ? current.insert[0][1] : [];
 
-				let nestedChangeset = in_context.getNestedChangeSet();
-				if (nestedChangeset.modify) {
-					if (isPrimitiveType(splitType.typeid)) {
-						for (let i = 0; i < nestedChangeset.modify.length; i++) {
-							let entry = nestedChangeset.modify[i];
-							let entryOffset = entry[0];
-							let oldEntries = [];
-							for (let j = 0; j < entry[1].length; j++) {
-								oldEntries.push(cloneDeep(oldValue[entryOffset + j]));
-							}
-							entry[2] = oldEntries;
+				const nestedChangeset = in_context.getNestedChangeSet();
+				if (nestedChangeset.modify && isPrimitiveType(splitType.typeid)) {
+					for (let i = 0; i < nestedChangeset.modify.length; i++) {
+						const entry = nestedChangeset.modify[i];
+						const entryOffset = entry[0];
+						const oldEntries = [];
+						for (let j = 0; j < entry[1].length; j++) {
+							oldEntries.push(cloneDeep(oldValue[entryOffset + j]));
 						}
+						entry[2] = oldEntries;
 					}
 				}
 				if (nestedChangeset.remove) {
 					for (let i = 0; i < nestedChangeset.remove.length; i++) {
-						let entry = nestedChangeset.remove[i];
-						let entryOffset = entry[0];
-						let oldEntries = [];
+						const entry = nestedChangeset.remove[i];
+						const entryOffset = entry[0];
+						const oldEntries = [];
 
 						let removeRangeLength = entry[1];
 						if (Array.isArray(removeRangeLength)) {
@@ -894,7 +882,7 @@ export class ChangeSet {
 						`${MSG.INVALID_PATH + in_context.getFullPath()}. Making map value reversible.`,
 					);
 				}
-				let oldValue = current.insert;
+				const oldValue = current.insert;
 
 				if (isPrimitiveType(splitType.typeid)) {
 					if (nestedChangeset.modify) {
@@ -910,7 +898,7 @@ export class ChangeSet {
 							};
 						}
 					}
-					let newRemove = {};
+					const newRemove = {};
 					if (nestedChangeset.remove) {
 						let removedKeys = nestedChangeset.remove;
 						if (!Array.isArray(removedKeys)) {
@@ -922,21 +910,21 @@ export class ChangeSet {
 						nestedChangeset.remove = newRemove;
 					}
 				} else {
-					let nestedChangeset = in_context.getNestedChangeSet();
+					const nestedChangeset = in_context.getNestedChangeSet();
 					if (nestedChangeset.modify) {
 						// this case is handeled recursively
 					}
-					let newRemove = {};
+					const newRemove = {};
 					if (nestedChangeset.remove) {
 						if (Array.isArray(nestedChangeset.remove)) {
-							let removedKeys = nestedChangeset.remove;
+							const removedKeys = nestedChangeset.remove;
 							for (let i = 0; i < removedKeys.length; i++) {
-								let searchedKey = removedKeys[i];
+								const searchedKey = removedKeys[i];
 								// search for this key in the old keys:
 								const oldTypeKeys = Object.keys(oldValue);
 								for (let k = 0; k < oldTypeKeys.length; k++) {
 									if (oldValue[oldTypeKeys[k]].hasOwnProperty(searchedKey)) {
-										let entry = oldValue[oldTypeKeys[k]][searchedKey];
+										const entry = oldValue[oldTypeKeys[k]][searchedKey];
 										if (!newRemove[oldTypeKeys[k]]) {
 											newRemove[oldTypeKeys[k]] = {};
 										}
@@ -949,10 +937,10 @@ export class ChangeSet {
 							// we already have a reversibleChangeSet and need to update the oldValues
 							const removedTypes = Object.keys(nestedChangeset.remove);
 							for (let t = 0; t < removedTypes.length; t++) {
-								let removedKeys = Object.keys(nestedChangeset.remove[removedTypes[t]]);
+								const removedKeys = Object.keys(nestedChangeset.remove[removedTypes[t]]);
 								for (let i = 0; i < removedKeys.length; i++) {
-									let searchedKey = removedKeys[i];
-									let entry = oldValue[removedTypes[t]][searchedKey];
+									const searchedKey = removedKeys[i];
+									const entry = oldValue[removedTypes[t]][searchedKey];
 									nestedChangeset.remove[removedTypes[t]][removedKeys[i]] = entry;
 								}
 							}
@@ -981,13 +969,13 @@ export class ChangeSet {
 			if (!isObject(this._changes) || Array.isArray(this._changes)) {
 				this._changes = {
 					oldValue: Array.isArray(in_oldSerializedState)
-						? in_oldSerializedState.slice()
+						? [...in_oldSerializedState]
 						: in_oldSerializedState,
 					value: this._changes,
 				};
 			} else {
 				(this._changes as SerializedChangeSet).oldValue = Array.isArray(in_oldSerializedState)
-					? in_oldSerializedState.slice()
+					? [...in_oldSerializedState]
 					: in_oldSerializedState;
 			}
 		} else {
@@ -1018,19 +1006,19 @@ export class ChangeSet {
 
 				if (isPrimitiveType(type)) {
 					// remove old state
-					let nestedChangeset = in_context.getNestedChangeSet();
+					const nestedChangeset = in_context.getNestedChangeSet();
 					if (type === "String" && !isString(nestedChangeset)) {
 						// String is a special case
 
 						if (nestedChangeset.modify) {
 							for (let i = 0; i < nestedChangeset.modify.length; i++) {
-								let entry = nestedChangeset.modify[i];
+								const entry = nestedChangeset.modify[i];
 								entry.splice(2, 1);
 							}
 						}
 						if (nestedChangeset.remove) {
 							for (let i = 0; i < nestedChangeset.remove.length; i++) {
-								let entry = nestedChangeset.remove[i];
+								const entry = nestedChangeset.remove[i];
 
 								let removeRangeLength = entry[1];
 								if (isString(removeRangeLength)) {
@@ -1039,23 +1027,23 @@ export class ChangeSet {
 								entry[1] = removeRangeLength;
 							}
 						}
-						if (nestedChangeset && nestedChangeset.hasOwnProperty("value")) {
+						if (nestedChangeset?.hasOwnProperty("value")) {
 							in_context.replaceNestedChangeSet(nestedChangeset.value);
 						}
-					} else if (nestedChangeset && nestedChangeset.hasOwnProperty("value")) {
+					} else if (nestedChangeset?.hasOwnProperty("value")) {
 						in_context.replaceNestedChangeSet(nestedChangeset.value);
 					}
 				} else if (splitType.context === "array") {
-					let nestedChangeset = in_context.getNestedChangeSet();
+					const nestedChangeset = in_context.getNestedChangeSet();
 					if (nestedChangeset.modify) {
 						for (let i = 0; i < nestedChangeset.modify.length; i++) {
-							let entry = nestedChangeset.modify[i];
+							const entry = nestedChangeset.modify[i];
 							entry.splice(2, 1);
 						}
 					}
 					if (nestedChangeset.remove) {
 						for (let i = 0; i < nestedChangeset.remove.length; i++) {
-							let entry = nestedChangeset.remove[i];
+							const entry = nestedChangeset.remove[i];
 							let removeRangeLength = entry[1];
 							if (Array.isArray(removeRangeLength)) {
 								removeRangeLength = entry[1].length;
@@ -1069,7 +1057,7 @@ export class ChangeSet {
 					(!in_withoutRoot && splitType.context === "single")
 				) {
 					// For NodeProperty / inserts at the root
-					let nestedChangeset = in_context.getNestedChangeSet();
+					const nestedChangeset = in_context.getNestedChangeSet();
 					if (isPrimitiveType(splitType.typeid)) {
 						if (nestedChangeset.modify) {
 							const modifiedKeys = Object.keys(nestedChangeset.modify);
@@ -1089,23 +1077,21 @@ export class ChangeSet {
 							}
 						}
 					} else {
-						let nestedChangeset = in_context.getNestedChangeSet();
+						const nestedChangeset = in_context.getNestedChangeSet();
 						if (nestedChangeset.modify) {
 							// this case is handeled recursively
 						}
-						if (nestedChangeset.remove) {
-							if (!Array.isArray(nestedChangeset.remove)) {
-								// we have a reversibleChangeSet and need to convert
-								let newRemove = [];
-								const removedTypes = Object.keys(nestedChangeset.remove);
-								for (let t = 0; t < removedTypes.length; t++) {
-									let removedKeys = Object.keys(nestedChangeset.remove[removedTypes[t]]);
-									for (let i = 0; i < removedKeys.length; i++) {
-										newRemove.push(removedKeys[i]);
-									}
+						if (nestedChangeset.remove && !Array.isArray(nestedChangeset.remove)) {
+							// we have a reversibleChangeSet and need to convert
+							const newRemove = [];
+							const removedTypes = Object.keys(nestedChangeset.remove);
+							for (let t = 0; t < removedTypes.length; t++) {
+								const removedKeys = Object.keys(nestedChangeset.remove[removedTypes[t]]);
+								for (let i = 0; i < removedKeys.length; i++) {
+									newRemove.push(removedKeys[i]);
 								}
-								nestedChangeset.remove = newRemove;
 							}
+							nestedChangeset.remove = newRemove;
 						}
 					}
 				}
@@ -1142,8 +1128,8 @@ export class ChangeSet {
 			paths = Object.keys(in_changeSet);
 		} else {
 			paths = [];
-			each(in_changeSet, function (nestedChangeSet) {
-				each(nestedChangeSet, function (nestedChangeSet2, path) {
+			each(in_changeSet, (nestedChangeSet) => {
+				each(nestedChangeSet, (nestedChangeSet2, path) => {
 					paths.push(path);
 				});
 			});
@@ -1195,13 +1181,13 @@ export class ChangeSet {
 				if (
 					in_context.getOperationType() === "modify" &&
 					(!isObject(nestedChangeset) ||
-						typeof (nestedChangeset as SerializedChangeSet).oldValue === "undefined")
+						(nestedChangeset as SerializedChangeSet).oldValue === undefined)
 				) {
 					throw new Error(MSG.OLD_VALUE_NOT_FOUND);
 				}
 
 				// switch oldValue and value
-				let tmp = nestedChangeset.oldValue;
+				const tmp = nestedChangeset.oldValue;
 				nestedChangeset.oldValue = nestedChangeset.value;
 				nestedChangeset.value = tmp;
 			} else if (
@@ -1223,21 +1209,23 @@ export class ChangeSet {
 				// Successively invert the changes from the changeSet
 				while (!arrayIterator.atEnd()) {
 					switch (arrayIterator.opDescription.type) {
-						case ArrayIteratorOperationTypes.INSERT:
+						case ArrayIteratorOperationTypes.INSERT: {
 							// Handle inserts
 							resultChangeset.remove.push([
 								arrayIterator.opDescription.operation[0] + arrayIterator.opDescription.offset,
 								arrayIterator.opDescription.operation[1],
 							]);
 							break;
-						case ArrayIteratorOperationTypes.REMOVE:
+						}
+						case ArrayIteratorOperationTypes.REMOVE: {
 							// Handle removes
 							resultChangeset.insert.push([
 								arrayIterator.opDescription.operation[0] + arrayIterator.opDescription.offset,
 								arrayIterator.opDescription.operation[1],
 							]);
 							break;
-						case ArrayIteratorOperationTypes.MODIFY:
+						}
+						case ArrayIteratorOperationTypes.MODIFY: {
 							// Handle modifies
 							if (isPrimitiveType(splitType.typeid)) {
 								resultChangeset.modify.push([
@@ -1254,25 +1242,29 @@ export class ChangeSet {
 								]);
 							}
 							break;
-						default:
+						}
+						default: {
 							console.error(
 								`applyChangeset: ${MSG.UNKNOWN_OPERATION}${arrayIterator.opDescription.type}`,
 							);
+						}
 					}
 					arrayIterator.next();
 				}
 				in_context.replaceNestedChangeSet(resultChangeset);
 			} else {
 				// Covers NodeProperty, Map and Set
-				if (nestedChangeset.modify) {
-					if (isPrimitiveType(splitType.typeid) && splitType.context === "map") {
-						const modifiedKeys = Object.keys(nestedChangeset.modify);
-						for (let i = 0; i < modifiedKeys.length; i++) {
-							const entry = nestedChangeset.modify[modifiedKeys[i]];
-							let tmp = entry.value;
-							entry.value = entry.oldValue;
-							entry.oldValue = tmp;
-						}
+				if (
+					nestedChangeset.modify &&
+					isPrimitiveType(splitType.typeid) &&
+					splitType.context === "map"
+				) {
+					const modifiedKeys = Object.keys(nestedChangeset.modify);
+					for (let i = 0; i < modifiedKeys.length; i++) {
+						const entry = nestedChangeset.modify[modifiedKeys[i]];
+						const tmp = entry.value;
+						entry.value = entry.oldValue;
+						entry.oldValue = tmp;
 					}
 				}
 				const oldInsert = nestedChangeset.insert;
@@ -1285,7 +1277,7 @@ export class ChangeSet {
 					const isPrimitiveTypeid = isPrimitiveType(in_context.getSplitTypeID().typeid);
 					each(
 						this._extractFirstLevelPaths(nestedChangeset.insert, isPrimitiveTypeid),
-						function (path) {
+						(path) => {
 							const fullPath = joinPaths(
 								in_context.getFullPath(),
 								path,
@@ -1306,7 +1298,7 @@ export class ChangeSet {
 					const isPrimitiveTypeid = isPrimitiveType(in_context.getSplitTypeID().typeid);
 					each(
 						this._extractFirstLevelPaths(nestedChangeset.remove, isPrimitiveTypeid),
-						function (path) {
+						(path) => {
 							const fullPath = joinPaths(
 								in_context.getFullPath(),
 								path,

@@ -71,7 +71,7 @@ export class ReferenceMapProperty extends StringMapProperty {
 			// Forward handling of arrays to the BaseProperty function
 			return AbstractStaticCollectionProperty.prototype.get.call(this, in_ids, in_options);
 		} else {
-			var value = this._dynamicChildren[in_ids];
+			const value = this._dynamicChildren[in_ids];
 			if (value === undefined || value === "") {
 				return undefined;
 			}
@@ -89,7 +89,7 @@ export class ReferenceMapProperty extends StringMapProperty {
 	 * @returns {String} the item removed (a string path), or undefined if the key does not exist
 	 */
 	remove(in_key) {
-		var item = this.getValue(in_key);
+		const item = this.getValue(in_key);
 		this._removeByKey(in_key, true);
 		return item;
 	}
@@ -107,9 +107,9 @@ export class ReferenceMapProperty extends StringMapProperty {
 	 * ```
 	 */
 	getValues() {
-		var ids = this.getIds();
-		var result = {};
-		for (var i = 0; i < ids.length; i++) {
+		const ids = this.getIds();
+		const result = {};
+		for (let i = 0; i < ids.length; i++) {
 			result[ids[i]] = this.getValue(ids[i]);
 		}
 		return result;
@@ -130,7 +130,7 @@ export class ReferenceMapProperty extends StringMapProperty {
 		if (!_.isString(in_key)) {
 			throw new TypeError(MSG.KEY_NOT_STRING + in_key);
 		}
-		var value = ReferenceProperty._convertInputToPath(in_value);
+		const value = ReferenceProperty._convertInputToPath(in_value);
 		StringMapProperty.prototype.set.call(this, in_key, value);
 	}
 
@@ -160,7 +160,7 @@ export class ReferenceMapProperty extends StringMapProperty {
 	 * @throws If in_value is defined, but is not a property or a string.
 	 */
 	insert(in_key, in_value) {
-		var value = ReferenceProperty._convertInputToPath(in_value);
+		const value = ReferenceProperty._convertInputToPath(in_value);
 		this._insert(in_key, value, true);
 	}
 

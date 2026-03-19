@@ -18,13 +18,17 @@ const { BaseProperty } = require("../..");
 const { MapProperty } = require("../../properties/mapProperty");
 const { NodeProperty } = require("../../properties/nodeProperty");
 
-describe("NodeProperty", function () {
-	var changeSetWithTwoMapEntries, changeSetWithTwoMapEntries_full, removalChangeSet;
-	var myNode, mapNode1, mapNode2;
+describe("NodeProperty", () => {
+	let changeSetWithTwoMapEntries;
+	let changeSetWithTwoMapEntries_full;
+	let removalChangeSet;
+	let myNode;
+	let mapNode1;
+	let mapNode2;
 
-	before(function () {
+	before(() => {
 		// Register a template with a set property for the tests
-		var MixedNodePropertyTemplate = {
+		const MixedNodePropertyTemplate = {
 			typeid: "autodesk.tests:MixedNodeTestProperty-1.0.0",
 			inherits: ["NodeProperty"],
 			properties: [
@@ -32,16 +36,16 @@ describe("NodeProperty", function () {
 				{ id: "stringProperty2", typeid: "String" },
 			],
 		};
-		var AnonymousTestPropertyTemplate = {
+		const AnonymousTestPropertyTemplate = {
 			typeid: "autodesk.tests:AnonymousProperty-1.0.0",
 			properties: [{ id: "stringProperty", typeid: "String" }],
 		};
-		var MixedNamedNodePropertyTemplate = {
+		const MixedNamedNodePropertyTemplate = {
 			typeid: "autodesk.tests:MixedNamedNodeProperty-1.0.0",
 			inherits: ["NodeProperty", "NamedProperty"],
 			properties: [{ id: "stringProperty", typeid: "String" }],
 		};
-		var TestEnumTemplate = {
+		const TestEnumTemplate = {
 			typeid: "autodesk.core:UnitsEnum-1.0.0",
 			inherits: "Enum",
 			annotation: { description: "The metric units" },
@@ -62,7 +66,7 @@ describe("NodeProperty", function () {
 		mapNode2 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 		// Register the templates from the discussion document
-		var Vec3Template = {
+		const Vec3Template = {
 			typeid: "autodesk.test:vector3-1.0.0",
 			properties: [
 				{ id: "x", typeid: "Float32" },
@@ -71,7 +75,7 @@ describe("NodeProperty", function () {
 			],
 		};
 
-		var Point2DTemplate = {
+		const Point2DTemplate = {
 			typeid: "autodesk.test:point2d-1.0.0",
 			properties: [
 				{
@@ -87,7 +91,7 @@ describe("NodeProperty", function () {
 			],
 		};
 
-		var SceneObjectTemplate = {
+		const SceneObjectTemplate = {
 			inherits: "NodeProperty",
 			typeid: "autodesk.test:SceneObject-1.0.0",
 			properties: [
@@ -96,7 +100,7 @@ describe("NodeProperty", function () {
 			],
 		};
 
-		var nestedNodeProperty = {
+		const nestedNodeProperty = {
 			typeid: "autodesk.tests:nested.node.property-1.0.0",
 			properties: [
 				{
@@ -106,7 +110,7 @@ describe("NodeProperty", function () {
 			],
 		};
 
-		var testArrayProperty = {
+		const testArrayProperty = {
 			typeid: "autodesk.tests:test.array.property-1.0.0",
 			properties: [{ id: "array", typeid: "Float32", context: "array" }],
 		};
@@ -119,65 +123,65 @@ describe("NodeProperty", function () {
 	});
 
 	// Helper functions for the test cases
-	var keyCounter = 0;
-	var resetKeyCounter = function () {
+	let keyCounter = 0;
+	const resetKeyCounter = function () {
 		keyCounter = 0;
 	};
 
 	// Inserts a node with the given guid (a new one is generated when undefined)
-	var insertNodeInRootWithKeyAndGuid = function (key, guid, root) {
-		var node = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+	const insertNodeInRootWithKeyAndGuid = function (key, guid, root) {
+		const node = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 		if (key === undefined) {
-			key = "node" + keyCounter++;
+			key = `node${keyCounter++}`;
 		}
 
 		root.insert(key, node);
 	};
 
 	// Inserts a new node in the root
-	var insertNodeInRoot = function (root) {
+	const insertNodeInRoot = function (root) {
 		insertNodeInRootWithKeyAndGuid(undefined, undefined, root);
 	};
 
 	// Returns a functor that will insert a node with a constant GUID
-	var insertUniqueNodeInRoot = function () {
-		var key = "node" + keyCounter++;
+	const insertUniqueNodeInRoot = function () {
+		const key = `node${keyCounter++}`;
 		return insertNodeInRootWithKeyAndGuid.bind(undefined, key, generateGUID());
 	};
 
 	// Inserts a new node as leaf
-	var insertNodeAsLeaf = function (root) {
-		var leaf = root;
+	const insertNodeAsLeaf = function (root) {
+		let leaf = root;
 		while (leaf.getDynamicIds().length > 0) {
 			leaf = _.values(leaf._getDynamicChildrenReadOnly())[0];
 		}
-		var node = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
-		var key = "node" + keyCounter++;
+		const node = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		const key = `node${keyCounter++}`;
 		leaf.insert(key, node);
 	};
 
 	// Removes the first node from the root
-	var removeFirstNodeInRoot = function (root) {
-		var firstKey = root.getDynamicIds()[0];
+	const removeFirstNodeInRoot = function (root) {
+		const firstKey = root.getDynamicIds()[0];
 		root.remove(firstKey);
 	};
 
 	// Modifies the leaf node
-	var modifyLeaf = function (root) {
-		var leaf = root;
+	const modifyLeaf = function (root) {
+		let leaf = root;
 		while (leaf.getDynamicIds().length > 0) {
 			leaf = _.values(leaf._getDynamicChildrenReadOnly())[0];
 		}
-		leaf._properties.stringProperty.value = leaf._properties.stringProperty.value + "+";
+		leaf._properties.stringProperty.value = `${leaf._properties.stringProperty.value}+`;
 	};
 
-	describe("Testing creation, assignment and serialization", function () {
-		it("should be empty at the beginning", function () {
+	describe("Testing creation, assignment and serialization", () => {
+		it("should be empty at the beginning", () => {
 			expect(myNode.getIds()).to.be.empty;
 			expect(myNode.serialize({ dirtyOnly: true })).to.be.empty;
 		});
 
-		it("should be possible to insert into the map", function () {
+		it("should be possible to insert into the map", () => {
 			// Test insertion of the first node
 			myNode.insert("node1", mapNode1);
 			expect(myNode.has("node1")).to.be.ok;
@@ -185,7 +189,7 @@ describe("NodeProperty", function () {
 			expect(myNode.get("node2")).to.equal(undefined);
 			expect(mapNode1.getParent()).to.equal(myNode);
 
-			var CS = myNode.serialize({ dirtyOnly: true });
+			const CS = myNode.serialize({ dirtyOnly: true });
 			expect(
 				CS.insert &&
 					CS.insert["autodesk.tests:MixedNodeTestProperty-1.0.0"] &&
@@ -222,30 +226,30 @@ describe("NodeProperty", function () {
 			expect(changeSetWithTwoMapEntries).to.deep.equal(changeSetWithTwoMapEntries_full);
 		});
 
-		it("should fail when trying to insert with empty id", function () {
-			var myNode1 = PropertyFactory.create("NodeProperty");
-			var mapNode3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("should fail when trying to insert with empty id", () => {
+			const myNode1 = PropertyFactory.create("NodeProperty");
+			const mapNode3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 			expect(() => myNode1.insert("", mapNode3)).to.throw(MSG.ID_SHOULD_NOT_BE_EMPTY_STRING);
 		});
 
-		it("should fail when trying to insert in itself", function () {
-			var myNode1 = PropertyFactory.create("NodeProperty");
+		it("should fail when trying to insert in itself", () => {
+			const myNode1 = PropertyFactory.create("NodeProperty");
 			expect(() => myNode1.insert("a", myNode1)).to.throw(MSG.INSERTED_IN_OWN_CHILDREN);
 		});
 
-		it("should fail when trying to insert in child", function () {
-			var myNodeParent = PropertyFactory.create("NodeProperty");
-			var myNodeChild = PropertyFactory.create("NodeProperty");
+		it("should fail when trying to insert in child", () => {
+			const myNodeParent = PropertyFactory.create("NodeProperty");
+			const myNodeChild = PropertyFactory.create("NodeProperty");
 			myNodeParent.insert("a", myNodeChild);
 			expect(() => myNodeChild.insert("a", myNodeParent)).to.throw(
 				MSG.INSERTED_IN_OWN_CHILDREN,
 			);
 		});
 
-		it("should fail when trying to insert in grand-child", function () {
-			var myNodeParent = PropertyFactory.create("NodeProperty");
-			var myNodeChild = PropertyFactory.create("NodeProperty");
-			var myNodeGrandChild = PropertyFactory.create("NodeProperty");
+		it("should fail when trying to insert in grand-child", () => {
+			const myNodeParent = PropertyFactory.create("NodeProperty");
+			const myNodeChild = PropertyFactory.create("NodeProperty");
+			const myNodeGrandChild = PropertyFactory.create("NodeProperty");
 			myNodeParent.insert("a", myNodeChild);
 			myNodeChild.insert("a", myNodeGrandChild);
 			expect(() => myNodeGrandChild.insert("a", myNodeParent)).to.throw(
@@ -253,10 +257,10 @@ describe("NodeProperty", function () {
 			);
 		});
 
-		it(".remove should return the property removed", function () {
-			var myNode1 = PropertyFactory.create("NodeProperty");
-			var mapNode3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
-			var mapNode4 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it(".remove should return the property removed", () => {
+			const myNode1 = PropertyFactory.create("NodeProperty");
+			const mapNode3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+			const mapNode4 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 			myNode1.insert("node1", mapNode3);
 			myNode1.insert("node2", mapNode4);
 			expect(myNode1.remove("node1")).to.deep.equal(mapNode3);
@@ -264,20 +268,20 @@ describe("NodeProperty", function () {
 			expect(myNode1.getIds()).to.be.empty;
 		});
 
-		it(".clear should remove all nodes", function () {
-			var myNode1 = PropertyFactory.create("NodeProperty");
-			var mapNode3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
-			var mapNode4 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it(".clear should remove all nodes", () => {
+			const myNode1 = PropertyFactory.create("NodeProperty");
+			const mapNode3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+			const mapNode4 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 			myNode1.insert("node1", mapNode3);
 			myNode1.insert("node2", mapNode4);
 			expect(myNode1.clear()).to.be.undefined;
 			expect(myNode1.getIds()).to.be.empty;
 		});
 
-		it(".getValues should work", function () {
-			var myNode1 = PropertyFactory.create("NodeProperty");
-			var mapNode3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
-			var mapNode4 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it(".getValues should work", () => {
+			const myNode1 = PropertyFactory.create("NodeProperty");
+			const mapNode3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+			const mapNode4 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 			myNode1.insert("node1", mapNode3);
 			myNode1.insert("node2", mapNode4);
 			expect(myNode1.getValues()).to.deep.equal({
@@ -286,9 +290,9 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("getValues should work with nested arrays", function () {
-			var myNode1 = PropertyFactory.create("NodeProperty");
-			var myArray = PropertyFactory.create("autodesk.tests:test.array.property-1.0.0");
+		it("getValues should work with nested arrays", () => {
+			const myNode1 = PropertyFactory.create("NodeProperty");
+			const myArray = PropertyFactory.create("autodesk.tests:test.array.property-1.0.0");
 			myNode1.insert("array1", myArray);
 			myNode1.get("array1").get("array").insertRange(0, [1, 2, 3]);
 			expect(myNode1.getIds()).to.deep.equal(["array1"]);
@@ -297,10 +301,10 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it.skip("@bugfix getValues should work with circular references", function () {
-			var myNode1 = PropertyFactory.create("NodeProperty");
-			var myRef1 = PropertyFactory.create("Reference", "single", "/ref2");
-			var myRef2 = PropertyFactory.create("Reference", "single", "/ref1");
+		it.skip("@bugfix getValues should work with circular references", () => {
+			const myNode1 = PropertyFactory.create("NodeProperty");
+			const myRef1 = PropertyFactory.create("Reference", "single", "/ref2");
+			const myRef2 = PropertyFactory.create("Reference", "single", "/ref1");
 			myNode1.insert("ref1", myRef1);
 			myNode1.insert("ref2", myRef2);
 			myNode1.getValues();
@@ -311,9 +315,9 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("getValues should work with bad references", function () {
-			var myNode1 = PropertyFactory.create("NodeProperty");
-			var myRef = PropertyFactory.create("Reference", "single");
+		it("getValues should work with bad references", () => {
+			const myNode1 = PropertyFactory.create("NodeProperty");
+			const myRef = PropertyFactory.create("Reference", "single");
 			myNode1.insert("badref", myRef);
 			myNode1.getValues();
 			expect(myNode1.getIds()).to.deep.equal(["badref"]);
@@ -322,7 +326,7 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("Should track dirtiness", function () {
+		it("Should track dirtiness", () => {
 			myNode.cleanDirty(BaseProperty.MODIFIED_STATE_FLAGS.DIRTY);
 			expect(
 				myNode.serialize({
@@ -343,7 +347,7 @@ describe("NodeProperty", function () {
 			);
 		});
 
-		it("Should handle removals correctly", function () {
+		it("Should handle removals correctly", () => {
 			myNode.remove("node1");
 			expect(mapNode1.getParent()).to.be.undefined;
 			myNode.remove("node2");
@@ -366,23 +370,23 @@ describe("NodeProperty", function () {
 			expect(removalChangeSet.remove).to.contain("node2");
 		});
 
-		it("Should support deserialization", function () {
-			var deserializedNode = PropertyFactory.create("NodeProperty");
-			var deserializedChanges1 = deserializedNode.deserialize(changeSetWithTwoMapEntries);
-			var CS4 = deserializedNode.serialize({ dirtyOnly: false });
+		it("Should support deserialization", () => {
+			const deserializedNode = PropertyFactory.create("NodeProperty");
+			const deserializedChanges1 = deserializedNode.deserialize(changeSetWithTwoMapEntries);
+			const CS4 = deserializedNode.serialize({ dirtyOnly: false });
 			expect(CS4).to.deep.equal(changeSetWithTwoMapEntries);
 			expect(deserializedChanges1).to.deep.equal(changeSetWithTwoMapEntries);
 
-			var deserializedChanges2 = deserializedNode.deserialize(changeSetWithTwoMapEntries);
+			const deserializedChanges2 = deserializedNode.deserialize(changeSetWithTwoMapEntries);
 			expect(deserializedChanges2).to.be.empty;
 
-			var deserializedChanges3 = deserializedNode.deserialize({});
+			const deserializedChanges3 = deserializedNode.deserialize({});
 			expect(deserializedChanges3).to.deep.equal(removalChangeSet);
 		});
 
-		it("should support deserialization for nested properties", function () {
-			var P1 = PropertyFactory.create("autodesk.tests:nested.node.property-1.0.0");
-			var P2 = PropertyFactory.create("autodesk.tests:nested.node.property-1.0.0");
+		it("should support deserialization for nested properties", () => {
+			const P1 = PropertyFactory.create("autodesk.tests:nested.node.property-1.0.0");
+			const P2 = PropertyFactory.create("autodesk.tests:nested.node.property-1.0.0");
 
 			P1._properties.nested.property.propertyNode.insert(
 				"testProperty",
@@ -397,9 +401,9 @@ describe("NodeProperty", function () {
 			expect(P2._properties.nested.property.testProperty.value).to.equal("testString");
 		});
 
-		it("Should track modifies", function () {
-			var modifyNode1 = PropertyFactory.create("NodeProperty");
-			var modifyNode2 = PropertyFactory.create("NodeProperty");
+		it("Should track modifies", () => {
+			const modifyNode1 = PropertyFactory.create("NodeProperty");
+			const modifyNode2 = PropertyFactory.create("NodeProperty");
 
 			modifyNode1.deserialize(changeSetWithTwoMapEntries);
 			modifyNode2.deserialize(changeSetWithTwoMapEntries);
@@ -408,19 +412,19 @@ describe("NodeProperty", function () {
 				BaseProperty.MODIFIED_STATE_FLAGS.DIRTY |
 					BaseProperty.MODIFIED_STATE_FLAGS.PENDING_CHANGE,
 			);
-			var child1 = modifyNode1.get("node1");
+			const child1 = modifyNode1.get("node1");
 			child1._properties.stringProperty.value = "modify test";
-			var modifyChangeSet = modifyNode1.serialize({ dirtyOnly: true });
+			const modifyChangeSet = modifyNode1.serialize({ dirtyOnly: true });
 			modifyNode2.applyChangeSet(modifyChangeSet);
 			expect(modifyNode2.serialize({ dirtyOnly: false })).to.deep.equal(
 				modifyNode1.serialize({ dirtyOnly: false }),
 			);
 		});
 
-		it("Should support hierarchical properties", function () {
-			var node1 = PropertyFactory.create("NodeProperty");
-			var node2 = PropertyFactory.create("NodeProperty");
-			var node3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("Should support hierarchical properties", () => {
+			const node1 = PropertyFactory.create("NodeProperty");
+			const node2 = PropertyFactory.create("NodeProperty");
+			const node3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 			// Createa a hierarchy of three nodes
 			node1.insert("node", node2);
@@ -428,19 +432,19 @@ describe("NodeProperty", function () {
 			node3._properties.stringProperty.value = "test";
 
 			// Check that deserializing and serializing works with a hierarchy
-			var hierarchicalChangeSet = node1.serialize({ dirtyOnly: true });
-			var deserializedNode = PropertyFactory.create("NodeProperty");
+			const hierarchicalChangeSet = node1.serialize({ dirtyOnly: true });
+			const deserializedNode = PropertyFactory.create("NodeProperty");
 			deserializedNode.deserialize(hierarchicalChangeSet);
-			var child1 = deserializedNode.get(deserializedNode.getIds()[0]);
+			let child1 = deserializedNode.get(deserializedNode.getIds()[0]);
 			expect(child1).to.not.equal(undefined);
-			var child2 = child1.get(child1.getIds()[0]);
+			let child2 = child1.get(child1.getIds()[0]);
 			expect(child2).to.not.equal(undefined);
 			expect(child2._properties.stringProperty.value).to.equal("test");
 
 			// Test that hierarchical modifies work
 			node1.cleanDirty();
 			node3._properties.stringProperty.value = "test2";
-			var hierarchicalModifyChangeSet = node1.serialize({ dirtyOnly: true });
+			const hierarchicalModifyChangeSet = node1.serialize({ dirtyOnly: true });
 
 			deserializedNode.applyChangeSet(hierarchicalModifyChangeSet);
 			child1 = deserializedNode.get(deserializedNode.getIds()[0]);
@@ -450,15 +454,15 @@ describe("NodeProperty", function () {
 			expect(child2._properties.stringProperty.value).to.equal("test2");
 		});
 
-		it("should be possible to use anonymous properties", function () {
-			var rootNode = PropertyFactory.create("NodeProperty");
-			var rootNode2 = PropertyFactory.create("NodeProperty");
-			var node1 = PropertyFactory.create("autodesk.tests:AnonymousProperty-1.0.0");
-			var node2 = PropertyFactory.create("autodesk.tests:AnonymousProperty-1.0.0");
+		it("should be possible to use anonymous properties", () => {
+			const rootNode = PropertyFactory.create("NodeProperty");
+			const rootNode2 = PropertyFactory.create("NodeProperty");
+			const node1 = PropertyFactory.create("autodesk.tests:AnonymousProperty-1.0.0");
+			const node2 = PropertyFactory.create("autodesk.tests:AnonymousProperty-1.0.0");
 
 			rootNode.insert("node1", node1);
 			rootNode.insert("node2", node2);
-			var testChangeSet = rootNode.serialize({ dirtyOnly: false });
+			const testChangeSet = rootNode.serialize({ dirtyOnly: false });
 
 			expect(rootNode.get("node1")).to.be.equal(node1);
 			expect(rootNode.get("node2")).to.be.equal(node2);
@@ -477,18 +481,18 @@ describe("NodeProperty", function () {
 			);
 		});
 
-		it("inserting the same key twice should throw an exception", function () {
-			var rootNode = PropertyFactory.create("NodeProperty");
-			var node1 = PropertyFactory.create("NodeProperty");
-			var node2 = PropertyFactory.create("NodeProperty");
+		it("inserting the same key twice should throw an exception", () => {
+			const rootNode = PropertyFactory.create("NodeProperty");
+			const node1 = PropertyFactory.create("NodeProperty");
+			const node2 = PropertyFactory.create("NodeProperty");
 			rootNode.insert("node1", node1);
-			expect(function () {
+			expect(() => {
 				rootNode.insert("node1", node2);
 			}).to.throw();
 		});
 
-		it("Should work to create a MixedNodeTemplate", function () {
-			var mixedNode = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("Should work to create a MixedNodeTemplate", () => {
+			const mixedNode = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 			mixedNode.insert("dynamicFloat", PropertyFactory.create("Float32"));
 			mixedNode.insert("dynamicString", PropertyFactory.create("String"));
 
@@ -539,27 +543,27 @@ describe("NodeProperty", function () {
 			});
 
 			// Pretty printing
-			var expectedPrettyStr =
+			const expectedPrettyStr =
 				"undefined (autodesk.tests:MixedNodeTestProperty-1.0.0):\n" +
 				'  stringProperty (String): "modified1"\n' +
 				'  stringProperty2 (String): "string2"\n' +
 				"  dynamicFloat (Float32): 11\n" +
 				'  dynamicString (String): "modified2"\n' +
 				'  dynamicString2 (String): "dynamic3"\n';
-			var prettyStr = "";
-			mixedNode.prettyPrint(function (str) {
-				prettyStr += str + "\n";
+			let prettyStr = "";
+			mixedNode.prettyPrint((str) => {
+				prettyStr += `${str}\n`;
 			});
 			expect(prettyStr).to.equal(expectedPrettyStr);
 		});
 
-		it("inserting the same node twice should be a bug", function () {
-			var rootNode = PropertyFactory.create("NodeProperty");
-			var node = PropertyFactory.create("NodeProperty");
+		it("inserting the same node twice should be a bug", () => {
+			const rootNode = PropertyFactory.create("NodeProperty");
+			const node = PropertyFactory.create("NodeProperty");
 
 			// Try to insert the same node object under two keys
 			rootNode.insert("node", node);
-			expect(function () {
+			expect(() => {
 				rootNode.insert("node2", node);
 			}).to.throw();
 
@@ -568,8 +572,8 @@ describe("NodeProperty", function () {
 			rootNode.insert("node2", node);
 		});
 
-		it("should not allow adding two nodes with same id", function () {
-			var NodeTemplate = {
+		it("should not allow adding two nodes with same id", () => {
+			const NodeTemplate = {
 				typeid: "autodesk.tests:NodeTemplate-1.0.0",
 				inherits: "NodeProperty",
 				properties: [{ id: "a", typeid: "Float32" }],
@@ -577,18 +581,18 @@ describe("NodeProperty", function () {
 
 			PropertyFactory._reregister(NodeTemplate);
 
-			var node = PropertyFactory.create("autodesk.tests:NodeTemplate-1.0.0");
-			var child = PropertyFactory.create("String");
+			const node = PropertyFactory.create("autodesk.tests:NodeTemplate-1.0.0");
+			const child = PropertyFactory.create("String");
 
-			expect(function () {
+			expect(() => {
 				node.insert("a", child);
-			}).to.throw(MSG.PROPERTY_ALREADY_EXISTS + "a");
+			}).to.throw(`${MSG.PROPERTY_ALREADY_EXISTS}a`);
 		});
 
-		it("Should correctly report whether it is a root", function () {
-			var root = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
-			var child = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
-			var stringProperty = child.resolvePath("stringProperty");
+		it("Should correctly report whether it is a root", () => {
+			const root = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+			const child = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+			const stringProperty = child.resolvePath("stringProperty");
 
 			root.insert("childKey", child);
 			assert(root.isRoot());
@@ -602,22 +606,22 @@ describe("NodeProperty", function () {
 			);
 		});
 
-		it("should correctly report changes when deserializing keys which contain 0", function () {
-			var property = PropertyFactory.create("NodeProperty");
+		it("should correctly report changes when deserializing keys which contain 0", () => {
+			const property = PropertyFactory.create("NodeProperty");
 			property.insert("test", PropertyFactory.create("Int32"));
 			property._properties.test.value = 5; // Make sure, it is marked as modified
 			property._properties.test.value = 0;
 
-			var property2 = PropertyFactory.create("NodeProperty");
+			const property2 = PropertyFactory.create("NodeProperty");
 			property2.insert("test", PropertyFactory.create("Int32"));
 			property2._properties.test.value = 5;
 
-			var actualChanges = property2.deserialize(property.serialize({ dirtyOnly: false }));
+			const actualChanges = property2.deserialize(property.serialize({ dirtyOnly: false }));
 			expect(actualChanges).to.deep.equal({ modify: { Int32: { test: 0 } } });
 		});
 	});
 
-	describe("squashing", function () {
+	describe("squashing", () => {
 		//
 		// Helper function which takes a sequence of callbacks that are successively executed
 		// and the changes applied by the callbacks are separately tracked and squashed in a
@@ -626,26 +630,26 @@ describe("NodeProperty", function () {
 		// Optionally, a a callback which controls the initial state before the squashing can
 		// be given as first parameter
 		//
-		var testChangeSetSquashing = function (in_options) {
+		const testChangeSetSquashing = function (in_options) {
 			resetKeyCounter();
-			var testProperty = PropertyFactory.create("NodeProperty");
+			const testProperty = PropertyFactory.create("NodeProperty");
 
-			var callbacks = in_options.callbacks;
+			const callbacks = in_options.callbacks;
 			if (in_options.pre) {
 				in_options.pre(testProperty);
 			}
 
-			var initialChangeset = new ChangeSet(testProperty.serialize({ dirtyOnly: false }));
+			const initialChangeset = new ChangeSet(testProperty.serialize({ dirtyOnly: false }));
 			initialChangeset.setIsNormalized(true);
 
-			var squashedChangeset = new ChangeSet();
+			const squashedChangeset = new ChangeSet();
 			testProperty.cleanDirty(
 				BaseProperty.MODIFIED_STATE_FLAGS.DIRTY |
 					BaseProperty.MODIFIED_STATE_FLAGS.PENDING_CHANGE,
 			);
-			for (var i = 0; i < callbacks.length; i++) {
+			for (let i = 0; i < callbacks.length; i++) {
 				callbacks[i](testProperty);
-				var changes = testProperty.serialize({ dirtyOnly: true });
+				const changes = testProperty.serialize({ dirtyOnly: true });
 				testProperty.cleanDirty(
 					BaseProperty.MODIFIED_STATE_FLAGS.DIRTY |
 						BaseProperty.MODIFIED_STATE_FLAGS.PENDING_CHANGE,
@@ -664,17 +668,17 @@ describe("NodeProperty", function () {
 			);
 		};
 
-		it("should work for multiple independent inserts", function () {
+		it("should work for multiple independent inserts", () => {
 			testChangeSetSquashing({
 				callbacks: [insertNodeInRoot, insertNodeInRoot, insertNodeInRoot],
 			});
 		});
-		it("should work for multiple hierarchical inserts", function () {
+		it("should work for multiple hierarchical inserts", () => {
 			testChangeSetSquashing({
 				callbacks: [insertNodeAsLeaf, insertNodeAsLeaf, insertNodeAsLeaf],
 			});
 		});
-		it("should work for inserts followed by removes", function () {
+		it("should work for inserts followed by removes", () => {
 			testChangeSetSquashing({
 				callbacks: [
 					insertNodeInRoot,
@@ -682,12 +686,12 @@ describe("NodeProperty", function () {
 					removeFirstNodeInRoot,
 					removeFirstNodeInRoot,
 				],
-				post: function (changeset) {
+				post(changeset) {
 					expect(changeset).to.be.empty;
 				},
 			});
 		});
-		it("should work for a tree removal", function () {
+		it("should work for a tree removal", () => {
 			testChangeSetSquashing({
 				callbacks: [
 					insertNodeAsLeaf,
@@ -695,13 +699,13 @@ describe("NodeProperty", function () {
 					insertNodeAsLeaf,
 					removeFirstNodeInRoot,
 				],
-				post: function (changeset) {
+				post(changeset) {
 					expect(changeset).to.be.empty;
 				},
 			});
 		});
 
-		it("should work for modifies in a tree", function () {
+		it("should work for modifies in a tree", () => {
 			testChangeSetSquashing({
 				callbacks: [
 					insertNodeAsLeaf,
@@ -712,11 +716,11 @@ describe("NodeProperty", function () {
 				],
 			});
 		});
-		it("should work for modifies of a primitive type", function () {
+		it("should work for modifies of a primitive type", () => {
 			testChangeSetSquashing({
 				callbacks: [
 					function (root) {
-						var newStringNode = PropertyFactory.create("String");
+						const newStringNode = PropertyFactory.create("String");
 						newStringNode.value = "initial value";
 						root.insert("stringProp", newStringNode);
 					},
@@ -727,7 +731,7 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("an insert, modify and a remove should give an empty changeset", function () {
+		it("an insert, modify and a remove should give an empty changeset", () => {
 			testChangeSetSquashing({
 				callbacks: [
 					insertNodeAsLeaf,
@@ -736,34 +740,34 @@ describe("NodeProperty", function () {
 					modifyLeaf,
 					removeFirstNodeInRoot,
 				],
-				post: function (changeset) {
+				post(changeset) {
 					expect(changeset).to.be.empty;
 				},
 			});
 		});
-		it("work for modifies after an already existing insert", function () {
+		it("work for modifies after an already existing insert", () => {
 			testChangeSetSquashing({
 				pre: insertNodeInRoot,
 				callbacks: [modifyLeaf, modifyLeaf],
 			});
 		});
-		it("of modify and remove after an already existing insert should work", function () {
+		it("of modify and remove after an already existing insert should work", () => {
 			testChangeSetSquashing({
 				pre: insertNodeInRoot,
 				callbacks: [modifyLeaf, removeFirstNodeInRoot],
-				post: function (changeset) {
+				post(changeset) {
 					expect(changeset).to.have.all.keys("remove");
 				},
 			});
 		});
-		it("of a replace operation should be possible", function () {
+		it("of a replace operation should be possible", () => {
 			// Create two nodes
-			var node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
-			var node2 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+			const node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+			const node2 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 			node2._properties.stringProperty.value = "testString2";
 
 			testChangeSetSquashing({
-				pre: function (root) {
+				pre(root) {
 					root.insert("node1", node1);
 				},
 				callbacks: [
@@ -772,23 +776,23 @@ describe("NodeProperty", function () {
 						root.insert("node1", node2);
 					},
 				],
-				post: function (changeset) {
+				post(changeset) {
 					expect(changeset).to.have.all.keys("remove", "insert");
 				},
 			});
 		});
 	});
-	describe("Rebasing", function () {
-		var testRebasing = function (in_options) {
+	describe("Rebasing", () => {
+		const testRebasing = function (in_options) {
 			// Prepare the initial state
-			var baseProperty1 = PropertyFactory.create("NodeProperty");
+			const baseProperty1 = PropertyFactory.create("NodeProperty");
 			if (in_options.prepare) {
 				in_options.prepare(baseProperty1);
 			}
 			// Create two copies of this state
-			var baseProperty2 = PropertyFactory.create("NodeProperty");
+			const baseProperty2 = PropertyFactory.create("NodeProperty");
 			baseProperty2.deserialize(baseProperty1.serialize({ dirtyOnly: false }));
-			var baseProperty3 = PropertyFactory.create("NodeProperty");
+			const baseProperty3 = PropertyFactory.create("NodeProperty");
 			baseProperty3.deserialize(baseProperty1.serialize({ dirtyOnly: false }));
 
 			// Make sure the states are clear
@@ -805,7 +809,7 @@ describe("NodeProperty", function () {
 					BaseProperty.MODIFIED_STATE_FLAGS.PENDING_CHANGE,
 			);
 
-			var initialChangeSet = baseProperty1.serialize({ dirtyOnly: false });
+			const initialChangeSet = baseProperty1.serialize({ dirtyOnly: false });
 
 			// Apply the operations to the two properties in parallel
 			if (in_options.op1) {
@@ -816,14 +820,14 @@ describe("NodeProperty", function () {
 			}
 
 			// Get the ChangeSets
-			var changeSet1 = new ChangeSet(baseProperty1.serialize({ dirtyOnly: true }));
-			var changeSet2 = baseProperty2.serialize({ dirtyOnly: true });
+			const changeSet1 = new ChangeSet(baseProperty1.serialize({ dirtyOnly: true }));
+			const changeSet2 = baseProperty2.serialize({ dirtyOnly: true });
 
 			// Perform the actual rebase
-			var conflicts = [];
+			const conflicts = [];
 			changeSet1._rebaseChangeSet(changeSet2, conflicts);
 
-			var combinedChangeSet = new ChangeSet(initialChangeSet).clone();
+			const combinedChangeSet = new ChangeSet(initialChangeSet).clone();
 			combinedChangeSet.applyChangeSet(changeSet1);
 			combinedChangeSet.applyChangeSet(changeSet2);
 
@@ -834,7 +838,7 @@ describe("NodeProperty", function () {
 				if (in_options.op2) {
 					in_options.op2(baseProperty3);
 				}
-				var finalChangeSet = baseProperty3.serialize({ dirtyOnly: false });
+				const finalChangeSet = baseProperty3.serialize({ dirtyOnly: false });
 				expect(finalChangeSet).to.be.deep.equal(combinedChangeSet.getSerializedChangeSet());
 			}
 
@@ -843,14 +847,14 @@ describe("NodeProperty", function () {
 			}
 		};
 
-		it("with a NOP should be possible", function () {
+		it("with a NOP should be possible", () => {
 			testRebasing({
 				op2: insertUniqueNodeInRoot(),
 				compareToSequential: true,
 			});
 		});
 
-		it("with independent inserts should be possible", function () {
+		it("with independent inserts should be possible", () => {
 			testRebasing({
 				op1: insertUniqueNodeInRoot(),
 				op2: insertUniqueNodeInRoot(),
@@ -858,30 +862,30 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("with independent removes should be possible", function () {
-			var node1 = PropertyFactory.create("NodeProperty");
-			var node2 = PropertyFactory.create("NodeProperty");
+		it("with independent removes should be possible", () => {
+			const node1 = PropertyFactory.create("NodeProperty");
+			const node2 = PropertyFactory.create("NodeProperty");
 
 			testRebasing({
-				prepare: function (root) {
+				prepare(root) {
 					root.insert("node1", node1);
 					root.insert("node2", node2);
 				},
-				op1: function (root) {
+				op1(root) {
 					root.remove("node1");
 				},
-				op2: function (root) {
+				op2(root) {
 					root.remove("node2");
 				},
 				compareToSequential: true,
 			});
 		});
 
-		it("with a modify and a remove should possible", function () {
-			var node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("with a modify and a remove should possible", () => {
+			const node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 			testRebasing({
-				prepare: function (root) {
+				prepare(root) {
 					root.insert("node1", node1);
 				},
 				op1: modifyLeaf,
@@ -890,17 +894,17 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("with a remove and a modify should possible", function () {
-			var node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("with a remove and a modify should possible", () => {
+			const node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 			testRebasing({
-				prepare: function (root) {
+				prepare(root) {
 					root.insert("node1", node1);
 				},
 				op1: removeFirstNodeInRoot,
 				op2: modifyLeaf,
 				compareToSequential: false,
-				checkResult: function (conflicts, changeSet) {
+				checkResult(conflicts, changeSet) {
 					expect(conflicts).to.have.length(1);
 					expect(conflicts[0].type).to.be.equal(
 						ChangeSet.ConflictType.ENTRY_MODIFIED_AFTER_REMOVE,
@@ -911,65 +915,65 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("with two compatible removes should be possible", function () {
-			var node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("with two compatible removes should be possible", () => {
+			const node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 			testRebasing({
-				prepare: function (root) {
+				prepare(root) {
 					root.insert("node1", node1);
 				},
-				op1: function (root) {
+				op1(root) {
 					root.remove("node1");
 				},
-				op2: function (root) {
+				op2(root) {
 					root.remove("node1");
 				},
 				compareToSequential: false,
-				checkResult: function (conflicts, changeSet) {
+				checkResult(conflicts, changeSet) {
 					expect(ChangeSet.isEmptyChangeSet(changeSet)).to.be.ok;
 				},
 			});
 		});
 
-		it("with two indendent recursive modifies should be possible", function () {
-			var node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("with two indendent recursive modifies should be possible", () => {
+			const node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 			testRebasing({
-				prepare: function (root) {
+				prepare(root) {
 					root.insert("node1", node1);
 				},
-				op1: function (root) {
+				op1(root) {
 					_.values(root._getDynamicChildrenReadOnly())[0]._properties.stringProperty.value =
 						"a";
 				},
-				op2: function (root) {
+				op2(root) {
 					_.values(root._getDynamicChildrenReadOnly())[0]._properties.stringProperty2.value =
 						"a";
 				},
 				compareToSequential: true,
-				checkResult: function (conflicts, changeSet) {
+				checkResult(conflicts, changeSet) {
 					expect(conflicts).to.be.empty;
 				},
 			});
 		});
 
-		it("with two conflicting recursive modifies should be possible and report a conflict", function () {
-			var node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("with two conflicting recursive modifies should be possible and report a conflict", () => {
+			const node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 			testRebasing({
-				prepare: function (root) {
+				prepare(root) {
 					root.insert("node1", node1);
 				},
-				op1: function (root) {
+				op1(root) {
 					_.values(root._getDynamicChildrenReadOnly())[0]._properties.stringProperty.value =
 						"b";
 				},
-				op2: function (root) {
+				op2(root) {
 					_.values(root._getDynamicChildrenReadOnly())[0]._properties.stringProperty.value =
 						"a";
 				},
 				compareToSequential: true,
-				checkResult: function (conflicts, changeSet) {
+				checkResult(conflicts, changeSet) {
 					expect(conflicts).to.have.length(1);
 					expect(
 						changeSet.modify["autodesk.tests:MixedNodeTestProperty-1.0.0"].node1.String
@@ -981,21 +985,21 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("with modify followed by remove+insert should work", function () {
-			var node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("with modify followed by remove+insert should work", () => {
+			const node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 			testRebasing({
-				prepare: function (root) {
+				prepare(root) {
 					root.insert("node1", node1);
 				},
 				op1: modifyLeaf,
-				op2: function (root) {
-					var node2 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+				op2(root) {
+					const node2 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 					root.remove("node1");
 					root.insert("node1", node2);
 				},
 				compareToSequential: true,
-				checkResult: function (conflicts, changeSet) {
+				checkResult(conflicts, changeSet) {
 					expect(conflicts).to.have.length(1);
 					expect(conflicts[0].type).to.be.equal(ChangeSet.ConflictType.REMOVE_AFTER_MODIFY);
 					expect(conflicts[0].path).to.be.equal("node1");
@@ -1004,21 +1008,21 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("with remove+insert followed by modify should report conflict", function () {
-			var node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("with remove+insert followed by modify should report conflict", () => {
+			const node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 			testRebasing({
-				prepare: function (root) {
+				prepare(root) {
 					root.insert("node1", node1);
 				},
-				op1: function (root) {
-					var node2 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+				op1(root) {
+					const node2 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 					root.remove("node1");
 					root.insert("node1", node2);
 				},
 				op2: modifyLeaf,
 				compareToSequential: false,
-				checkResult: function (conflicts, changeSet) {
+				checkResult(conflicts, changeSet) {
 					expect(conflicts).to.have.length(1);
 					expect(conflicts[0].type).to.be.equal(
 						ChangeSet.ConflictType.ENTRY_MODIFICATION_AFTER_REMOVE_INSERT,
@@ -1028,21 +1032,21 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("with remove+insert followed by remove+insert should report conflict", function () {
-			var node = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("with remove+insert followed by remove+insert should report conflict", () => {
+			const node = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 			testRebasing({
-				prepare: function (root) {
+				prepare(root) {
 					root.insert("node", node);
 				},
-				op1: function (root) {
+				op1(root) {
 					root.remove("node");
 					root.insert(
 						"node",
 						PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0"),
 					);
 				},
-				op2: function (root) {
+				op2(root) {
 					root.remove("node");
 					root.insert(
 						"node",
@@ -1050,7 +1054,7 @@ describe("NodeProperty", function () {
 					);
 				},
 				compareToSequential: false,
-				checkResult: function (conflicts, changeSet) {
+				checkResult(conflicts, changeSet) {
 					expect(conflicts).to.have.length(1);
 					expect(conflicts[0].type).to.be.equal(ChangeSet.ConflictType.COLLIDING_SET);
 					expect(conflicts[0].path).to.be.equal("node");
@@ -1058,20 +1062,20 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("with conflicting inserts should report conflict", function () {
-			var node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
-			var node2 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("with conflicting inserts should report conflict", () => {
+			const node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+			const node2 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 			testRebasing({
-				prepare: function (root) {},
-				op1: function (root) {
+				prepare(root) {},
+				op1(root) {
 					root.insert("node1", node1);
 				},
-				op2: function (root) {
+				op2(root) {
 					root.insert("node1", node2);
 				},
 				compareToSequential: false,
-				checkResult: function (conflicts, changeSet) {
+				checkResult(conflicts, changeSet) {
 					expect(ChangeSet.isEmptyChangeSet(changeSet)).to.be.ok;
 					expect(conflicts).to.have.length(1);
 					expect(conflicts[0].type).to.be.equal(
@@ -1082,21 +1086,21 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("with conflicting inserts of primitive types", function () {
+		it("with conflicting inserts of primitive types", () => {
 			testRebasing({
-				prepare: function (root) {},
-				op1: function (root) {
-					var string1 = PropertyFactory.create("String");
+				prepare(root) {},
+				op1(root) {
+					const string1 = PropertyFactory.create("String");
 					string1.value = "test1";
 					root.insert("entry", string1);
 				},
-				op2: function (root) {
-					var string2 = PropertyFactory.create("String");
+				op2(root) {
+					const string2 = PropertyFactory.create("String");
 					string2.value = "test2";
 					root.insert("entry", string2);
 				},
 				compareToSequential: false,
-				checkResult: function (conflicts, changeSet) {
+				checkResult(conflicts, changeSet) {
 					expect(changeSet).to.deep.equal({
 						modify: {
 							String: {
@@ -1116,21 +1120,21 @@ describe("NodeProperty", function () {
 		});
 
 		// TODO: 'with conflicting inserts of primitive types' is identical to the below test.  Why?
-		it("with conflicting recursive modifies of primitive types should be possible and report a conflict", function () {
+		it("with conflicting recursive modifies of primitive types should be possible and report a conflict", () => {
 			testRebasing({
-				prepare: function (root) {},
-				op1: function (root) {
-					var string1 = PropertyFactory.create("String");
+				prepare(root) {},
+				op1(root) {
+					const string1 = PropertyFactory.create("String");
 					string1.value = "test1";
 					root.insert("entry", string1);
 				},
-				op2: function (root) {
-					var string2 = PropertyFactory.create("String");
+				op2(root) {
+					const string2 = PropertyFactory.create("String");
 					string2.value = "test2";
 					root.insert("entry", string2);
 				},
 				compareToSequential: false,
-				checkResult: function (conflicts, changeSet) {
+				checkResult(conflicts, changeSet) {
 					expect(changeSet).to.deep.equal({
 						modify: {
 							String: {
@@ -1149,21 +1153,21 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("with conflicting recursive modifies of enums should be possible and report a conflict", function () {
+		it("with conflicting recursive modifies of enums should be possible and report a conflict", () => {
 			testRebasing({
-				prepare: function (root) {},
-				op1: function (root) {
-					var enum1 = PropertyFactory.create("autodesk.core:UnitsEnum-1.0.0");
+				prepare(root) {},
+				op1(root) {
+					const enum1 = PropertyFactory.create("autodesk.core:UnitsEnum-1.0.0");
 					enum1.value = 1;
 					root.insert("entry", enum1);
 				},
-				op2: function (root) {
-					var enum2 = PropertyFactory.create("autodesk.core:UnitsEnum-1.0.0");
+				op2(root) {
+					const enum2 = PropertyFactory.create("autodesk.core:UnitsEnum-1.0.0");
 					enum2.value = 2;
 					root.insert("entry", enum2);
 				},
 				compareToSequential: false,
-				checkResult: function (conflicts, changeSet) {
+				checkResult(conflicts, changeSet) {
 					expect(changeSet).to.deep.equal({
 						modify: {
 							"enum<autodesk.core:UnitsEnum-1.0.0>": {
@@ -1182,22 +1186,22 @@ describe("NodeProperty", function () {
 			});
 		});
 
-		it("with conflicting inserts in a deep leaf should report a correct conflict", function () {
+		it("with conflicting inserts in a deep leaf should report a correct conflict", () => {
 			testRebasing({
-				prepare: function (root) {
-					var node = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+				prepare(root) {
+					const node = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 					root.insert("node", node);
 				},
-				op1: function (root) {
-					var node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+				op1(root) {
+					const node1 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 					root.resolvePath("node").insert("node2", node1);
 				},
-				op2: function (root) {
-					var node2 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+				op2(root) {
+					const node2 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 					root.resolvePath("node").insert("node2", node2);
 				},
 				compareToSequential: false,
-				checkResult: function (conflicts, changeSet) {
+				checkResult(conflicts, changeSet) {
 					expect(ChangeSet.isEmptyChangeSet(changeSet)).to.be.ok;
 					expect(conflicts).to.have.length(1);
 					expect(conflicts[0].type).to.be.equal(
@@ -1209,13 +1213,13 @@ describe("NodeProperty", function () {
 		});
 	});
 
-	describe("Compatibility with ChangeSets from spec", function () {
+	describe("Compatibility with ChangeSets from spec", () => {
 		// These are the ChangeSets from the discussion minutes document
 		// after some cleanup, mainly missing parameters were added in inserts and
 		// syntax corrections. Additionally, the Vector3 was renamed to autodesk.test:vector3-1.0.0 to avoid
 		// conflicts with the inbuilt type
 
-		var insertChangeSet1 = {
+		const insertChangeSet1 = {
 			insert: {
 				"autodesk.test:point2d-1.0.0": {
 					myPoint: {
@@ -1292,7 +1296,7 @@ describe("NodeProperty", function () {
 			},
 		};
 
-		var modifyChangeSet1 = {
+		const modifyChangeSet1 = {
 			modify: {
 				"autodesk.test:point2d-1.0.0": {
 					myPoint: {
@@ -1312,7 +1316,7 @@ describe("NodeProperty", function () {
 			},
 		};
 
-		var modifyChangeSet2 = {
+		const modifyChangeSet2 = {
 			modify: {
 				"autodesk.test:point2d-1.0.0": {
 					myPoint: {
@@ -1336,7 +1340,7 @@ describe("NodeProperty", function () {
 			},
 		};
 
-		var modifyChangeSet3 = {
+		const modifyChangeSet3 = {
 			modify: {
 				"autodesk.test:point2d-1.0.0": {
 					myPoint: {
@@ -1358,7 +1362,7 @@ describe("NodeProperty", function () {
 			},
 		};
 
-		var removePreparationChangeSet1 = {
+		const removePreparationChangeSet1 = {
 			insert: {
 				"autodesk.test:SceneObject-1.0.0": {
 					dasdm23: {
@@ -1371,7 +1375,7 @@ describe("NodeProperty", function () {
 			},
 		};
 
-		var removePreparationChangeSet2 = {
+		const removePreparationChangeSet2 = {
 			modify: {
 				"autodesk.test:SceneObject-1.0.0": {
 					dasdm23: {
@@ -1390,11 +1394,11 @@ describe("NodeProperty", function () {
 			},
 		};
 
-		var removeChangeSet1 = {
+		const removeChangeSet1 = {
 			remove: ["dasdm23"],
 		};
 
-		var removeChangeSet2 = {
+		const removeChangeSet2 = {
 			modify: {
 				"autodesk.test:SceneObject-1.0.0": {
 					dasdm23: {
@@ -1404,8 +1408,8 @@ describe("NodeProperty", function () {
 			},
 		};
 
-		it("should be possible to insert properties with the example from the spec", function () {
-			var rootProperty = PropertyFactory.create("NodeProperty");
+		it("should be possible to insert properties with the example from the spec", () => {
+			const rootProperty = PropertyFactory.create("NodeProperty");
 			rootProperty.applyChangeSet(insertChangeSet1);
 
 			// Make sure all properties are as expected
@@ -1431,7 +1435,7 @@ describe("NodeProperty", function () {
 			expect(rootProperty.resolvePath("myPoint.normal.y").value).to.equal(1);
 			expect(rootProperty.resolvePath("myPoint.normal.z").value).to.equal(1);
 
-			var neighbours = rootProperty.resolvePath("myPoint.neighbours");
+			const neighbours = rootProperty.resolvePath("myPoint.neighbours");
 			assert(neighbours.has("Point1"));
 			expect(neighbours.get("Point1")._properties.x.value).to.equal(1);
 			expect(neighbours.get("Point1")._properties.y.value).to.equal(1);
@@ -1450,9 +1454,9 @@ describe("NodeProperty", function () {
 			expect(rootProperty.serialize({ dirtyOnly: true })).to.deep.equal(insertChangeSet1);
 		});
 
-		it("should be possible to use the first modify ChangeSet from the spec", function () {
+		it("should be possible to use the first modify ChangeSet from the spec", () => {
 			// Prepare the initial state
-			var rootProperty = PropertyFactory.create("NodeProperty");
+			const rootProperty = PropertyFactory.create("NodeProperty");
 			rootProperty.applyChangeSet(insertChangeSet1);
 
 			// Clean dirtiness
@@ -1471,9 +1475,9 @@ describe("NodeProperty", function () {
 			expect(rootProperty.serialize({ dirtyOnly: true })).to.deep.equal(modifyChangeSet1);
 		});
 
-		it("should be possible to use the second modify ChangeSet from the spec", function () {
+		it("should be possible to use the second modify ChangeSet from the spec", () => {
 			// Prepare the initial state
-			var rootProperty = PropertyFactory.create("NodeProperty");
+			const rootProperty = PropertyFactory.create("NodeProperty");
 			rootProperty.applyChangeSet(insertChangeSet1);
 
 			// Clean dirtiness
@@ -1484,7 +1488,7 @@ describe("NodeProperty", function () {
 
 			// Apply the modify changeSet
 			rootProperty.applyChangeSet(modifyChangeSet2);
-			var point2 = rootProperty.resolvePath("myPoint.neighbours").get("Point2");
+			const point2 = rootProperty.resolvePath("myPoint.neighbours").get("Point2");
 			expect(point2._properties.x.value).to.equal(1);
 			expect(point2._properties.y.value).to.equal(1);
 			expect(point2._properties.z.value).to.equal(1);
@@ -1493,9 +1497,9 @@ describe("NodeProperty", function () {
 			expect(rootProperty.serialize({ dirtyOnly: true })).to.deep.equal(modifyChangeSet2);
 		});
 
-		it("should be possible to use the third modify ChangeSet from the spec", function () {
+		it("should be possible to use the third modify ChangeSet from the spec", () => {
 			// Prepare the initial state
-			var rootProperty = PropertyFactory.create("NodeProperty");
+			const rootProperty = PropertyFactory.create("NodeProperty");
 			rootProperty.applyChangeSet(insertChangeSet1);
 			rootProperty.applyChangeSet(modifyChangeSet2);
 
@@ -1507,16 +1511,16 @@ describe("NodeProperty", function () {
 
 			// Apply the modify changeSet
 			rootProperty.applyChangeSet(modifyChangeSet3);
-			var point2 = rootProperty.resolvePath("myPoint.neighbours").get("Point2");
+			const point2 = rootProperty.resolvePath("myPoint.neighbours").get("Point2");
 			expect(point2._properties.x.value).to.equal(2);
 
 			// Make sure the serialization gives the expected result
 			expect(rootProperty.serialize({ dirtyOnly: true })).to.deep.equal(modifyChangeSet3);
 		});
 
-		it("should be possible to use the first remove ChangeSet from the spec", function () {
+		it("should be possible to use the first remove ChangeSet from the spec", () => {
 			// Prepare the initial state
-			var rootProperty = PropertyFactory.create("NodeProperty");
+			const rootProperty = PropertyFactory.create("NodeProperty");
 			rootProperty.applyChangeSet(removePreparationChangeSet1);
 			rootProperty.applyChangeSet(removePreparationChangeSet2);
 
@@ -1535,9 +1539,9 @@ describe("NodeProperty", function () {
 			expect(rootProperty.serialize({ dirtyOnly: true })).to.deep.equal(removeChangeSet1);
 		});
 
-		it("should be possible to use the first remove ChangeSet from the spec", function () {
+		it("should be possible to use the first remove ChangeSet from the spec", () => {
 			// Prepare the initial state
-			var rootProperty = PropertyFactory.create("NodeProperty");
+			const rootProperty = PropertyFactory.create("NodeProperty");
 			rootProperty.applyChangeSet(removePreparationChangeSet1);
 			rootProperty.applyChangeSet(removePreparationChangeSet2);
 
@@ -1558,10 +1562,10 @@ describe("NodeProperty", function () {
 		});
 	});
 
-	describe("Make sure struct changes and path updates are signaled correctly", function () {
-		it("Should be possible to access dynamic nodes via propertis and paths", function () {
-			var root = PropertyFactory.create("NodeProperty");
-			var newRoot = PropertyFactory.create("NodeProperty");
+	describe("Make sure struct changes and path updates are signaled correctly", () => {
+		it("Should be possible to access dynamic nodes via propertis and paths", () => {
+			const root = PropertyFactory.create("NodeProperty");
+			const newRoot = PropertyFactory.create("NodeProperty");
 
 			// Create a hierarchy of nodes
 			root.insert("child1", PropertyFactory.create("NodeProperty"));
@@ -1571,7 +1575,7 @@ describe("NodeProperty", function () {
 			expect(root.resolvePath("child1.position")).to.be.undefined;
 
 			// Crate a dynamic object via a NodeProperty
-			var positionProperty = PropertyFactory.create("NodeProperty");
+			const positionProperty = PropertyFactory.create("NodeProperty");
 			root._properties.child1.propertyNode.insert("position", positionProperty);
 			root._properties.child1.position.propertyNode.insert(
 				"x",
@@ -1607,7 +1611,7 @@ describe("NodeProperty", function () {
 			expect(root._properties.child1.position.z.value).to.equal(1);
 
 			// Crate a dynamic object via a template
-			var vec3Property = PropertyFactory.create("autodesk.test:vector3-1.0.0");
+			const vec3Property = PropertyFactory.create("autodesk.test:vector3-1.0.0");
 			root._properties.child1.propertyNode.insert("vector", vec3Property);
 
 			// Make sure paths resolve correctly
@@ -1698,32 +1702,32 @@ describe("NodeProperty", function () {
 			newRoot.remove('new"Position');
 
 			// Path resolution for named properties should return the correct path
-			var namedProperty = PropertyFactory.create("NamedProperty");
-			var nodeProperty = PropertyFactory.create("NodeProperty");
+			const namedProperty = PropertyFactory.create("NamedProperty");
+			const nodeProperty = PropertyFactory.create("NodeProperty");
 			nodeProperty.insert(namedProperty);
-			expect(namedProperty.getAbsolutePath()).to.equal("/" + namedProperty.getGuid());
+			expect(namedProperty.getAbsolutePath()).to.equal(`/${namedProperty.getGuid()}`);
 			expect(nodeProperty.resolvePath(namedProperty.getGuid())).to.equal(namedProperty);
 
 			// Try multiple levels
-			var leaf = PropertyFactory.create("NodeProperty");
+			const leaf = PropertyFactory.create("NodeProperty");
 			expect(leaf.resolvePath("/")).to.equal(leaf);
-			var map1 = PropertyFactory.create("NodeProperty");
+			const map1 = PropertyFactory.create("NodeProperty");
 			map1.insert("entry", leaf);
 			expect(leaf.resolvePath("/")).to.equal(map1);
 
-			var map2 = PropertyFactory.create("NodeProperty");
+			const map2 = PropertyFactory.create("NodeProperty");
 			map2.insert("entry", map1);
 			expect(leaf.resolvePath("/")).to.equal(map2);
 
-			var map3 = PropertyFactory.create("NodeProperty");
+			const map3 = PropertyFactory.create("NodeProperty");
 			map3.insert("entry", map2);
 			expect(leaf.resolvePath("/")).to.equal(map3);
 		});
 	});
 
-	it("should correctly clean templates inheriting from NamedNodeProperty", function () {
-		var property = PropertyFactory.create("autodesk.tests:MixedNamedNodeProperty-1.0.0");
-		var childProperty = property.get("stringProperty");
+	it("should correctly clean templates inheriting from NamedNodeProperty", () => {
+		const property = PropertyFactory.create("autodesk.tests:MixedNamedNodeProperty-1.0.0");
+		const childProperty = property.get("stringProperty");
 		childProperty.value = "changed";
 		expect(childProperty.isDirty()).to.be.true;
 		property.cleanDirty();
@@ -1731,11 +1735,11 @@ describe("NodeProperty", function () {
 		expect(childProperty.isDirty()).to.be.false;
 	});
 
-	describe("Make sure to have appropriate types for ids given to nodeProperty when inserting", function () {
-		it("should be possible for the id passed to be a string", function (done) {
-			var node1 = PropertyFactory.create("NodeProperty");
-			var node2 = PropertyFactory.create("autodesk.tests:MixedNamedNodeProperty-1.0.0");
-			var node3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+	describe("Make sure to have appropriate types for ids given to nodeProperty when inserting", () => {
+		it("should be possible for the id passed to be a string", (done) => {
+			const node1 = PropertyFactory.create("NodeProperty");
+			const node2 = PropertyFactory.create("autodesk.tests:MixedNamedNodeProperty-1.0.0");
+			const node3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 			node1.insert("node", node3);
 			node3.insert("node1", node2);
@@ -1745,10 +1749,10 @@ describe("NodeProperty", function () {
 			done();
 		});
 
-		it("should be possible for the id passed to be a number", function (done) {
-			var node1 = PropertyFactory.create("NodeProperty");
-			var node2 = PropertyFactory.create("autodesk.tests:MixedNamedNodeProperty-1.0.0");
-			var node3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("should be possible for the id passed to be a number", (done) => {
+			const node1 = PropertyFactory.create("NodeProperty");
+			const node2 = PropertyFactory.create("autodesk.tests:MixedNamedNodeProperty-1.0.0");
+			const node3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 			node1.insert("node", node3);
 			node3.insert(1122, node2);
@@ -1758,16 +1762,16 @@ describe("NodeProperty", function () {
 			done();
 		});
 
-		it("should throw an error when the id passed is an object", function (done) {
-			var node1 = PropertyFactory.create("NodeProperty");
-			var node2 = PropertyFactory.create("autodesk.tests:MixedNamedNodeProperty-1.0.0");
-			var node3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
+		it("should throw an error when the id passed is an object", (done) => {
+			const node1 = PropertyFactory.create("NodeProperty");
+			const node2 = PropertyFactory.create("autodesk.tests:MixedNamedNodeProperty-1.0.0");
+			const node3 = PropertyFactory.create("autodesk.tests:MixedNodeTestProperty-1.0.0");
 
 			node1.insert("node", node3);
 			try {
 				node3.insert({ foo: "bar" }, node2);
 				node2._properties.stringProperty.value = "test";
-			} catch (e) {
+			} catch {
 				done();
 			}
 		});
@@ -1775,23 +1779,27 @@ describe("NodeProperty", function () {
 
 	describe("_coveredByPaths", function () {
 		this.timeout(500);
-		let PathHelper, getPathCoverageSpy, paths, prop, propPath;
+		let PathHelper;
+		let getPathCoverageSpy;
+		let paths;
+		let prop;
+		let propPath;
 
-		before(function () {
+		before(() => {
 			PathHelper = require("@fluid-experimental/property-changeset").PathHelper;
 		});
 
-		beforeEach(function () {
+		beforeEach(() => {
 			getPathCoverageSpy = sinon.spy(PathHelper, "getPathCoverage");
 		});
 
-		afterEach(function () {
+		afterEach(() => {
 			PathHelper.getPathCoverage.restore();
 		});
 
-		after(function () {});
+		after(() => {});
 
-		it("should succeed if property is included in a path 1", function () {
+		it("should succeed if property is included in a path 1", () => {
 			paths = ["a.b"];
 			prop = PropertyFactory.create("String");
 			propPath = "a.b";
@@ -1800,7 +1808,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should succeed if property is included in a path 2", function () {
+		it("should succeed if property is included in a path 2", () => {
 			paths = ["a.b"];
 			prop = PropertyFactory.create("Int32");
 			propPath = "a.b.c";
@@ -1809,7 +1817,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should succeed if property is a primitive collection included in a path", function () {
+		it("should succeed if property is a primitive collection included in a path", () => {
 			paths = ["a.b"];
 			prop = PropertyFactory.create("Int32", "array");
 			propPath = "a.b.c.d";
@@ -1818,7 +1826,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should fail if property is not included in any path 1", function () {
+		it("should fail if property is not included in any path 1", () => {
 			paths = ["a.b"];
 			prop = PropertyFactory.create("Bool");
 			propPath = "b";
@@ -1827,7 +1835,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should fail if property is not included in any path 2", function () {
+		it("should fail if property is not included in any path 2", () => {
 			paths = ["a.b"];
 			prop = PropertyFactory.create("Float32");
 			propPath = "b.f.g";
@@ -1836,7 +1844,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should fail if property is not included in any path but have common root 1", function () {
+		it("should fail if property is not included in any path but have common root 1", () => {
 			paths = ["a.b"];
 			prop = PropertyFactory.create("String", "map");
 			propPath = "a.h";
@@ -1845,7 +1853,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should fail if property is not included in any path but have common root 2", function () {
+		it("should fail if property is not included in any path but have common root 2", () => {
 			paths = ["a.b"];
 			prop = PropertyFactory.create("NodeProperty");
 			propPath = "a.i.j";
@@ -1854,7 +1862,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should succeed if path goes through a primitive property 1", function () {
+		it("should succeed if path goes through a primitive property 1", () => {
 			paths = ["a.b.c", "a.b.d", "z"];
 			prop = PropertyFactory.create("String");
 			propPath = "a.b";
@@ -1863,7 +1871,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should succeed if path goes through a primitive property 2", function () {
+		it("should succeed if path goes through a primitive property 2", () => {
 			paths = ["a.b.c", "a.b.d", "z"];
 			prop = PropertyFactory.create("Int32");
 			propPath = "a.b";
@@ -1872,7 +1880,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should succeed if path goes through a primitive collection property 1", function () {
+		it("should succeed if path goes through a primitive collection property 1", () => {
 			paths = ["a.b.c", "z", "a.b.d"];
 			prop = PropertyFactory.create("Int32", "map");
 			propPath = "a.b";
@@ -1881,7 +1889,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should succeed if path goes through a primitive collection property 2", function () {
+		it("should succeed if path goes through a primitive collection property 2", () => {
 			paths = ["z", "a.b.c", "a.b.d"];
 			prop = PropertyFactory.create("String", "array");
 			propPath = "a.b";
@@ -1890,7 +1898,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should succeed if path goes through a non-primitive collection property 1", function () {
+		it("should succeed if path goes through a non-primitive collection property 1", () => {
 			paths = ["a.b.c", "z", "a.b.d"];
 			prop = PropertyFactory.create("NodeProperty", "map");
 			propPath = "a.b";
@@ -1899,7 +1907,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should succeed if path goes through a non-primitive collection property 2", function () {
+		it("should succeed if path goes through a non-primitive collection property 2", () => {
 			paths = ["z", "a.b.c", "a.b.d"];
 			prop = PropertyFactory.create("NamedProperty", "set");
 			propPath = "a.b";
@@ -1908,7 +1916,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should succeed if property is included in multiple paths 1", function () {
+		it("should succeed if property is included in multiple paths 1", () => {
 			paths = ["a.b.c", "a.b.d", "z"];
 			prop = PropertyFactory.create("NodeProperty");
 			prop.insert("c", PropertyFactory.create("String"));
@@ -1921,14 +1929,14 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith("a.b.d", ["a.b.c", "a.b.d"])).to.be.true;
 		});
 
-		it("should succeed if property is included in multiple paths 2", function () {
+		it("should succeed if property is included in multiple paths 2", () => {
 			paths = ["a.b.c", "z", "a.b.d"];
 			prop = PropertyFactory.create("NodeProperty");
-			let c = PropertyFactory.create("NodeProperty");
+			const c = PropertyFactory.create("NodeProperty");
 			prop.insert("c", c);
 			c.insert("f", PropertyFactory.create("String"));
 			c.insert("g", PropertyFactory.create("String"));
-			let d = PropertyFactory.create("String", "map");
+			const d = PropertyFactory.create("String", "map");
 			prop.insert("d", d);
 			d.insert("h", "h");
 			d.insert("i", "i");
@@ -1940,14 +1948,14 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith("a.b.d", ["a.b.c", "a.b.d"])).to.be.true;
 		});
 
-		it("should succeed if property is included in multiple paths 3", function () {
+		it("should succeed if property is included in multiple paths 3", () => {
 			paths = ["a.b.c.f", "a.b.c", "a.b.d.h", "a.b.d.i", "a.z"];
 			prop = PropertyFactory.create("NodeProperty");
-			let c = PropertyFactory.create("NodeProperty");
+			const c = PropertyFactory.create("NodeProperty");
 			prop.insert("c", c);
 			c.insert("f", PropertyFactory.create("String"));
 			c.insert("g", PropertyFactory.create("String"));
-			let d = PropertyFactory.create("NodeProperty");
+			const d = PropertyFactory.create("NodeProperty");
 			prop.insert("d", d);
 			d.insert("h", PropertyFactory.create("String"));
 			d.insert("i", PropertyFactory.create("String"));
@@ -1965,16 +1973,16 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith("a.b.d.i", ["a.b.d.h", "a.b.d.i"])).to.be.true;
 		});
 
-		it("should succeed if property is included in multiple paths 4", function () {
+		it("should succeed if property is included in multiple paths 4", () => {
 			paths = ["a.b.c.f", "a.b.c", "a.b.d.h", "a.b.d.i", "a.z"];
 			prop = PropertyFactory.create("NodeProperty");
-			let b = PropertyFactory.create("NodeProperty");
+			const b = PropertyFactory.create("NodeProperty");
 			prop.insert("b", b);
-			let c = PropertyFactory.create("NodeProperty");
+			const c = PropertyFactory.create("NodeProperty");
 			b.insert("c", c);
 			c.insert("f", PropertyFactory.create("String"));
 			c.insert("g", PropertyFactory.create("String"));
-			let d = PropertyFactory.create("NodeProperty");
+			const d = PropertyFactory.create("NodeProperty");
 			b.insert("d", d);
 			d.insert("h", PropertyFactory.create("String"));
 			d.insert("i", PropertyFactory.create("String"));
@@ -1993,7 +2001,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith("a.b.d.i", ["a.b.d.h", "a.b.d.i"])).to.be.true;
 		});
 
-		it("should succeed if property is included in multiple paths through map 1", function () {
+		it("should succeed if property is included in multiple paths through map 1", () => {
 			paths = ["a.b.c", "a.b.d.z", "z"];
 			prop = PropertyFactory.create("String", "map");
 			prop.insert("c", "c");
@@ -2006,11 +2014,11 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith("a.b.d", ["a.b.c", "a.b.d.z"])).to.be.true;
 		});
 
-		it("should succeed if property is included in multiple paths through map 2", function () {
+		it("should succeed if property is included in multiple paths through map 2", () => {
 			paths = ["a.b.c.f", "a.b.c", "a.b.d.h", "a.b.d.i", "a.z"];
 			prop = PropertyFactory.create("NodeProperty");
-			let c = PropertyFactory.create("NodeProperty");
-			let d = PropertyFactory.create("String", "map");
+			const c = PropertyFactory.create("NodeProperty");
+			const d = PropertyFactory.create("String", "map");
 			prop.insert("c", c);
 			c.insert("f", PropertyFactory.create("String"));
 			c.insert("g", PropertyFactory.create("String"));
@@ -2031,7 +2039,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith("a.b.d.i", ["a.b.d.h", "a.b.d.i"])).to.be.true;
 		});
 
-		it("should fail if property is not completely included in multiple paths 1", function () {
+		it("should fail if property is not completely included in multiple paths 1", () => {
 			paths = ["a.b.c", "a.b.d", "z"];
 			prop = PropertyFactory.create("NodeProperty");
 			prop.insert("c", PropertyFactory.create("String"));
@@ -2042,7 +2050,7 @@ describe("NodeProperty", function () {
 			expect(getPathCoverageSpy.calledWith(propPath, paths)).to.be.true;
 		});
 
-		it("should fail if property is not completely included in multiple paths 2", function () {
+		it("should fail if property is not completely included in multiple paths 2", () => {
 			paths = ["z", "a.b.d", "a.b.c"];
 			prop = PropertyFactory.create("NodeProperty");
 			prop.insert("e", PropertyFactory.create("String"));

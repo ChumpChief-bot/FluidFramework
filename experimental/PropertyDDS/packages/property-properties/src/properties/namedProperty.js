@@ -38,7 +38,7 @@ export class NamedProperty extends ContainerProperty {
 	 * @return {string} String identifying the property
 	 */
 	getId() {
-		return this._id !== null ? this._id : this.getGuid();
+		return this._id === null ? this.getGuid() : this._id;
 	}
 
 	/**
@@ -49,7 +49,7 @@ export class NamedProperty extends ContainerProperty {
 	 * @return {string} The GUID
 	 */
 	getGuid() {
-		var guid = this.get("guid", {
+		const guid = this.get("guid", {
 			referenceResolutionMode: BaseProperty.REFERENCE_RESOLUTION.NEVER,
 		});
 		return guid ? guid.getValue() : "";

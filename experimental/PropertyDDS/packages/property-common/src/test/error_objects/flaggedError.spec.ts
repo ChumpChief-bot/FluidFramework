@@ -11,12 +11,12 @@ import { expect } from "chai";
 
 import { FlaggedError } from "../..";
 
-describe("property-common.FlaggedError", function () {
-	describe("Flags", function () {
-		it("can be extended", function (done) {
-			Object.keys(FlaggedError.FLAGS).forEach(function (key, index) {
+describe("property-common.FlaggedError", () => {
+	describe("Flags", () => {
+		it("can be extended", (done) => {
+			for (const [index, key] of Object.keys(FlaggedError.FLAGS).entries()) {
 				expect(FlaggedError.FLAGS[key]).to.equal(Math.pow(2, index));
-			});
+			}
 			done();
 		});
 	});

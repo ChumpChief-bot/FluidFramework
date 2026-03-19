@@ -34,20 +34,23 @@ import traverse from "traverse";
 import { ajvFactory } from "./ajvFactory.cjs";
 import { TypeIdHelper } from "./helpers/typeidHelper.js";
 import { TemplateSchema } from "./templateSchema.js";
-import { SchemaValidationResult, ValidationResultBuilder } from "./validationResultBuilder.js";
+import type { SchemaValidationResult } from "./validationResultBuilder.js";
+import { ValidationResultBuilder } from "./validationResultBuilder.js";
 
 const { MSG } = constants;
 
 const _syntaxValidator = ajvFactory.compile(TemplateSchema);
 
-type ValuesType = { [key: string]: ValuesType };
+interface ValuesType {
+	[key: string]: ValuesType;
+}
 
-type PropertyType = {
+interface PropertyType {
 	id: string;
 	context: string;
 	typeid: string;
 	values: ValuesType;
-};
+}
 
 type PropertiesType = PropertyType[];
 
@@ -115,10 +118,10 @@ const _getSemverFromTypeId = function (in_typeid: string): string | null {
  */
 const _getType = (in_obj: any): string => Object.prototype.toString.call(in_obj).slice(8, -1);
 
-type PathEqualityInfo = {
+interface PathEqualityInfo {
 	isEqual: boolean;
 	path: string;
-};
+}
 
 function isPropertyArray(source: SchemaEntityType): source is PropertiesType {
 	return every(source, (entry: PropertyType) => isObject(entry) && entry.id !== undefined);
@@ -170,7 +173,7 @@ const _psetDeepEquals = function (
 	 * @param id - The current path element being compared.
 	 * @return The result of _getPSetDeepEqualsResult
 	 */
-	let _depthFirstDeepEquals = function (
+	const _depthFirstDeepEquals = function (
 		source: SchemaEntityType,
 		target: SchemaEntityType,
 		id?: string,
@@ -202,7 +205,7 @@ const _psetDeepEquals = function (
 			// like inheritance lists.
 			if (isPropertyArray(source)) {
 				const targetMap = {};
-				each(target, function (element: PropertyType) {
+				each(target, (element: PropertyType) => {
 					targetMap[element.id] = element;
 				});
 
@@ -231,9 +234,9 @@ const _psetDeepEquals = function (
 				// properties array we check if it's empty. Then we reverse the condition so it work both ways.
 				if (
 					(isEqual(difference(keysTarget, keysSource), ["properties"]) &&
-						!(target as any).properties.length) ||
+						(target as any).properties.length === 0) ||
 					(isEqual(difference(keysSource, keysTarget), ["properties"]) &&
-						!source.properties.length)
+						source.properties.length === 0)
 				) {
 					return _getPSetDeepEqualsResult(true);
 				}
@@ -243,7 +246,7 @@ const _psetDeepEquals = function (
 
 			for (let i = 0; i < keysSource.length && result.isEqual; i++) {
 				const keyName = keysSource[i];
-				let id = keyName === "properties" ? undefined : keyName;
+				const id = keyName === "properties" ? undefined : keyName;
 				result = _depthFirstDeepEquals.call(this, source[keyName], target[keyName], id);
 				if (id) {
 					idPath.pop();
@@ -275,23 +278,22 @@ const _stripSemverFromTypeId = function (in_typeid: string): string | null {
 const _unresolvedTypes = function (in_template: PropertySchema) {
 	let first = true;
 	const that = this;
-	const accSet = traverse(in_template).reduce(function (
-		acc: { [x: string]: string },
-		x: PropertySchema,
-	) {
-		if (first) {
-			acc = {};
-			first = false;
-		}
-		if (isObject(x) && has(x, "typeid")) {
-			const extractedTypeid = _extractTypeid.call(that, x.typeid);
-
-			if (!TypeIdHelper.isPrimitiveType(extractedTypeid)) {
-				acc[extractedTypeid] = "";
+	const accSet = traverse(in_template).reduce(
+		(acc: { [x: string]: string }, x: PropertySchema) => {
+			if (first) {
+				acc = {};
+				first = false;
 			}
-		}
-		return acc;
-	});
+			if (isObject(x) && has(x, "typeid")) {
+				const extractedTypeid = _extractTypeid.call(that, x.typeid);
+
+				if (!TypeIdHelper.isPrimitiveType(extractedTypeid)) {
+					acc[extractedTypeid] = "";
+				}
+			}
+			return acc;
+		},
+	);
 
 	return Object.keys(accSet);
 };
@@ -348,7 +350,7 @@ const _validatePositiveIncrement = function (
 
 	const idPath = [`<${in_template.typeid}>`];
 
-	let _depthFirstCompare = function (
+	const _depthFirstCompare = function (
 		id: string,
 		sourceObj: SchemaEntityType,
 		targetObj: SchemaEntityType,
@@ -363,39 +365,7 @@ const _validatePositiveIncrement = function (
 			idPath.push(id);
 		}
 
-		if ((sourceObj === undefined) !== (targetObj === undefined)) {
-			let minimumLevel: string;
-			let mutation: string;
-
-			if (targetObj === undefined) {
-				// An element has been deleted.
-				minimumLevel = "major";
-				mutation = "delete";
-			} else {
-				// An element has been added
-				minimumLevel = "minor";
-				mutation = "add";
-			}
-
-			if (CHANGE_LEVEL[versionDiff] < CHANGE_LEVEL[minimumLevel]) {
-				// Violates rule 6 (warning).
-				this._resultBuilder.addWarning(
-					MSG.CHANGE_LEVEL_TOO_LOW_1 +
-						JSON.stringify({
-							mutation,
-							id: idPath.join("."),
-							level: {
-								expected: minimumLevel,
-								actual: versionDiff,
-							},
-							version: {
-								current: in_version,
-								previous: in_versionPrevious,
-							},
-						}),
-				);
-			}
-		} else {
+		if ((sourceObj === undefined) === (targetObj === undefined)) {
 			const sourceObjType = _getType.call(this, sourceObj);
 			const targetObjType = _getType.call(this, targetObj);
 			if (sourceObjType !== targetObjType) {
@@ -421,8 +391,8 @@ const _validatePositiveIncrement = function (
 			}
 
 			if (Array.isArray(sourceObj)) {
-				let targetMap = {};
-				each(targetObj, function (element: any) {
+				const targetMap = {};
+				each(targetObj, (element: any) => {
 					targetMap[element.id] = element;
 				});
 
@@ -434,7 +404,7 @@ const _validatePositiveIncrement = function (
 
 				if (!isEmpty(targetMap)) {
 					// Added array element.
-					let minimumLevel = "minor";
+					const minimumLevel = "minor";
 					if (CHANGE_LEVEL[versionDiff] < CHANGE_LEVEL[minimumLevel]) {
 						// Violates rule 5 (warning)
 						idPath.push(Object.keys(targetMap)[0]);
@@ -458,14 +428,14 @@ const _validatePositiveIncrement = function (
 				}
 			} else if (isObject(sourceObj)) {
 				const keysSource = Object.keys(sourceObj);
-				let targetMap = {};
-				mapValues(targetObj, function (val, key) {
+				const targetMap = {};
+				mapValues(targetObj, (val, key) => {
 					targetMap[key] = val;
 				});
 
 				for (let i = 0; i < keysSource.length; i++) {
-					let valueSource = sourceObj[keysSource[i]];
-					let valueTarget = targetObj[keysSource[i]];
+					const valueSource = sourceObj[keysSource[i]];
+					const valueTarget = targetObj[keysSource[i]];
 					_depthFirstCompare.call(
 						this,
 						keysSource[i] === "properties" ? undefined : keysSource[i],
@@ -479,7 +449,7 @@ const _validatePositiveIncrement = function (
 				if (!isEmpty(remainingKeys)) {
 					// Added new keys to the target. This is a MINOR change, unless they new key is a
 					// comment, in which case this is a PATCH level change.
-					let minimumLevel =
+					const minimumLevel =
 						remainingKeys.length === 1 && remainingKeys[0] === "annotation"
 							? "patch"
 							: "minor";
@@ -512,7 +482,7 @@ const _validatePositiveIncrement = function (
 				}
 
 				if (sourceObj !== targetObj) {
-					let minimumLevel = id === "value" ? "minor" : "major";
+					const minimumLevel = id === "value" ? "minor" : "major";
 					if (CHANGE_LEVEL[versionDiff] < CHANGE_LEVEL[minimumLevel]) {
 						this._resultBuilder.addWarning(
 							MSG.CHANGE_LEVEL_TOO_LOW_1 +
@@ -535,6 +505,38 @@ const _validatePositiveIncrement = function (
 						);
 					}
 				}
+			}
+		} else {
+			let minimumLevel: string;
+			let mutation: string;
+
+			if (targetObj === undefined) {
+				// An element has been deleted.
+				minimumLevel = "major";
+				mutation = "delete";
+			} else {
+				// An element has been added
+				minimumLevel = "minor";
+				mutation = "add";
+			}
+
+			if (CHANGE_LEVEL[versionDiff] < CHANGE_LEVEL[minimumLevel]) {
+				// Violates rule 6 (warning).
+				this._resultBuilder.addWarning(
+					MSG.CHANGE_LEVEL_TOO_LOW_1 +
+						JSON.stringify({
+							mutation,
+							id: idPath.join("."),
+							level: {
+								expected: minimumLevel,
+								actual: versionDiff,
+							},
+							version: {
+								current: in_version,
+								previous: in_versionPrevious,
+							},
+						}),
+				);
 			}
 		}
 
@@ -708,7 +710,7 @@ const _validateContextAsync = async function (in_template) {
 	}
 	// If context is not 'set' validation doesn't apply
 	if (context !== "set") {
-		return Promise.resolve();
+		return;
 	}
 
 	let typedValuePromises = [Promise.resolve()];
@@ -727,7 +729,7 @@ const _validateContextAsync = async function (in_template) {
 			includes(in_template.inherits, "NamedProperty") ||
 			in_template.inherits === "NamedProperty"
 		) {
-			return Promise.resolve();
+			return;
 		}
 	}
 	const typedValuePromise = Promise.all(typedValuePromises);
@@ -745,22 +747,22 @@ const _validateContextAsync = async function (in_template) {
 	// Combine results from inheritsPromises and typedValuePromise
 	inheritsPromises.push(typedValuePromise);
 	return Promise.all(inheritsPromises)
-		.then(function (results) {
+		.then((results) => {
 			const foundNamedPropertyDescendant = find(results, (res) => res);
 			if (!foundNamedPropertyDescendant) {
-				throw Error(MSG.SET_ONLY_NAMED_PROPS);
+				throw new Error(MSG.SET_ONLY_NAMED_PROPS);
 			}
 
 			return that._hasSchemaAsync(in_template.typeid);
 		})
-		.then(function (hasIt) {
+		.then((hasIt) => {
 			if (!hasIt) {
 				throw new Error(MSG.SET_ONLY_NAMED_PROPS);
 			}
 
 			return that._inheritsFromAsync(in_template.typeid, "NamedProperty");
 		})
-		.then(async function (res) {
+		.then(async (res) => {
 			if (res) {
 				return undefined;
 			}
@@ -776,7 +778,7 @@ const _validateContextAsync = async function (in_template) {
  * @ignore
  * @throws if the context is invalid.
  */
-let _validateConstants = function (in_template) {
+const _validateConstants = function (in_template) {
 	const that = this;
 	if (in_template.constants && Array.isArray(in_template.constants)) {
 		for (let i = 0; i < in_template.constants.length; i++) {
@@ -784,7 +786,7 @@ let _validateConstants = function (in_template) {
 			const context = constant.context;
 
 			if (context === "map" && constant.contextKeyType === "typeid") {
-				each(constant.value, function (value, key) {
+				each(constant.value, (value, key) => {
 					if (!TypeIdHelper.isTemplateTypeid(key)) {
 						that._resultBuilder.addError(new Error(MSG.KEY_MUST_BE_TYPEID + key));
 					}
@@ -800,8 +802,8 @@ let _validateConstants = function (in_template) {
  * @param in_template - The template that was analyzed
  */
 const _processValidationResults = function (in_template: PropertySchema) {
-	let that = this;
-	let result = this._resultBuilder.result;
+	const that = this;
+	const result = this._resultBuilder.result;
 
 	result.isValid = _syntaxValidator(in_template);
 	if (!result.isValid) {
@@ -812,14 +814,14 @@ const _processValidationResults = function (in_template: PropertySchema) {
 	}
 
 	if (_syntaxValidator.errors) {
-		each(_syntaxValidator.errors, function (error) {
+		each(_syntaxValidator.errors, (error) => {
 			const regexTypeId = /typeid/;
 			switch (error.keyword) {
-				case "pattern":
+				case "pattern": {
 					if (error.instancePath === ".typeid") {
 						// eslint-disable-next-line @typescript-eslint/no-base-to-string
 						error.message = `typeid should have a pattern like: my.example:point-1.0.0 ${error.data} does not match that pattern`;
-					} else if (regexTypeId.test(error.instancePath)) {
+					} else if (error.instancePath.includes("typeid")) {
 						error.message =
 							error.schemaPath === "#/definitions/typed-reference-typeid/pattern"
 								? ""
@@ -831,20 +833,23 @@ const _processValidationResults = function (in_template: PropertySchema) {
 									`RelationshipProperty). '${error.data}' is not valid`;
 					}
 					break;
+				}
 
-				case "enum":
-					error.message = regexTypeId.test(error.instancePath)
+				case "enum": {
+					error.message = error.instancePath.includes("typeid")
 						? ""
 						: // eslint-disable-next-line @typescript-eslint/no-base-to-string
 							`${error.instancePath} should match one of the following: ${error.schema}`;
 					break;
+				}
 
-				case "type":
+				case "type": {
 					// eslint-disable-next-line @typescript-eslint/no-base-to-string
 					error.message = `${error.instancePath} should be a ${error.schema}`;
 					break;
+				}
 
-				case "not":
+				case "not": {
 					if (error.schemaPath === "#/switch/1/then/anyOf/0/properties/typeid/not") {
 						// remove .typeid at the end of the instancePath
 						error.message = `For ${error.instancePath.slice(
@@ -861,19 +866,22 @@ const _processValidationResults = function (in_template: PropertySchema) {
 						)}: Properties should have either a typeid or an array of child properties, but not both.`;
 					}
 					break;
+				}
 
 				// these errors do not add any information. All necessary information is in the 'enum' errors
 				// empty errors will be filtered out before logging.
 				case "oneOf":
-				case "anyOf":
+				case "anyOf": {
 					error.message = "";
 					break;
+				}
 
 				// for minItems, required and any other error - add instancePath to indicate which part of the
 				// template the error refers to.
-				default:
+				default: {
 					error.message = `${error.instancePath} ${error.message}`;
 					break;
+				}
 			}
 			// Deep-copy for thread-safety.
 			that._resultBuilder.addError(cloneDeep(error));
@@ -890,15 +898,15 @@ const _processValidationResults = function (in_template: PropertySchema) {
  * @throws if a property with context set is not an instance of NamedProperties
  * @ignore
  */
-let _validateSyntax = function (in_template: PropertySchema) {
+const _validateSyntax = function (in_template: PropertySchema) {
 	const that = this;
 	// recursively test all properties for context
-	let recursiveContextCheck = function (template) {
+	const recursiveContextCheck = function (template) {
 		_validateContext.call(that, template);
 		if (template.properties) {
-			template.properties.forEach(function (property) {
+			for (const property of template.properties) {
 				recursiveContextCheck(property);
-			});
+			}
 		}
 	};
 
@@ -916,10 +924,10 @@ const createContextCheckAsyncQueue = function () {
 		const property = in_task.property;
 		_validateContextAsync
 			.call(that, property)
-			.then(function (response) {
+			.then((response) => {
 				in_callback();
 			})
-			.catch(function (error) {
+			.catch((error) => {
 				in_callback({ error });
 			});
 	};
@@ -936,12 +944,12 @@ const createContextCheckAsyncQueue = function () {
  * @returns Promise that resolves without any result
  * @ignore
  */
-let _validateSyntaxAsync = async function (
+const _validateSyntaxAsync = async function (
 	in_template: PropertySchema,
 ): Promise<SchemaValidationResult> {
 	const that = this;
 
-	return new Promise(function (resolve, reject) {
+	return new Promise((resolve, reject) => {
 		if (that.asyncValidationInProgress === true) {
 			reject(new Error(MSG.CONTEXT_VALIDATION_IN_PROGRESS));
 			return;
@@ -952,23 +960,23 @@ let _validateSyntaxAsync = async function (
 		const contextCheckAsyncQueue = createContextCheckAsyncQueue.call(that);
 
 		// recursively test all properties for context
-		let recursiveContextCheck = function (template) {
+		const recursiveContextCheck = function (template) {
 			// Does the call to _validateContextAsync
-			contextCheckAsyncQueue.push({ property: template }, function (error) {
+			contextCheckAsyncQueue.push({ property: template }, (error) => {
 				if (error !== undefined) {
 					reject(new Error(error));
 					return;
 				}
 			});
 			if (template.properties) {
-				template.properties.forEach(function (property) {
+				for (const property of template.properties) {
 					recursiveContextCheck(property);
-				});
+				}
 			}
 		};
 		recursiveContextCheck(in_template);
 
-		contextCheckAsyncQueue.drain(function () {
+		contextCheckAsyncQueue.drain(() => {
 			const result = that._resultBuilder.result;
 			_processValidationResults.call(that, in_template);
 			result.unresolvedTypes = _unresolvedTypes.call(that, in_template);
@@ -1034,16 +1042,11 @@ export class TemplateValidator {
 		this._skipSemver = in_params ? !!in_params.skipSemver : false;
 		this._allowDraft = in_params ? !!in_params.allowDraft : false;
 		// Used by validate()
-		if (
-			in_params &&
-			in_params.inheritsFrom !== undefined &&
-			in_params.hasSchema !== undefined
-		) {
+		if (in_params?.inheritsFrom !== undefined && in_params.hasSchema !== undefined) {
 			this._inheritsFrom = in_params.inheritsFrom;
 			this._hasSchema = in_params.hasSchema;
 		} else if (
-			in_params &&
-			in_params.inheritsFromAsync !== undefined &&
+			in_params?.inheritsFromAsync !== undefined &&
 			in_params.hasSchemaAsync !== undefined
 		) {
 			this._inheritsFromAsync = in_params.inheritsFromAsync;
@@ -1154,10 +1157,11 @@ export class TemplateValidator {
 		if (in_templatePrevious) {
 			// Validate that the semver change is valid.
 			switch (compare(version, versionPrevious)) {
-				case 0:
+				case 0: {
 					_validateSameVersion.call(this, in_template, in_templatePrevious);
 					break;
-				case 1:
+				}
+				case 1: {
 					// newVersion is greater
 					_validatePositiveIncrement.call(
 						this,
@@ -1167,8 +1171,9 @@ export class TemplateValidator {
 						versionPrevious,
 					);
 					break;
+				}
 				default:
-				case -1:
+				case -1: {
 					// previousVersion is greater. Violates rule 3b.
 					this._resultBuilder.addError(
 						new Error(
@@ -1180,6 +1185,7 @@ export class TemplateValidator {
 						),
 					);
 					break;
+				}
 			}
 		}
 
@@ -1234,7 +1240,7 @@ export class TemplateValidator {
 			_validateBasic.call(this, in_templatePrevious);
 		}
 		if (!this._resultBuilder.isValid()) {
-			return Promise.resolve(this._resultBuilder.result);
+			return this._resultBuilder.result;
 		}
 		return in_templatePrevious
 			? this._validateAsyncWithPreviousSchema(in_template, in_templatePrevious)
@@ -1258,7 +1264,7 @@ export class TemplateValidator {
 		return _validateSemanticAndSyntaxAsync
 			.call(that, in_template)
 			.then(() => _validateSemanticAndSyntaxAsync.call(that, in_templatePrevious))
-			.then(function () {
+			.then(() => {
 				if (!that._resultBuilder.isValid()) {
 					// Here the previous template is not valid. Make sure the typeid in the returned info is
 					// the root of the template that failed validation.
@@ -1276,10 +1282,11 @@ export class TemplateValidator {
 
 				// Validate that the semver change is valid.
 				switch (compare(version, versionPrevious)) {
-					case 0:
+					case 0: {
 						_validateSameVersion.call(that, in_template, in_templatePrevious);
 						break;
-					case 1:
+					}
+					case 1: {
 						// newVersion is greater
 						_validatePositiveIncrement.call(
 							that,
@@ -1289,8 +1296,9 @@ export class TemplateValidator {
 							versionPrevious,
 						);
 						break;
+					}
 					default:
-					case -1:
+					case -1: {
 						// previousVersion is greater. Violates rule 3b.
 						that._resultBuilder.addError(
 							new Error(
@@ -1302,6 +1310,7 @@ export class TemplateValidator {
 							),
 						);
 						break;
+					}
 				}
 
 				return that._resultBuilder.result;

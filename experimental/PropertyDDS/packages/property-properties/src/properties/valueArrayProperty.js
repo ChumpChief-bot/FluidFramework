@@ -54,9 +54,9 @@ export class ValueArrayProperty extends ArrayProperty {
 	 * For example: ['string1', 'string2']
 	 */
 	getValues() {
-		var result = [];
-		var ids = this.getIds();
-		for (var i = 0; i < ids.length; i++) {
+		const result = [];
+		const ids = this.getIds();
+		for (let i = 0; i < ids.length; i++) {
 			result.push(this.get(ids[i]));
 		}
 		return result;
@@ -371,8 +371,8 @@ export class Integer64ArrayProperty extends ValueArrayProperty {
 	 * @return {Array<property-properties.SerializedChangeSet>} the serialized object
 	 */
 	_serializeArray(in_array) {
-		var result = [];
-		for (var i = 0; i < in_array.length; i++) {
+		const result = [];
+		for (let i = 0; i < in_array.length; i++) {
 			result.push(this._serializeValue(in_array[i]));
 		}
 		return result;
@@ -387,8 +387,8 @@ export class Integer64ArrayProperty extends ValueArrayProperty {
 	 * @return {Array} in_array - The array of special objects that were deserialized
 	 */
 	_deserializeArray(in_serializedObj) {
-		var result = [];
-		for (var i = 0; i < in_serializedObj.length; i++) {
+		const result = [];
+		for (let i = 0; i < in_serializedObj.length; i++) {
 			result.push(this._deserializeValue(in_serializedObj[i]));
 		}
 		return result;
@@ -398,10 +398,10 @@ export class Integer64ArrayProperty extends ValueArrayProperty {
 	 * @inheritdoc
 	 */
 	_prettyPrint(indent, externalId, printFct) {
-		printFct(indent + externalId + this.getId() + " (Array of " + this.getTypeid() + "): [");
-		var childIndent = indent + "  ";
-		var int64Prop;
-		for (var i = 0; i < this._dataArrayGetLength(); i++) {
+		printFct(`${indent + externalId + this.getId()} (Array of ${this.getTypeid()}): [`);
+		const childIndent = `${indent}  `;
+		let int64Prop;
+		for (let i = 0; i < this._dataArrayGetLength(); i++) {
 			// TODO: The 'toString()' function is defined on Integer64Property, so we need to create
 			// such object to use it. It would be better to have it in Integer64.prototype.toString
 			int64Prop =
@@ -410,9 +410,9 @@ export class Integer64ArrayProperty extends ValueArrayProperty {
 					: new Uint64Property({});
 			int64Prop.setValueLow(this._dataArrayGetValue(i).getValueLow());
 			int64Prop.setValueHigh(this._dataArrayGetValue(i).getValueHigh());
-			printFct(childIndent + i + ": " + int64Prop);
+			printFct(`${childIndent + i}: ${int64Prop}`);
 		}
-		printFct(indent + "]");
+		printFct(`${indent}]`);
 	}
 }
 /**
@@ -442,9 +442,9 @@ export class Int64ArrayProperty extends Integer64ArrayProperty {
 	 */
 	setRange(in_offset, in_array) {
 		if (!_.isArray(in_array)) {
-			throw new TypeError(MSG.IN_ARRAY_NOT_ARRAY + "Int64ArrayProperty.setRange");
+			throw new TypeError(`${MSG.IN_ARRAY_NOT_ARRAY}Int64ArrayProperty.setRange`);
 		}
-		var out_array = in_array.map((element) => {
+		const out_array = in_array.map((element) => {
 			return _castFunctors.Int64(element);
 		});
 		ArrayProperty.prototype.setRange.call(this, in_offset, out_array);
@@ -461,7 +461,7 @@ export class Int64ArrayProperty extends Integer64ArrayProperty {
 	 * @throws if tyring to modify a referenced property.
 	 */
 	insertRange(in_offset, in_array) {
-		var out_array = in_array.map((element) => {
+		const out_array = in_array.map((element) => {
 			return _castFunctors.Int64(element);
 		});
 		ArrayProperty.prototype.insertRange.call(this, in_offset, out_array);
@@ -485,7 +485,7 @@ export class Int64ArrayProperty extends Integer64ArrayProperty {
 	 */
 	_dataArrayCreate(in_length) {
 		this._dataArrayRef = new UniversalDataArray(in_length);
-		for (var i = 0; i < in_length; i++) {
+		for (let i = 0; i < in_length; i++) {
 			this._dataArraySetValue(i, new Int64());
 		}
 	}
@@ -531,9 +531,9 @@ export class Uint64ArrayProperty extends Integer64ArrayProperty {
 	 */
 	setRange(in_offset, in_array) {
 		if (!_.isArray(in_array)) {
-			throw new TypeError(MSG.IN_ARRAY_NOT_ARRAY + "Uint64ArrayProperty.setRange");
+			throw new TypeError(`${MSG.IN_ARRAY_NOT_ARRAY}Uint64ArrayProperty.setRange`);
 		}
-		var out_array = in_array.map((element) => {
+		const out_array = in_array.map((element) => {
 			return _castFunctors.Uint64(element);
 		});
 		ArrayProperty.prototype.setRange.call(this, in_offset, out_array);
@@ -550,7 +550,7 @@ export class Uint64ArrayProperty extends Integer64ArrayProperty {
 	 * @throws if tyring to modify a referenced property.
 	 */
 	insertRange(in_offset, in_array) {
-		var out_array = in_array.map((element) => {
+		const out_array = in_array.map((element) => {
 			return _castFunctors.Uint64(element);
 		});
 		ArrayProperty.prototype.insertRange.call(this, in_offset, out_array);
@@ -562,7 +562,7 @@ export class Uint64ArrayProperty extends Integer64ArrayProperty {
 	 */
 	_dataArrayCreate(in_length) {
 		this._dataArrayRef = new UniversalDataArray(in_length);
-		for (var i = 0; i < in_length; i++) {
+		for (let i = 0; i < in_length; i++) {
 			this._dataArraySetValue(i, new Uint64());
 		}
 	}
@@ -592,7 +592,7 @@ export class StringArrayProperty extends ValueArrayProperty {
 	 */
 	_dataArrayCreate(in_length) {
 		this._dataArrayRef = new UniversalDataArray(in_length);
-		for (var i = 0; i < in_length; i++) {
+		for (let i = 0; i < in_length; i++) {
 			this._dataArraySetValue(i, "");
 		}
 	}
@@ -622,7 +622,7 @@ export class BoolArrayProperty extends ValueArrayProperty {
 	 */
 	_dataArrayCreate(in_length) {
 		this._dataArrayRef = new BoolDataArray(in_length);
-		for (var i = 0; i < in_length; i++) {
+		for (let i = 0; i < in_length; i++) {
 			this._dataArraySetValue(i, false);
 		}
 	}

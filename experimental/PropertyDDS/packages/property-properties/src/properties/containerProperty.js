@@ -93,7 +93,7 @@ export class ContainerProperty extends IndexedCollectionBaseProperty {
 			in_property = in_id;
 			ConsoleUtils.assert(
 				in_property instanceof BaseProperty,
-				"insert error: " + MSG.NOT_A_PROPERTY,
+				`insert error: ${MSG.NOT_A_PROPERTY}`,
 			);
 		} else {
 			ConsoleUtils.assert(_.isString(in_id) || _.isNumber(in_id), MSG.ID_STRING_OR_NUMBER);
@@ -103,7 +103,7 @@ export class ContainerProperty extends IndexedCollectionBaseProperty {
 			);
 			ConsoleUtils.assert(
 				in_property instanceof BaseProperty,
-				"insert error: " + MSG.NOT_A_PROPERTY,
+				`insert error: ${MSG.NOT_A_PROPERTY}`,
 			);
 			if (this._dynamicChildren[in_id] !== undefined) {
 				throw new Error(MSG.PROPERTY_ALREADY_EXISTS + in_id);
@@ -141,10 +141,9 @@ export class ContainerProperty extends IndexedCollectionBaseProperty {
 			this._optionalChildren[in_id].toUpperCase() !== in_property.getTypeid().toUpperCase()
 		) {
 			throw new Error(
-				MSG.MISMATCHING_PROPERTY_TYPEID +
-					this._optionalChildren[in_id] +
-					" instead it's: " +
-					in_property.getTypeid(),
+				`${
+					MSG.MISMATCHING_PROPERTY_TYPEID + this._optionalChildren[in_id]
+				} instead it's: ${in_property.getTypeid()}`,
 			);
 		}
 	}
@@ -172,8 +171,8 @@ export class ContainerProperty extends IndexedCollectionBaseProperty {
 	 * @return {property-properties.BaseProperty} the property removed.
 	 */
 	remove(in_property) {
-		var id = in_property;
-		var returnValue;
+		let id = in_property;
+		let returnValue;
 		if (id instanceof BaseProperty) {
 			returnValue = id;
 			id = id.getId();
@@ -198,9 +197,9 @@ export class ContainerProperty extends IndexedCollectionBaseProperty {
 	_validateRemove(in_id) {
 		if (!this._dynamicChildren[in_id]) {
 			const error =
-				this._staticChildren[in_id] !== undefined
-					? new Error(MSG.CANNOT_REMOVE_NON_OPTIONAL_PROP + in_id)
-					: new Error(MSG.REMOVING_NON_EXISTING_KEY + in_id);
+				this._staticChildren[in_id] === undefined
+					? new Error(MSG.REMOVING_NON_EXISTING_KEY + in_id)
+					: new Error(MSG.CANNOT_REMOVE_NON_OPTIONAL_PROP + in_id);
 
 			throw error;
 		}
@@ -335,13 +334,13 @@ export class ContainerProperty extends IndexedCollectionBaseProperty {
 	 * @private
 	 */
 	setValues(in_properties) {
-		var checkoutView = this._getCheckoutView();
-		if (checkoutView !== undefined) {
+		const checkoutView = this._getCheckoutView();
+		if (checkoutView === undefined) {
+			ContainerProperty.prototype._setValues.call(this, in_properties, false, false);
+		} else {
 			checkoutView.pushNotificationDelayScope();
 			ContainerProperty.prototype._setValues.call(this, in_properties, false, false);
 			checkoutView.popNotificationDelayScope();
-		} else {
-			ContainerProperty.prototype._setValues.call(this, in_properties, false, false);
 		}
 	}
 }

@@ -3,15 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { enableValidations } from "./enableValidations";
-import { ArrayProperty } from "./properties/arrayProperty";
-import { BaseProperty } from "./properties/baseProperty";
-import { ContainerProperty } from "./properties/containerProperty";
-import { EnumArrayProperty } from "./properties/enumArrayProperty";
-import { EnumProperty } from "./properties/enumProperty";
-import { Int64Property, Uint64Property } from "./properties/intProperties";
-import { MapProperty } from "./properties/mapProperty";
-import { NodeProperty } from "./properties/nodeProperty";
 import { ReferenceArrayProperty } from "./properties/referenceArrayProperty";
 import { ReferenceMapProperty } from "./properties/referenceMapProperty";
 import { ReferenceProperty } from "./properties/referenceProperty";
@@ -28,22 +19,22 @@ export {
 	PropertyFactory,
 	PropertyTemplate,
 	PropertyUtils,
-	BaseProperty,
-	ContainerProperty,
-	MapProperty,
-	NodeProperty,
-	ArrayProperty,
 	SetProperty,
 	StringProperty,
 	ReferenceProperty,
 	ReferenceMapProperty,
 	ReferenceArrayProperty,
-	Uint64Property,
-	EnumArrayProperty,
-	EnumProperty,
-	Int64Property,
 	ValueArrayProperty,
 	ValueMapProperty,
 	ValueProperty,
-	enableValidations,
 };
+
+export { enableValidations } from "./enableValidations";
+export { ArrayProperty } from "./properties/arrayProperty";
+export { BaseProperty } from "./properties/baseProperty";
+export { ContainerProperty } from "./properties/containerProperty";
+export { EnumArrayProperty } from "./properties/enumArrayProperty";
+export { EnumProperty } from "./properties/enumProperty";
+export { Int64Property, Uint64Property } from "./properties/intProperties";
+export { MapProperty } from "./properties/mapProperty";
+export { NodeProperty } from "./properties/nodeProperty";

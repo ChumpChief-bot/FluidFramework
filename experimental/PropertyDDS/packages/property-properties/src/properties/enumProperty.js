@@ -53,11 +53,11 @@ export class EnumProperty extends Int32Property {
 	 * @throws if no entry exists
 	 */
 	getEnumString() {
-		var resultEntry = this._enumDictionary.enumEntriesByValue[this._data];
-		if (!resultEntry) {
-			throw new Error(MSG.UNKNOWN_ENUM + this._data);
-		} else {
+		const resultEntry = this._enumDictionary.enumEntriesByValue[this._data];
+		if (resultEntry) {
 			return resultEntry.id;
+		} else {
+			throw new Error(MSG.UNKNOWN_ENUM + this._data);
 		}
 	}
 
@@ -75,10 +75,10 @@ export class EnumProperty extends Int32Property {
 		// check if we've got a string
 		if (_.isString(in_value)) {
 			this.setEnumByString(in_value);
-		} else if (!this._enumDictionary.enumEntriesByValue[in_value]) {
-			throw new Error(MSG.UNKNOWN_ENUM + in_value);
-		} else {
+		} else if (this._enumDictionary.enumEntriesByValue[in_value]) {
 			ValueProperty.prototype.setValue.call(this, in_value);
+		} else {
+			throw new Error(MSG.UNKNOWN_ENUM + in_value);
 		}
 	}
 
@@ -91,12 +91,12 @@ export class EnumProperty extends Int32Property {
 	 */
 	setEnumByString(in_stringId) {
 		ConsoleUtils.assert(_.isString(in_stringId), MSG.STRING_ID_MUST_BE_STRING + in_stringId);
-		var internalEnum = this._enumDictionary.enumEntriesById[in_stringId];
-		if (!internalEnum) {
-			throw new Error(MSG.UNKNOWN_ENUM + in_stringId);
-		} else {
-			var internalValue = internalEnum.value;
+		const internalEnum = this._enumDictionary.enumEntriesById[in_stringId];
+		if (internalEnum) {
+			const internalValue = internalEnum.value;
 			this.setValue(internalValue);
+		} else {
+			throw new Error(MSG.UNKNOWN_ENUM + in_stringId);
 		}
 	}
 

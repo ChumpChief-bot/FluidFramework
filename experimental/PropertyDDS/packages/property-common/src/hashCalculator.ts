@@ -15,8 +15,8 @@ import murmurHash3 from "murmurhash3js";
  */
 export function calculateHash(key, seed = 0) {
 	const str = murmurHash3.x86.hash128(key, seed);
-	return `${str.substr(0, 8)}-${str.substr(8, 4)}-${str.substr(12, 4)}-${str.substr(
+	return `${str.slice(0, 8)}-${str.slice(8, 12)}-${str.slice(12, 16)}-${str.slice(
 		16,
-		4,
-	)}-${str.substr(20, 12)}`;
+		20,
+	)}-${str.slice(20, 32)}`;
 }

@@ -71,7 +71,7 @@ export class ReferenceArrayProperty extends ValueArrayProperty {
 			// Forward handling of arrays to the AbstractStaticCollectionProperty function
 			return AbstractStaticCollectionProperty.prototype.get.call(this, in_ids, in_options);
 		} else {
-			var value = this._dataArrayRef.getValue(in_ids);
+			const value = this._dataArrayRef.getValue(in_ids);
 			if (value === undefined || value === "") {
 				return undefined;
 			}
@@ -106,7 +106,7 @@ export class ReferenceArrayProperty extends ValueArrayProperty {
 	 * @throws If one of the items in in_array is defined, but is not a property or a string.
 	 */
 	setRange(in_offset, in_array) {
-		var arr = ReferenceArrayProperty._convertInputToPaths(in_array, "setRange");
+		const arr = ReferenceArrayProperty._convertInputToPaths(in_array, "setRange");
 		ValueArrayProperty.prototype.setRange.call(this, in_offset, arr);
 	}
 
@@ -122,7 +122,7 @@ export class ReferenceArrayProperty extends ValueArrayProperty {
 	 * @throws If one of the items in in_array is defined, but is not a property or a string.
 	 */
 	insertRange(in_offset, in_array) {
-		var arr = ReferenceArrayProperty._convertInputToPaths(in_array, "insertRange");
+		const arr = ReferenceArrayProperty._convertInputToPaths(in_array, "insertRange");
 		ValueArrayProperty.prototype.insertRange.call(this, in_offset, arr);
 	}
 
@@ -141,9 +141,9 @@ export class ReferenceArrayProperty extends ValueArrayProperty {
 	 * for example: ['/path1', '/path2']
 	 */
 	getValues() {
-		var result = [];
-		var ids = this.getIds();
-		for (var i = 0; i < ids.length; i++) {
+		const result = [];
+		const ids = this.getIds();
+		for (let i = 0; i < ids.length; i++) {
 			result.push(this.getValue(ids[i]));
 		}
 		return result;
@@ -156,7 +156,7 @@ export class ReferenceArrayProperty extends ValueArrayProperty {
 	 */
 	pop() {
 		if (this._dataArrayRef.length > 0) {
-			var item = this.getValue(this._dataArrayRef.length - 1);
+			const item = this.getValue(this._dataArrayRef.length - 1);
 			this.remove(this._dataArrayRef.length - 1);
 			return item;
 		} else {
@@ -173,7 +173,7 @@ export class ReferenceArrayProperty extends ValueArrayProperty {
 	 * @returns {String} the value that was removed (string path).
 	 */
 	remove(in_position) {
-		var value = this.getValue(in_position);
+		const value = this.getValue(in_position);
 		this.removeRange(in_position, 1);
 		return value;
 	}
@@ -191,22 +191,20 @@ export class ReferenceArrayProperty extends ValueArrayProperty {
 	removeRange(in_offset, in_deleteCount) {
 		ConsoleUtils.assert(
 			_.isNumber(in_offset),
-			MSG.NOT_NUMBER + "in_offset, method: ArrayProperty.removeRange or .remove",
+			`${MSG.NOT_NUMBER}in_offset, method: ArrayProperty.removeRange or .remove`,
 		);
 		ConsoleUtils.assert(
 			_.isNumber(in_deleteCount),
-			MSG.NOT_NUMBER + "in_deleteCount, method: ArrayProperty.removeRange or .remove",
+			`${MSG.NOT_NUMBER}in_deleteCount, method: ArrayProperty.removeRange or .remove`,
 		);
 		ConsoleUtils.assert(
 			in_offset + in_deleteCount < this.length + 1 && in_offset >= 0 && in_deleteCount > 0,
-			MSG.REMOVE_OUT_OF_BOUNDS +
-				"Cannot remove " +
-				in_deleteCount +
-				" items starting at index " +
-				in_offset,
+			`${MSG.REMOVE_OUT_OF_BOUNDS}Cannot remove ${in_deleteCount} items starting at index ${
+				in_offset
+			}`,
 		);
-		var result = [];
-		for (var i = in_offset; i < in_offset + in_deleteCount; i++) {
+		const result = [];
+		for (let i = in_offset; i < in_offset + in_deleteCount; i++) {
 			result.push(this.getValue(i));
 		}
 		this._checkIsNotReadOnly(true);
@@ -238,7 +236,7 @@ export class ReferenceArrayProperty extends ValueArrayProperty {
 	 */
 	_dataArrayCreate(in_length) {
 		this._dataArrayRef = new UniversalDataArray(in_length);
-		for (var i = 0; i < in_length; i++) {
+		for (let i = 0; i < in_length; i++) {
 			this._dataArraySetValue(i, "");
 		}
 	}
@@ -257,11 +255,11 @@ export class ReferenceArrayProperty extends ValueArrayProperty {
 	 */
 	static _convertInputToPaths = function (in_array, in_callerName) {
 		if (!_.isArray(in_array)) {
-			throw new TypeError(MSG.IN_ARRAY_NOT_ARRAY + "ReferenceArrayProperty." + in_callerName);
+			throw new TypeError(`${MSG.IN_ARRAY_NOT_ARRAY}ReferenceArrayProperty.${in_callerName}`);
 		}
-		var len = in_array.length;
-		var arr = new Array(len);
-		for (var i = 0; i < len; i++) {
+		const len = in_array.length;
+		const arr = new Array(len);
+		for (let i = 0; i < len; i++) {
 			arr[i] = ReferenceProperty._convertInputToPath(in_array[i]);
 		}
 		return arr;

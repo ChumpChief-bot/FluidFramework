@@ -85,9 +85,9 @@ export class ValueProperty extends BaseProperty {
 		// int property 1.2 gets cast to 1, in a boolean property
 		// false gets cast to 0,... so we first have to cast(set)
 		// and then compare the value here:
-		var oldValue = this._data;
-		var castedValue = this._castFunctor(in_value);
-		var changed = castedValue !== oldValue;
+		const oldValue = this._data;
+		const castedValue = this._castFunctor(in_value);
+		const changed = castedValue !== oldValue;
 		if (changed) {
 			this._data = castedValue;
 			this._setDirty(in_reportToView);
@@ -103,7 +103,7 @@ export class ValueProperty extends BaseProperty {
 			console.warn(MSG.DESERIALIZE_EMPTY_CHANGESET);
 			return undefined;
 		} else {
-			var changed = this._setValue(in_serializedObj, in_reportToView);
+			const changed = this._setValue(in_serializedObj, in_reportToView);
 			return changed ? this._data : undefined;
 		}
 	}
@@ -113,7 +113,7 @@ export class ValueProperty extends BaseProperty {
 	 */
 	_applyChangeset(in_changeSet, in_reportToView, in_filteringOptions) {
 		if (!ChangeSet.isEmptyChangeSet(in_changeSet)) {
-			var newVal = in_changeSet;
+			let newVal = in_changeSet;
 			if (typeof newVal === "object") {
 				newVal = newVal.value;
 			}
@@ -173,9 +173,7 @@ export class ValueProperty extends BaseProperty {
 	 * @param {function} printFct - Function to call for printing each property
 	 */
 	_prettyPrint(indent, externalId, printFct) {
-		printFct(
-			indent + externalId + this.getId() + " (" + this.getTypeid() + "): " + this.value,
-		);
+		printFct(`${indent + externalId + this.getId()} (${this.getTypeid()}): ${this.value}`);
 	}
 
 	/**
@@ -194,7 +192,7 @@ export class ValueProperty extends BaseProperty {
 	}
 
 	get value() {
-		return this.getValue.apply(this, arguments);
+		return Reflect.apply(this.getValue, this, arguments);
 	}
 	set value(val) {
 		this.setValue.call(this, val);

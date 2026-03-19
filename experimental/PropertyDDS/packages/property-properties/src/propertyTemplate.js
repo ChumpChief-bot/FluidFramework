@@ -39,7 +39,7 @@ export class PropertyTemplate {
 	 * @category Properties
 	 */
 	constructor(in_params = {}) {
-		let params = deepCopy(in_params);
+		const params = deepCopy(in_params);
 		/** The identifier of the property */
 		this.id = params.id;
 		/** The type identifier of the property */
@@ -47,7 +47,7 @@ export class PropertyTemplate {
 
 		/** Size of the property (if this is an array) */
 		if (params.context === "array") {
-			this.length = params.length !== undefined ? params.length : 0;
+			this.length = params.length === undefined ? 0 : params.length;
 		} else {
 			this.length = 1;
 		}
@@ -90,9 +90,11 @@ export class PropertyTemplate {
 	 */
 	_digestNestedInlineEnumProperties(in_currentPropertyLevel) {
 		if (in_currentPropertyLevel.properties) {
-			for (var i = 0; i < in_currentPropertyLevel.properties.length; i++) {
+			for (let i = 0; i < in_currentPropertyLevel.properties.length; i++) {
 				if (in_currentPropertyLevel.properties[i].typeid === "Enum") {
-					var dictionary = this._parseEnums(in_currentPropertyLevel.properties[i].properties);
+					const dictionary = this._parseEnums(
+						in_currentPropertyLevel.properties[i].properties,
+					);
 					in_currentPropertyLevel.properties[i]._enumDictionary = dictionary;
 				} else if (in_currentPropertyLevel.properties[i].properties) {
 					// call self
@@ -109,22 +111,22 @@ export class PropertyTemplate {
 	 * @return {{}} a dictionary [value->enum] and [enum->value]
 	 */
 	_parseEnums(in_enumProperties) {
-		var enumDictionary = {
+		const enumDictionary = {
 			enumEntriesById: {},
 			enumEntriesByValue: {},
 			defaultValue: undefined,
 		};
-		var minValue;
-		if (in_enumProperties.length !== 0) {
+		let minValue;
+		if (in_enumProperties.length > 0) {
 			minValue = in_enumProperties[0].value;
 		}
-		for (var i = 0; i < in_enumProperties.length; i++) {
-			var enumEntry = in_enumProperties[i];
-			var value = enumEntry.value;
+		for (let i = 0; i < in_enumProperties.length; i++) {
+			const enumEntry = in_enumProperties[i];
+			const value = enumEntry.value;
 			ConsoleUtils.assert(enumEntry.id, MSG.ENUM_TYPEID_MISSING);
 			ConsoleUtils.assert(!_.isNaN(enumEntry.value), MSG.ENUM_VALUE_NOT_NUMBER + value);
 			enumDictionary.enumEntriesById[enumEntry.id] = {
-				value: value,
+				value,
 				annotation: enumEntry.annotation,
 			};
 			enumDictionary.enumEntriesByValue[value] = {
@@ -156,15 +158,15 @@ export class PropertyTemplate {
 	 * @return {boolean} Returns true if the template is versioned, false otherwise
 	 */
 	_isVersioned() {
-		var splitTypeId = TypeIdHelper.extractVersion(this.typeid);
+		const splitTypeId = TypeIdHelper.extractVersion(this.typeid);
 
 		if (!splitTypeId.version) {
 			return false;
 		}
 
-		var version = splitTypeId.version;
+		const version = splitTypeId.version;
 
-		return /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/.test(version);
+		return /^(?:(?:0|[1-9]\d*)\.){2}(?:0|[1-9]\d*)$/.test(version);
 	}
 
 	/**
@@ -173,8 +175,8 @@ export class PropertyTemplate {
 	 */
 	getVersion() {
 		if (this._isVersioned()) {
-			var splitTypeId = TypeIdHelper.extractVersion(this.typeid);
-			var version = splitTypeId.version;
+			const splitTypeId = TypeIdHelper.extractVersion(this.typeid);
+			const version = splitTypeId.version;
 			return version;
 		} else {
 			console.warn(MSG.TEMPLATE_NOT_VERSIONED, this.typeid);
@@ -202,8 +204,9 @@ export class PropertyTemplate {
 	_canonicalForm(in_obj, in_target_, in_key_, in_preserve_) {
 		in_preserve_ = in_preserve_ === undefined ? false : in_preserve_;
 
-		var target, copyMembers;
-		var copyDirectlyIntoKey = false;
+		let target;
+		let copyMembers;
+		let copyDirectlyIntoKey = false;
 		if (
 			in_target_ &&
 			(in_key_ === undefined ||
@@ -258,10 +261,10 @@ export class PropertyTemplate {
 		// of a template i.e. : if array length is not specified it is set to 0.
 		// Other rules will follow
 		if (copyMembers) {
-			var keys = _.keys(in_obj);
-			var l = keys.length;
-			for (var i = 0; i < l; i++) {
-				var key = keys[i];
+			const keys = _.keys(in_obj);
+			const l = keys.length;
+			for (let i = 0; i < l; i++) {
+				const key = keys[i];
 				this._canonicalForm(in_obj[key], target, key, in_preserve_);
 			}
 
@@ -319,7 +322,7 @@ export class PropertyTemplate {
 	 */
 	getTypeidWithoutVersion() {
 		if (this._isVersioned()) {
-			var splitTypeId = TypeIdHelper.extractVersion(this.typeid);
+			const splitTypeId = TypeIdHelper.extractVersion(this.typeid);
 			return splitTypeId.typeidWithoutVersion;
 		} else {
 			return this.typeid;
@@ -334,7 +337,7 @@ export class PropertyTemplate {
 	 * @return {Boolean} true if in_param is a template
 	 */
 	static isTemplate(in_param) {
-		if (in_param.typeid && in_param.typeid.indexOf(":") !== -1) {
+		if (in_param.typeid && in_param.typeid.includes(":")) {
 			return true;
 		}
 		return false;
@@ -348,21 +351,21 @@ export class PropertyTemplate {
 	 * @return {Array} List of typeids this template refers directly to
 	 */
 	static extractDependencies(template) {
-		var dependencies = {};
+		const dependencies = {};
 
 		if (template.inherits) {
-			var inherits =
+			const inherits =
 				typeof template.inherits === "string" ? [template.inherits] : template.inherits;
 			for (var i = 0; i < inherits.length; i++) {
-				var elem = TypeIdHelper.extractTypeId(inherits[i]);
+				const elem = TypeIdHelper.extractTypeId(inherits[i]);
 				dependencies[elem] = true;
 			}
 		}
 
 		if (template.properties) {
-			var properties = template.properties;
+			const properties = template.properties;
 			for (var i = 0; i < properties.length; i++) {
-				var property = properties[i];
+				const property = properties[i];
 				if (PropertyTemplate.isTemplate(property)) {
 					var typeid = TypeIdHelper.extractTypeId(property.typeid);
 					dependencies[typeid] = true;
@@ -374,8 +377,8 @@ export class PropertyTemplate {
 						}
 					}
 				} else if (property.properties) {
-					var deps = PropertyTemplate.extractDependencies(property);
-					for (var j = 0; j < deps.length; j++) {
+					const deps = PropertyTemplate.extractDependencies(property);
+					for (let j = 0; j < deps.length; j++) {
 						var typeid = TypeIdHelper.extractTypeId(deps[j]);
 						dependencies[typeid] = true;
 					}
@@ -384,9 +387,9 @@ export class PropertyTemplate {
 		}
 
 		if (template.constants) {
-			var constants = template.constants;
+			const constants = template.constants;
 			for (var i = 0; i < constants.length; i++) {
-				var constant = constants[i];
+				const constant = constants[i];
 				if (PropertyTemplate.isTemplate(constant)) {
 					var typeid = TypeIdHelper.extractTypeId(constant.typeid);
 					dependencies[typeid] = true;

@@ -98,13 +98,13 @@ const NativeTypes = {
 const primitiveTypes = [];
 const reservedTypes = [];
 
-Object.keys(NativeTypes).forEach(function (key) {
+for (const key of Object.keys(NativeTypes)) {
 	if (NativeTypes[key].primitive) {
 		primitiveTypes.push(key);
 	} else {
 		reservedTypes.push(key);
 	}
-});
+}
 
 const requireTypeidIfNotInherits = {
 	anyOf: [
@@ -234,7 +234,7 @@ const TemplateSchema = {
 				annotation: { $ref: "#/$defs/annotation" },
 				length: {
 					type: "integer",
-					multipleOf: 1.0,
+					multipleOf: 1,
 					minimum: 0,
 				},
 				optional: {

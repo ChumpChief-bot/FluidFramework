@@ -3,21 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ArrayProperty } from "./arrayProperty";
-import { BaseProperty } from "./baseProperty";
-import { BoolProperty } from "./boolProperty";
-import { ContainerProperty } from "./containerProperty";
-import { EnumArrayProperty } from "./enumArrayProperty";
-import { EnumProperty } from "./enumProperty";
-import { Float32Property, Float64Property } from "./floatProperties";
-import { IndexedCollectionBaseProperty } from "./indexedCollectionBaseProperty";
-import {
-	Int8Property,
-	Int16Property,
-	Int32Property,
-	Int64Property,
-	Uint64Property,
-} from "./intProperties";
+import { Int16Property, Int32Property, Int64Property, Uint64Property } from "./intProperties";
 import { MapProperty } from "./mapProperty";
 import { NamedNodeProperty } from "./namedNodeProperty";
 import { NamedProperty } from "./namedProperty";
@@ -62,21 +48,12 @@ import {
 import { ValueProperty } from "./valueProperty";
 
 export {
-	ArrayProperty,
-	BaseProperty,
 	BoolArrayProperty,
 	BoolMapProperty,
-	BoolProperty,
-	ContainerProperty,
-	EnumArrayProperty,
-	EnumProperty,
 	Float32ArrayProperty,
 	Float32MapProperty,
-	Float32Property,
 	Float64ArrayProperty,
 	Float64MapProperty,
-	Float64Property,
-	IndexedCollectionBaseProperty,
 	Int16ArrayProperty,
 	Int16MapProperty,
 	Int16Property,
@@ -88,7 +65,6 @@ export {
 	Int64Property,
 	Int8ArrayProperty,
 	Int8MapProperty,
-	Int8Property,
 	MapProperty,
 	NamedNodeProperty,
 	NamedProperty,
@@ -117,3 +93,13 @@ export {
 	ValueProperty,
 	_castFunctors,
 };
+
+export { ArrayProperty } from "./arrayProperty";
+export { BaseProperty } from "./baseProperty";
+export { BoolProperty } from "./boolProperty";
+export { ContainerProperty } from "./containerProperty";
+export { EnumArrayProperty } from "./enumArrayProperty";
+export { EnumProperty } from "./enumProperty";
+export { Float32Property, Float64Property } from "./floatProperties";
+export { IndexedCollectionBaseProperty } from "./indexedCollectionBaseProperty";
+export { Int8Property } from "./intProperties";

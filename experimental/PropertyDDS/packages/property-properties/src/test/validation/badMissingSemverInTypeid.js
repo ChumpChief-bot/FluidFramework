@@ -13,7 +13,7 @@
  * @alias bad_nested_properties.js
  * Namespace containing all schema-related data for property set validation
  */
-var templateSchema = {
+const templateSchema = {
 	properties: [
 		{
 			id: "position",

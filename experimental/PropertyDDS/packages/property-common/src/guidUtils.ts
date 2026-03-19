@@ -167,10 +167,10 @@ const uint32x4ToGUID = function (
 			const hex = in_guidArray[i].toString(16);
 			str += "0".repeat(8 - hex.length) + hex;
 		}
-		return `${str.substr(0, 8)}-${str.substr(8, 4)}-${str.substr(12, 4)}-${str.substr(
+		return `${str.slice(0, 8)}-${str.slice(8, 12)}-${str.slice(12, 16)}-${str.slice(
 			16,
-			4,
-		)}-${str.substr(20, 12)}`;
+			20,
+		)}-${str.slice(20, 32)}`;
 	}
 };
 
@@ -193,10 +193,10 @@ const guidToUint32x4 = function (
 		const intArray = new Uint32Array(bytes.buffer);
 		result.set(intArray);
 	} else {
-		result[0] = parseInt(`0x${in_guid.substr(0, 8)}`, 16);
-		result[1] = parseInt(`0x${in_guid.substr(9, 4)}${in_guid.substr(14, 4)}`, 16);
-		result[2] = parseInt(`0x${in_guid.substr(19, 4)}${in_guid.substr(24, 4)}`, 16);
-		result[3] = parseInt(`0x${in_guid.substr(28, 8)}`, 16);
+		result[0] = Number.parseInt(`0x${in_guid.slice(0, 8)}`, 16);
+		result[1] = Number.parseInt(`0x${in_guid.slice(9, 13)}${in_guid.slice(14, 18)}`, 16);
+		result[2] = Number.parseInt(`0x${in_guid.slice(19, 23)}${in_guid.slice(24, 28)}`, 16);
+		result[3] = Number.parseInt(`0x${in_guid.slice(28, 36)}`, 16);
 	}
 	return result;
 };

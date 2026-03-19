@@ -44,7 +44,7 @@ export class ValueMapProperty extends MapProperty {
 	 * @throws if a value already exists for in_key
 	 */
 	insert(in_key, in_value) {
-		var castedValue = this._castFunctor ? this._castFunctor(in_value) : in_value;
+		const castedValue = this._castFunctor ? this._castFunctor(in_value) : in_value;
 		this._insert(in_key, castedValue, true);
 	}
 
@@ -61,9 +61,9 @@ export class ValueMapProperty extends MapProperty {
 	 * ```
 	 */
 	getValues() {
-		var ids = this.getIds();
-		var result = {};
-		for (var i = 0; i < ids.length; i++) {
+		const ids = this.getIds();
+		const result = {};
+		for (let i = 0; i < ids.length; i++) {
 			result[ids[i]] = this.get(ids[i]);
 		}
 		return result;
@@ -92,14 +92,14 @@ export class ValueMapProperty extends MapProperty {
 	 */
 	_prettyPrintChildren(indent, printFct) {
 		indent += "  ";
-		var prefix = "";
-		var suffix = "";
+		let prefix = "";
+		let suffix = "";
 		if (this.getTypeid() === "String") {
 			prefix = '"';
 			suffix = '"';
 		}
-		_.mapValues(this._dynamicChildren, function (val, key) {
-			printFct(indent + key + ": " + prefix + val + suffix);
+		_.mapValues(this._dynamicChildren, (val, key) => {
+			printFct(`${indent + key}: ${prefix}${val}${suffix}`);
 		});
 	}
 
@@ -113,7 +113,7 @@ export class ValueMapProperty extends MapProperty {
 		if (validationsEnabled.enabled) {
 			this._checkIsNotReadOnly(true);
 		}
-		var castedValue = this._castFunctor ? this._castFunctor(in_value) : in_value;
+		const castedValue = this._castFunctor ? this._castFunctor(in_value) : in_value;
 		if (this._dynamicChildren[in_key] !== castedValue) {
 			if (validationsEnabled.enabled) {
 				this._checkIsNotReadOnly(true);
@@ -141,7 +141,10 @@ export class ValueMapProperty extends MapProperty {
 			in_dirtyChangeSet,
 		);
 
-		var i, j, keys, key;
+		let i;
+		let j;
+		let keys;
+		let key;
 
 		// Remove existing entries
 		// (we remove before we add, so that a remove+add operation in effect becomes a replace)
@@ -164,34 +167,32 @@ export class ValueMapProperty extends MapProperty {
 		if (in_pendingChangeSet.insert) {
 			keys = Object.keys(in_pendingChangeSet.insert);
 			for (i = 0; i < keys.length; i++) {
-				if (this._dynamicChildren[keys[i]] !== undefined) {
-					this._pendingChanges.insert[keys[i]] = true;
-				} else {
+				if (this._dynamicChildren[keys[i]] === undefined) {
 					throw new Error(`${MSG.CANT_DIRTY_MISSING_PROPERTY}${keys[i]}`);
+				} else {
+					this._pendingChanges.insert[keys[i]] = true;
 				}
 			}
 		}
 
 		// Modify entries
 		if (in_pendingChangeSet.modify) {
-			var modifiedPendingEntries = in_pendingChangeSet ? in_pendingChangeSet.modify || {} : {};
-			var modifiedDirtyEntries = in_dirtyChangeSet ? in_dirtyChangeSet.modify || {} : {};
+			const modifiedPendingEntries = in_pendingChangeSet
+				? in_pendingChangeSet.modify || {}
+				: {};
+			const modifiedDirtyEntries = in_dirtyChangeSet ? in_dirtyChangeSet.modify || {} : {};
 			keys = Object.keys(modifiedPendingEntries).concat(Object.keys(modifiedDirtyEntries));
 			for (i = 0; i < keys.length; i++) {
 				key = keys[i];
-				if (this._dynamicChildren[key] !== undefined) {
-					if (modifiedPendingEntries[key]) {
-						if (!this._pendingChanges.insert[key]) {
-							this._pendingChanges.modify[key] = true;
-						}
-					}
-					if (modifiedDirtyEntries[key]) {
-						if (!this._dirtyChanges.insert[key]) {
-							this._dirtyChanges.modify[key] = true;
-						}
-					}
-				} else {
+				if (this._dynamicChildren[key] === undefined) {
 					throw new Error(MSG.MODIFY_NON_EXISTING_ENTRY + key);
+				} else {
+					if (modifiedPendingEntries[key] && !this._pendingChanges.insert[key]) {
+						this._pendingChanges.modify[key] = true;
+					}
+					if (modifiedDirtyEntries[key] && !this._dirtyChanges.insert[key]) {
+						this._dirtyChanges.modify[key] = true;
+					}
 				}
 			}
 		}
@@ -350,8 +351,8 @@ export class Integer64MapProperty extends ValueMapProperty {
 	 * @param {Int64|Uint64|string|number} in_value - The value or property to store in the map
 	 */
 	set(in_key, in_value) {
-		var castedValue = this._castFunctor ? this._castFunctor(in_value) : in_value;
-		var myValue = this._dynamicChildren[in_key];
+		const castedValue = this._castFunctor ? this._castFunctor(in_value) : in_value;
+		const myValue = this._dynamicChildren[in_key];
 		if (myValue === undefined) {
 			this._insert(in_key, castedValue, true);
 		} else if (
@@ -382,14 +383,14 @@ export class Integer64MapProperty extends ValueMapProperty {
 	 */
 	_prettyPrintChildren(indent, printFct) {
 		indent += "  ";
-		var int64Prop;
-		_.mapValues(this._dynamicChildren, function (val, key) {
+		let int64Prop;
+		_.mapValues(this._dynamicChildren, (val, key) => {
 			// TODO: The 'toString()' function is defined on Integer64Property, so we need to create
 			//       such object to use it. It would be better to have it in Utils Integer64.prototype.toString
 			int64Prop = val instanceof Int64 ? new Int64Property({}) : new Uint64Property({});
 			int64Prop.setValueLow(val.getValueLow());
 			int64Prop.setValueHigh(val.getValueHigh());
-			printFct(indent + key + ": " + int64Prop);
+			printFct(`${indent + key}: ${int64Prop}`);
 		});
 	}
 }

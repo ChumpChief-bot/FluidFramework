@@ -5,12 +5,8 @@
 
 /* eslint accessor-pairs: [2, { "getWithoutSet": false }] */
 
-import {
-	ChangeSet,
-	PathHelper,
-	SerializedChangeSet,
-	TypeIdHelper,
-} from "@fluid-experimental/property-changeset";
+import type { SerializedChangeSet } from "@fluid-experimental/property-changeset";
+import { ChangeSet, PathHelper, TypeIdHelper } from "@fluid-experimental/property-changeset";
 import { constants, ConsoleUtils } from "@fluid-experimental/property-common";
 import _ from "lodash";
 
@@ -133,7 +129,7 @@ export abstract class BaseProperty {
             MSG.CONTEXT_NOT_AS_EXPECTED + this._context + ' != ' + in_params.context); */
 
 		// Sets typeid if default value is not fine
-		let typeId = in_params.typeid || "BaseProperty";
+		const typeId = in_params.typeid || "BaseProperty";
 		if (typeId !== this._typeid) {
 			this._typeid = typeId;
 		}
@@ -218,7 +214,7 @@ export abstract class BaseProperty {
 	 */
 	isAncestorOf(in_otherProperty: BaseProperty): boolean {
 		ConsoleUtils.assert(in_otherProperty, MSG.MISSING_IN_OTHERPROP);
-		var parent = in_otherProperty.getParent();
+		let parent = in_otherProperty.getParent();
 		while (parent) {
 			if (parent === this) {
 				return true;
@@ -288,12 +284,12 @@ export abstract class BaseProperty {
 		if (in_flags === undefined) {
 			in_flags = MODIFIED_STATE_FLAGS.DIRTY | MODIFIED_STATE_FLAGS.PENDING_CHANGE;
 		}
-		var reportToView = in_reportToView;
+		let reportToView = in_reportToView;
 		if (reportToView === undefined) {
 			reportToView = true;
 		}
 		// We only update the flags upwards in the tree, when the corresponding nodes are not already flagged
-		var oldFlags = this._getDirtyFlags();
+		const oldFlags = this._getDirtyFlags();
 		if ((oldFlags & in_flags) !== in_flags) {
 			// only dirty once until clean.
 			this._setDirtyFlags(oldFlags | in_flags);
@@ -339,8 +335,7 @@ export abstract class BaseProperty {
 		}
 
 		if (
-			currentNode._tree &&
-			currentNode._tree.notificationDelayScope === 0 &&
+			currentNode._tree?.notificationDelayScope === 0 &&
 			currentNode._isDirty(BaseProperty.MODIFIED_STATE_FLAGS.DIRTY)
 		) {
 			currentNode._tree._reportDirtinessToView();
@@ -380,15 +375,15 @@ export abstract class BaseProperty {
 		in_reportToView = true,
 		in_filteringOptions = undefined,
 	) {
-		var typeids = _.keys(in_changeSet);
+		const typeids = _.keys(in_changeSet);
 		for (const typeid of typeids) {
 			if (ChangeSet.isReservedKeyword(typeid)) {
 				continue; // Ignore the special keys
 			}
 
-			var paths = _.keys(in_changeSet[typeid]);
+			const paths = _.keys(in_changeSet[typeid]);
 			for (const path of paths) {
-				var property = this.resolvePath(path, {
+				const property = this.resolvePath(path, {
 					referenceResolutionMode: BaseProperty.REFERENCE_RESOLUTION.NEVER,
 				});
 				if (property) {
@@ -425,17 +420,14 @@ export abstract class BaseProperty {
 			if (ChangeSet.isReservedKeyword(typeid)) {
 				continue; // Ignore the special keys
 			}
-			const pendingChangeSet = in_pendingChangeSet && in_pendingChangeSet[typeid];
-			const dirtyChangeSet = in_dirtyChangeSet && in_dirtyChangeSet[typeid];
+			const pendingChangeSet = in_pendingChangeSet?.[typeid];
+			const dirtyChangeSet = in_dirtyChangeSet?.[typeid];
 
 			const paths = _.keys(pendingChangeSet).concat(_.keys(dirtyChangeSet));
 			for (const path of paths) {
-				let property = this.resolvePath(path);
+				const property = this.resolvePath(path);
 				if (property) {
-					property._reapplyDirtyFlags(
-						pendingChangeSet && pendingChangeSet[path],
-						dirtyChangeSet && dirtyChangeSet[path],
-					);
+					property._reapplyDirtyFlags(pendingChangeSet?.[path], dirtyChangeSet?.[path]);
 				} else {
 					throw new Error(MSG.INVALID_PATH + path);
 				}
@@ -465,7 +457,7 @@ export abstract class BaseProperty {
 	 * @param in_flags - The flags to clean. If none are supplied all will be removed.
 	 */
 	cleanDirty(in_flags: MODIFIED_STATE_FLAGS) {
-		var dirtyChildren = this._getDirtyChildren(in_flags);
+		const dirtyChildren = this._getDirtyChildren(in_flags);
 		for (const dirtyChild of dirtyChildren) {
 			const child = this.get(dirtyChild, {
 				referenceResolutionMode: BaseProperty.REFERENCE_RESOLUTION.NEVER,
@@ -513,7 +505,7 @@ export abstract class BaseProperty {
 	 * @returns The serialized changes
 	 */
 	getPendingChanges(): ChangeSet {
-		var serialized = this._serialize(
+		const serialized = this._serialize(
 			true,
 			false,
 			BaseProperty.MODIFIED_STATE_FLAGS.PENDING_CHANGE,
@@ -544,7 +536,7 @@ export abstract class BaseProperty {
 	 * @return {property-properties.CheckoutView} - the checkout view
 	 */
 	_getCheckoutView() {
-		let checkedOutRepositoryInfo = this._getCheckedOutRepositoryInfo();
+		const checkedOutRepositoryInfo = this._getCheckedOutRepositoryInfo();
 		return checkedOutRepositoryInfo ? checkedOutRepositoryInfo.getCheckoutView() : undefined;
 	}
 
@@ -554,10 +546,10 @@ export abstract class BaseProperty {
 	 * @protected
 	 */
 	_getCheckedOutRepositoryInfo() {
-		if (!this._parent) {
-			return this._checkedOutRepositoryInfo;
-		} else {
+		if (this._parent) {
 			return this.getRoot() ? this.getRoot()._getCheckedOutRepositoryInfo() : undefined;
+		} else {
+			return this._checkedOutRepositoryInfo;
 		}
 	}
 
@@ -614,7 +606,7 @@ export abstract class BaseProperty {
 		}
 
 		if (this._parent !== undefined) {
-			throw new Error(MSG.ID_CHANGE_FOR_PROPERTY_WITH_PARENT + this._id + " to id: " + in_id);
+			throw new Error(`${MSG.ID_CHANGE_FOR_PROPERTY_WITH_PARENT + this._id} to id: ${in_id}`);
 		}
 
 		this._id = String(in_id);
@@ -631,7 +623,7 @@ export abstract class BaseProperty {
 	 */
 	clone(): BaseProperty {
 		const PropertyFactory = Property.PropertyFactory;
-		var clone = PropertyFactory._createProperty(
+		const clone = PropertyFactory._createProperty(
 			this.getFullTypeid(),
 			null,
 			undefined,
@@ -689,7 +681,7 @@ export abstract class BaseProperty {
 	 * Return a JSON representation of the properties and its children.
 	 */
 	protected _toJson(): object {
-		var json = {
+		const json = {
 			id: this.getId(),
 			context: this._context,
 			typeid: this.getTypeid(),
@@ -697,7 +689,7 @@ export abstract class BaseProperty {
 			value: [],
 		};
 
-		var ids = this.getIds();
+		const ids = this.getIds();
 		for (const id of ids) {
 			json.value.push(
 				this.get(id, {
@@ -728,18 +720,21 @@ export abstract class BaseProperty {
 	 * @param {function} printFct - Function to call for printing each property
 	 */
 	_prettyPrint(indent, externalId, printFct) {
-		var context = "";
+		let context = "";
 		switch (this._context) {
-			case "map":
+			case "map": {
 				context = "Map of ";
 				break;
-			case "set":
+			}
+			case "set": {
 				context = "Set of ";
 				break;
-			default:
+			}
+			default: {
 				break;
+			}
 		}
-		printFct(indent + externalId + this.getId() + " (" + context + this.getTypeid() + "):");
+		printFct(`${indent + externalId + this.getId()} (${context}${this.getTypeid()}):`);
 		this._prettyPrintChildren(indent, printFct);
 	}
 
@@ -751,8 +746,8 @@ export abstract class BaseProperty {
 	 */
 	_prettyPrintChildren(indent, printFct) {
 		indent += "  ";
-		var ids = this.getIds();
-		for (var i = 0; i < ids.length; i++) {
+		const ids = this.getIds();
+		for (let i = 0; i < ids.length; i++) {
 			this.get(ids[i], {
 				referenceResolutionMode: BaseProperty.REFERENCE_RESOLUTION.NEVER,
 			})._prettyPrint(indent, "", printFct);
@@ -769,15 +764,15 @@ export abstract class BaseProperty {
 	 * @private
 	 */
 	_getPathsThroughRepoRef(in_fromProperty) {
-		var paths = [];
-		var that = this;
-		var referenceProps = [];
+		const paths = [];
+		const that = this;
+		const referenceProps = [];
 		// get all reference properties in the referenceProps array
-		this._getCheckoutView()._forEachCheckedOutRepository(function (repoInfo) {
-			var keys = _.keys(repoInfo._referencedByPropertyInstanceGUIDs);
+		this._getCheckoutView()._forEachCheckedOutRepository((repoInfo) => {
+			const keys = _.keys(repoInfo._referencedByPropertyInstanceGUIDs);
 			for (const key of keys) {
 				if (key) {
-					var repoRef =
+					const repoRef =
 						repoInfo._referencedByPropertyInstanceGUIDs[key]._repositoryReferenceProperties[
 							key
 						].property;
@@ -796,15 +791,15 @@ export abstract class BaseProperty {
 		}
 
 		// path from root of the child repo to 'this'
-		var pathInChildRepo = this._getDirectPath(this.getRoot());
+		const pathInChildRepo = this._getDirectPath(this.getRoot());
 
 		// find possible paths from in_fromProperty to the referenceProps
 		// concatenate each with pathInChildRepo
 		for (const referenceProp of referenceProps) {
-			var pathInParentRepo = referenceProp.getRelativePath(in_fromProperty);
+			const pathInParentRepo = referenceProp.getRelativePath(in_fromProperty);
 			if (pathInParentRepo) {
 				if (pathInChildRepo.length > 0) {
-					paths.push(pathInParentRepo + "." + pathInChildRepo);
+					paths.push(`${pathInParentRepo}.${pathInChildRepo}`);
 				} else {
 					paths.push(pathInParentRepo);
 				}
@@ -825,16 +820,16 @@ export abstract class BaseProperty {
 	 * @private
 	 */
 	_getIndirectPath(in_fromProperty) {
-		var path = [];
-		var that = this;
-		var foundPath = undefined;
+		const path = [];
+		const that = this;
+		let foundPath;
 
-		foundPath = in_fromProperty.traverseUp(function (in_node) {
+		foundPath = in_fromProperty.traverseUp((in_node) => {
 			path.push("../");
 			if (in_node === that) {
 				return BREAK_TRAVERSAL;
 			}
-			var directPath = that._getDirectPath(in_node);
+			const directPath = that._getDirectPath(in_node);
 			if (directPath) {
 				path.push(directPath);
 				return BREAK_TRAVERSAL;
@@ -853,14 +848,14 @@ export abstract class BaseProperty {
 	 * @private
 	 */
 	_getDirectPath(in_fromProperty) {
-		var path = [];
-		var foundAncestor = undefined;
+		const path = [];
+		let foundAncestor;
 		if (in_fromProperty === this) {
 			foundAncestor = BREAK_TRAVERSAL;
 		} else if (this.getParent()) {
 			path.push(this.getParent()._getPathSegmentForChildNode(this));
 
-			foundAncestor = this.traverseUp(function (in_node) {
+			foundAncestor = this.traverseUp((in_node) => {
 				// break where we meet the relative reference
 				if (in_node === in_fromProperty) {
 					return BREAK_TRAVERSAL;
@@ -875,11 +870,11 @@ export abstract class BaseProperty {
 		}
 
 		if (foundAncestor === BREAK_TRAVERSAL) {
-			var result = path.reverse().join("");
+			let result = path.reverse().join("");
 
 			// We don't use a PROPERTY_PATH_DELIMITER at the start of the path
 			if (result.startsWith(PROPERTY_PATH_DELIMITER)) {
-				result = result.substr(1);
+				result = result.slice(1);
 			}
 			return result;
 		} else {
@@ -895,15 +890,15 @@ export abstract class BaseProperty {
 	 * @private
 	 */
 	_getAllRelativePaths(in_fromProperty) {
-		if (this.getRoot() !== in_fromProperty.getRoot()) {
+		if (this.getRoot() === in_fromProperty.getRoot()) {
+			const directPath = this._getDirectPath(in_fromProperty);
+			return directPath === undefined
+				? [this._getIndirectPath(in_fromProperty)]
+				: [directPath];
+		} else {
 			// if this and in_fromProperty have different roots, go through a repo ref
 			// this is the case where we might have more than one path
 			return this._getPathsThroughRepoRef(in_fromProperty);
-		} else {
-			var directPath = this._getDirectPath(in_fromProperty);
-			return directPath !== undefined
-				? [directPath]
-				: [this._getIndirectPath(in_fromProperty)];
 		}
 	}
 
@@ -932,20 +927,18 @@ export abstract class BaseProperty {
 			in_fromProperty instanceof BaseProperty,
 			MSG.IN_FROMPROPERTY_MUST_BE_PROPERTY,
 		);
-		var paths = this._getAllRelativePaths(in_fromProperty) || [];
+		const paths = this._getAllRelativePaths(in_fromProperty) || [];
 		if (paths.length === 0) {
 			console.warn(
-				MSG.NO_PATH_BETWEEN +
-					in_fromProperty.getAbsolutePath() +
-					" and " +
-					this.getAbsolutePath(),
+				`${
+					MSG.NO_PATH_BETWEEN + in_fromProperty.getAbsolutePath()
+				} and ${this.getAbsolutePath()}`,
 			);
 		} else if (paths.length > 1) {
 			console.warn(
-				MSG.MORE_THAN_ONE_PATH +
-					in_fromProperty.getAbsolutePath() +
-					" and " +
-					this.getAbsolutePath(),
+				`${
+					MSG.MORE_THAN_ONE_PATH + in_fromProperty.getAbsolutePath()
+				} and ${this.getAbsolutePath()}`,
 			);
 		}
 		return paths[0];
@@ -957,16 +950,16 @@ export abstract class BaseProperty {
 	 * @return {string} The path from the root
 	 */
 	getAbsolutePath() {
-		var that = this;
-		var referenceProps = [];
+		const that = this;
+		const referenceProps = [];
 		// get all reference properties pointing to the root the repository containing 'this'
 		if (this._getCheckoutView()) {
-			this._getCheckoutView()._forEachCheckedOutRepository(function (repoInfo) {
-				var keys = _.keys(repoInfo._referencedByPropertyInstanceGUIDs);
+			this._getCheckoutView()._forEachCheckedOutRepository((repoInfo) => {
+				const keys = _.keys(repoInfo._referencedByPropertyInstanceGUIDs);
 				for (const key of keys) {
 					if (key) {
-						let repoRef = repoInfo._referencedByPropertyInstanceGUIDs[key];
-						let refProperty = undefined;
+						const repoRef = repoInfo._referencedByPropertyInstanceGUIDs[key];
+						let refProperty;
 
 						if (repoRef) {
 							refProperty = repoRef._repositoryReferenceProperties[key]
@@ -977,8 +970,8 @@ export abstract class BaseProperty {
 						let refRoot;
 						try {
 							refRoot = refProperty ? refProperty.getReferencedRepositoryRoot() : undefined;
-						} catch (e) {
-							console.warn(e.message);
+						} catch (error) {
+							console.warn(error.message);
 						}
 
 						if (that.getRoot() === refRoot) {
@@ -990,8 +983,8 @@ export abstract class BaseProperty {
 			});
 		}
 
-		var path = this.isRoot() ? [] : [this.getParent()._getPathSegmentForChildNode(this)];
-		this.traverseUp(function (in_node) {
+		const path = this.isRoot() ? [] : [this.getParent()._getPathSegmentForChildNode(this)];
+		this.traverseUp((in_node) => {
 			if (in_node.getParent()) {
 				path.push(in_node.getParent()._getPathSegmentForChildNode(in_node));
 			} else if (referenceProps.length > 0) {
@@ -999,13 +992,13 @@ export abstract class BaseProperty {
 				path.push(referenceProps[0].getAbsolutePath(referenceProps[0].getRoot()).slice(1));
 			}
 		});
-		var absolutePath = path.reverse().join("");
+		let absolutePath = path.reverse().join("");
 
 		// We don't use the property path separator at the start of the path
 		if (absolutePath.startsWith(PROPERTY_PATH_DELIMITER)) {
-			absolutePath = absolutePath.substr(1);
+			absolutePath = absolutePath.slice(1);
 		}
-		absolutePath = "/" + absolutePath;
+		absolutePath = `/${absolutePath}`;
 
 		return absolutePath;
 	}
@@ -1022,10 +1015,10 @@ export abstract class BaseProperty {
 	traverseUp(in_callback) {
 		ConsoleUtils.assert(_.isFunction(in_callback), MSG.CALLBACK_NOT_FCT);
 		if (this._parent) {
-			var result = in_callback(this._parent);
-			return result !== BREAK_TRAVERSAL
-				? this._parent.traverseUp(in_callback)
-				: BREAK_TRAVERSAL;
+			const result = in_callback(this._parent);
+			return result === BREAK_TRAVERSAL
+				? BREAK_TRAVERSAL
+				: this._parent.traverseUp(in_callback);
 		}
 
 		return undefined;
@@ -1147,7 +1140,7 @@ export abstract class BaseProperty {
 	 * @returns The serialized representation of this property
 	 */
 	serialize(in_options: ISerializeOptions) {
-		var opts = {
+		const opts = {
 			dirtyOnly: false,
 			includeRootTypeid: false,
 			dirtinessType: MODIFIED_STATE_FLAGS.PENDING_CHANGE,
@@ -1185,11 +1178,11 @@ export abstract class BaseProperty {
 			throw new Error(MSG.MODIFICATION_OF_CONSTANT_PROPERTY);
 		}
 
-		var root = this.getRoot();
+		const root = this.getRoot();
 		if (root && root._getCheckedOutRepositoryInfo) {
-			var repositoryInfo = root._getCheckedOutRepositoryInfo();
+			const repositoryInfo = root._getCheckedOutRepositoryInfo();
 
-			if (repositoryInfo && repositoryInfo._isReadOnly()) {
+			if (repositoryInfo?._isReadOnly()) {
 				throw new Error(MSG.MODIFICATION_OF_REFERENCED_PROPERTY);
 			}
 		}
@@ -1203,7 +1196,7 @@ export abstract class BaseProperty {
 
 		if (this instanceof Property.AbstractStaticCollectionProperty) {
 			// Set all children properties as constants
-			this.traverseDown(function (prop) {
+			this.traverseDown((prop) => {
 				prop._isConstant = true;
 			});
 		}
@@ -1223,7 +1216,7 @@ export abstract class BaseProperty {
 
 		if (this instanceof Property.AbstractStaticCollectionProperty) {
 			// Unset all children properties as constants
-			this.traverseDown(function (prop) {
+			this.traverseDown((prop) => {
 				// Deleting this property will make the object
 				// fall back to the entry in the prototype (false)
 				delete prop._isConstant;
@@ -1239,7 +1232,7 @@ export abstract class BaseProperty {
 	 * @private
 	 */
 	_setDirtyTree(in_reportToView = true) {
-		this._traverse(function (node) {
+		this._traverse((node) => {
 			// Set all nodes to dirty, but prevent recursive updates up to the repository for the individual changes
 			node._setDirty(false);
 		}, "");

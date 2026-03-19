@@ -43,16 +43,16 @@ export namespace TypeIdHelper {
 	 * @internal
 	 */
 	export function isPrimitiveType(in_typeid: string): boolean {
-		const primitiveTypes = templateSchemaJson["$defs"]["primitive-typeid"]["enum"];
+		const primitiveTypes = templateSchemaJson.$defs["primitive-typeid"].enum;
 
 		if (in_typeid === undefined || in_typeid === "") {
 			return false;
 		}
 
 		return (
-			in_typeid.substr(0, 5) === "enum<" ||
-			in_typeid.substr(0, 10) === "Reference<" ||
-			primitiveTypes.indexOf(in_typeid) >= 0
+			in_typeid.startsWith("enum<") ||
+			in_typeid.startsWith("Reference<") ||
+			primitiveTypes.includes(in_typeid)
 		);
 	}
 
@@ -64,7 +64,7 @@ export namespace TypeIdHelper {
 	 * @internal
 	 */
 	export function isTemplateTypeid(in_typeid: string): boolean {
-		return in_typeid.indexOf(":") !== -1;
+		return in_typeid.includes(":");
 	}
 
 	/**
@@ -75,8 +75,8 @@ export namespace TypeIdHelper {
 	 * @internal
 	 */
 	export function isReservedType(in_typeid: string): boolean {
-		const reservedTypes = templateSchemaJson["$defs"]["reserved-typeid"]["enum"];
-		return reservedTypes.indexOf(in_typeid) >= 0;
+		const reservedTypes = templateSchemaJson.$defs["reserved-typeid"].enum;
+		return reservedTypes.includes(in_typeid);
 	}
 
 	/**
@@ -108,23 +108,23 @@ export namespace TypeIdHelper {
 		const bracketIndex = in_typeid.indexOf("<");
 		if (bracketIndex !== -1 && in_typeid.endsWith(">")) {
 			let typeid = in_typeid.substr(bracketIndex + 1, in_typeid.length - bracketIndex - 2);
-			let context = in_typeid.substr(0, bracketIndex);
+			let context = in_typeid.slice(0, Math.max(0, bracketIndex));
 
 			// Special case to handle collections without a typeid (e.g. "map<>", which should
 			// be able to support all property types
 			if (typeid === "") {
-				typeid = context !== "set" ? "BaseProperty" : "NamedProperty";
+				typeid = context === "set" ? "NamedProperty" : "BaseProperty";
 			}
 
 			// Special case to handle enums (e.g. array<enum<myType>>)
 			let isEnum = false;
-			if (context === "enum" || typeid.substr(0, 5) === "enum<") {
+			if (context === "enum" || typeid.startsWith("enum<")) {
 				isEnum = true;
 				if (context === "enum") {
 					context = "single";
 				} else {
 					// remove the `enum<...>` tag to get the raw typeid
-					typeid = typeid.substr(5, typeid.length - 6);
+					typeid = typeid.slice(5, 5 + typeid.length - 6);
 				}
 			}
 			if (context === "Reference") {
@@ -189,7 +189,7 @@ export namespace TypeIdHelper {
 		// in_enum
 		return (
 			in_typeid === "Reference" ||
-			(in_typeid.substr(0, 10) === "Reference<" && in_typeid.substr(-1) === ">")
+			(in_typeid.startsWith("Reference<") && in_typeid.endsWith(">"))
 		);
 	}
 
@@ -202,8 +202,8 @@ export namespace TypeIdHelper {
 	 */
 	export function extractReferenceTargetTypeIdFromReference(in_typeid: string): string {
 		// in_enum
-		return in_typeid.substr(0, 10) === "Reference<"
-			? in_typeid.substr(10, in_typeid.length - 11)
+		return in_typeid.startsWith("Reference<")
+			? in_typeid.slice(10, 10 + in_typeid.length - 11)
 			: "BaseProperty";
 	}
 
@@ -215,7 +215,7 @@ export namespace TypeIdHelper {
 	 * @internal
 	 */
 	export function isSchemaTypeid(in_typeid: string): boolean {
-		return typeof in_typeid === "string" && in_typeid.indexOf(":") !== -1;
+		return typeof in_typeid === "string" && in_typeid.includes(":");
 	}
 
 	/**
@@ -227,9 +227,9 @@ export namespace TypeIdHelper {
 	 * @internal
 	 */
 	export function extractTypeId(in_typeid): string {
-		const matches = in_typeid.match(/\<(.*?)\>/);
+		const matches = in_typeid.match(/<(.*?)>/);
 		return matches !== null && matches.length > 0
-			? matches[0].replace(/[\<\>]/gi, "")
+			? matches[0].replace(/[<>]/gi, "")
 			: in_typeid;
 	}
 
@@ -249,11 +249,11 @@ export namespace TypeIdHelper {
 			throw new Error(MSG.TYPEID_NOT_DEFINED);
 		}
 
-		if (in_typeid.substr(0, 10) === "Reference<") {
+		if (in_typeid.startsWith("Reference<")) {
 			in_typeid = "Reference";
 		}
 
-		if (in_baseTypeid.substr(0, 10) === "Reference<") {
+		if (in_baseTypeid.startsWith("Reference<")) {
 			in_baseTypeid = "Reference";
 		}
 
@@ -273,7 +273,7 @@ export namespace TypeIdHelper {
 			return false;
 		}
 
-		let parents = NativeTypes[in_typeid]["inherits"];
+		const parents = NativeTypes[in_typeid].inherits;
 
 		// recursively call the function for the parent of the typeid
 		for (let i = 0; i < parents.length; i++) {
@@ -291,7 +291,7 @@ export namespace TypeIdHelper {
 	 * @internal
 	 */
 	export function getPrimitiveTypeIds(): string[] {
-		return templateSchemaJson["$defs"]["primitive-typeid"]["enum"];
+		return templateSchemaJson.$defs["primitive-typeid"].enum;
 	}
 
 	/**
@@ -301,6 +301,6 @@ export namespace TypeIdHelper {
 	 * @internal
 	 */
 	export function getReservedTypeIds(): string[] {
-		return templateSchemaJson["$defs"]["reserved-typeid"]["enum"];
+		return templateSchemaJson.$defs["reserved-typeid"].enum;
 	}
 }

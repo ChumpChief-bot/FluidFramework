@@ -10,7 +10,7 @@ const { MSG } = require("@fluid-experimental/property-common").constants;
 const { Int64, Uint64 } = require("@fluid-experimental/property-common");
 const _ = require("lodash");
 
-var castArrays = {
+const castArrays = {
 	Uint32: new Uint32Array(1),
 	Uint16: new Uint16Array(1),
 	Uint8: new Uint8Array(1),
@@ -30,7 +30,7 @@ var castArrays = {
  * @return {number|string|boolean} The casted value
  * @private
  */
-var _simpleCastFunctor = function (in_array, in_value) {
+const _simpleCastFunctor = function (in_array, in_value) {
 	in_array[0] = in_value;
 	return in_array[0];
 };
@@ -49,7 +49,7 @@ const _castFunctors = {
 	 * @return {number} The casted value
 	 * @protected
 	 */
-	Uint64: function (in_value, in_radix) {
+	Uint64(in_value, in_radix) {
 		if (in_value instanceof Uint64) {
 			return in_value;
 		}
@@ -59,7 +59,7 @@ const _castFunctors = {
 		if (typeof in_value === "number") {
 			return Uint64.fromString(String(in_value), in_radix);
 		}
-		throw new Error(MSG.INT_64_NON_INT64_TYPE + " , value: " + in_value);
+		throw new Error(`${MSG.INT_64_NON_INT64_TYPE} , value: ${in_value}`);
 	},
 	/**
 	 * Casts the input value to a Uint32
@@ -90,7 +90,7 @@ const _castFunctors = {
 	 * @return {number} The casted value
 	 * @protected
 	 */
-	Int64: function (in_value, in_radix) {
+	Int64(in_value, in_radix) {
 		if (in_value instanceof Int64) {
 			return in_value;
 		}
@@ -100,7 +100,7 @@ const _castFunctors = {
 		if (typeof in_value === "number") {
 			return Int64.fromString(String(in_value), in_radix);
 		}
-		throw new Error(MSG.INT_64_NON_INT64_TYPE + " , value: " + in_value);
+		throw new Error(`${MSG.INT_64_NON_INT64_TYPE} , value: ${in_value}`);
 	},
 	/**
 	 * Casts the input value to a Int32
@@ -143,16 +143,14 @@ const _castFunctors = {
 	 * @return {number} The casted value
 	 * @protected
 	 */
-	String: function (in_value) {
-		return String(in_value);
-	},
+	String,
 	/**
 	 * Casts the input value to a Boolean value
 	 * @param {boolean} in_value - The value to use in the cast
 	 * @return {boolean} The casted value
 	 * @protected
 	 */
-	Boolean: function (in_value) {
+	Boolean(in_value) {
 		return !!in_value;
 	},
 };

@@ -123,7 +123,7 @@ export class PropertyTemplateWrapper {
 			if (currentCreationType === undefined) {
 				this._objectCreationType = in_typeid;
 			} else if (currentCreationType !== in_typeid) {
-				throw new Error(MSG.ONLY_ONE_CREATION_TYPE + currentCreationType + ", " + in_typeid);
+				throw new Error(`${MSG.ONLY_ONE_CREATION_TYPE + currentCreationType}, ${in_typeid}`);
 			}
 		}
 	}
@@ -157,7 +157,7 @@ export class PropertyTemplateWrapper {
 		const template = originalTemplate.clone();
 
 		/* Copy the proccesed list of parents to not modify the original */
-		const typeInheritence = parentTemplateIds ? parentTemplateIds.slice() : [];
+		const typeInheritence = parentTemplateIds ? [...parentTemplateIds] : [];
 
 		/* Look ups to efficiently check what properties/constants parents have */
 		const parentsPropertiesById = {};
@@ -231,7 +231,7 @@ export class PropertyTemplateWrapper {
 		const constructSubProperties = (in_template, in_parentsPropertiesById, fieldName) => {
 			const propertyKeys = Object.keys(in_parentsPropertiesById);
 
-			if (in_template[fieldName] === undefined && propertyKeys.length !== 0) {
+			if (in_template[fieldName] === undefined && propertyKeys.length > 0) {
 				in_template[fieldName] = [];
 			}
 
@@ -286,14 +286,9 @@ export class PropertyTemplateWrapper {
 				(child[fieldName] !== defaultValue || parent[fieldName] !== undefined)
 			) {
 				throw new Error(
-					MSG.OVERRIDEN_PROP_MUST_HAVE_SAME_FIELD_VALUES_AS_BASE_TYPE +
-						fieldName +
-						" as the base type: " +
-						child.id +
-						": " +
-						child[fieldName] +
-						" != " +
-						parent[fieldName],
+					`${
+						MSG.OVERRIDEN_PROP_MUST_HAVE_SAME_FIELD_VALUES_AS_BASE_TYPE + fieldName
+					} as the base type: ${child.id}: ${child[fieldName]} != ${parent[fieldName]}`,
 				);
 			}
 		};
@@ -304,22 +299,21 @@ export class PropertyTemplateWrapper {
 		mergeField(in_childProperty, in_parentProperty, "optional", false);
 		mergeField(in_childProperty, in_parentProperty, "typeid", undefined);
 
-		if (in_parentProperty.typedValue !== undefined) {
-			if (in_childProperty.typedValue === undefined) {
-				in_childProperty.typedValue = in_parentProperty.typedValue;
-			}
+		if (
+			in_parentProperty.typedValue !== undefined &&
+			in_childProperty.typedValue === undefined
+		) {
+			in_childProperty.typedValue = in_parentProperty.typedValue;
 		}
 
-		if (in_parentProperty.value !== undefined) {
-			if (in_childProperty.value === undefined) {
-				in_childProperty.value = in_parentProperty.value;
-			}
+		if (in_parentProperty.value !== undefined && in_childProperty.value === undefined) {
+			in_childProperty.value = in_parentProperty.value;
 		}
 
 		const mergeSubProperties = (child, parent, fieldName) => {
 			const parentPropertiesById = {};
-			let parentProperties = parent[fieldName];
-			let properties = child[fieldName] || [];
+			const parentProperties = parent[fieldName];
+			const properties = child[fieldName] || [];
 			if (parentProperties) {
 				for (let j = 0; j < parentProperties.length; ++j) {
 					const parentProperty = parentProperties[j];

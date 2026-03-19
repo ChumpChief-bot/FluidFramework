@@ -8,19 +8,22 @@
  * described in /src/properties/baseProperty.js
  */
 
-var PropertyFactory, ChangeSet, MSG, BaseProperty;
+let PropertyFactory;
+let ChangeSet;
+let MSG;
+let BaseProperty;
 
-describe("BaseProperty", function () {
+describe("BaseProperty", () => {
 	/**
 	 * Get all the objects we need in this test here.
 	 */
-	before(function () {
+	before(() => {
 		PropertyFactory = require("../..").PropertyFactory;
 		ChangeSet = require("@fluid-experimental/property-changeset").ChangeSet;
 		MSG = require("@fluid-experimental/property-common").constants.MSG;
 		BaseProperty = require("../..").BaseProperty;
 
-		var TestPropertyObject = {
+		const TestPropertyObject = {
 			typeid: "autodesk.tests:property.with.special.characters-1.0.0",
 			properties: [
 				{ id: "simple_property", typeid: "String" },
@@ -41,18 +44,18 @@ describe("BaseProperty", function () {
 		PropertyFactory._reregister(TestPropertyObject);
 	});
 
-	describe("Serializing a BaseProperty with special characters", function () {
-		it("should be possible to serialize a property with special characters", function () {
-			var myProp = PropertyFactory.create(
+	describe("Serializing a BaseProperty with special characters", () => {
+		it("should be possible to serialize a property with special characters", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			myProp._properties["test.property"].value = "a";
 			myProp._properties['test"property"'].value = "b";
 			myProp._properties["test[property]"][".property."]["test"].value = "c";
 
-			var serialized = myProp._serialize(false);
+			const serialized = myProp._serialize(false);
 
-			var myProp2 = PropertyFactory.create(
+			const myProp2 = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			myProp2.deserialize(serialized);
@@ -62,24 +65,24 @@ describe("BaseProperty", function () {
 		});
 	});
 
-	describe("Get should work", function () {
+	describe("Get should work", () => {
 		// Test whether .get accepts the correct parameters
-		it("should accept an id (string) or an array of ids", function () {
-			var myProp = PropertyFactory.create(
+		it("should accept an id (string) or an array of ids", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
-			var correctArrayFn = function () {
+			const correctArrayFn = function () {
 				myProp.get(["test"]);
 			};
-			var correctStringFn = function () {
+			const correctStringFn = function () {
 				myProp.get("test");
 			};
 			expect(correctArrayFn).to.not.throw();
 			expect(correctStringFn).to.not.throw();
 		});
 		// .get(['test1','test2']) === .get('test1').get('test2')
-		it("when an array is passed, it should do a .get for each id in the array", function () {
-			var myProp = PropertyFactory.create(
+		it("when an array is passed, it should do a .get for each id in the array", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			expect(myProp.get(["test[property]", ".property.", "test"])).to.equal(
@@ -87,15 +90,15 @@ describe("BaseProperty", function () {
 			);
 		});
 
-		it("when an array is passed with a bad path, it should return undefined", function () {
-			var myProp = PropertyFactory.create(
+		it("when an array is passed with a bad path, it should return undefined", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			expect(myProp.get(["wrong path", ".property", "test"])).to.be.undefined;
 		});
 
-		it("should work with raise level path tokens", function () {
-			var myProp = PropertyFactory.create(
+		it("should work with raise level path tokens", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			expect(
@@ -118,8 +121,8 @@ describe("BaseProperty", function () {
 			).to.deep.equal(myProp.get("simple_property"));
 		});
 
-		it("should work with path root tokens", function () {
-			var myProp = PropertyFactory.create(
+		it("should work with path root tokens", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			expect(myProp.get([BaseProperty.PATH_TOKENS.ROOT])).to.equal(myProp);
@@ -132,38 +135,38 @@ describe("BaseProperty", function () {
 		});
 	});
 
-	describe("GetValue should work", function () {
-		it("should return the value of a primitive property", function () {
-			var myProp = PropertyFactory.create(
+	describe("GetValue should work", () => {
+		it("should return the value of a primitive property", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			myProp._properties["test.property"].value = "a";
-			var myValue = myProp.getValue(["test.property"]);
+			const myValue = myProp.getValue(["test.property"]);
 			expect(myValue).to.equal("a");
 		});
 
-		it("should work with an array of paths", function () {
-			var myProp = PropertyFactory.create(
+		it("should work with an array of paths", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			myProp.get(["test[property]", ".property.", "test"]).setValue("b");
 			expect(myProp.getValue(["test[property]", ".property.", "test"])).to.equal("b");
 		});
 
-		it("should throw if using .getValue on a non-primitive property", function () {
-			var myProp = PropertyFactory.create(
+		it("should throw if using .getValue on a non-primitive property", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
-			var incorrectFn = function () {
+			const incorrectFn = function () {
 				myProp.getValue(["test[property]"]);
 			};
 			expect(incorrectFn).to.throw();
 		});
 	});
 
-	describe("GetValues should work", function () {
-		it("should return the values of a property", function () {
-			var myProp = PropertyFactory.create(
+	describe("GetValues should work", () => {
+		it("should return the values of a property", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			myProp.setValues({
@@ -188,8 +191,8 @@ describe("BaseProperty", function () {
 			});
 		});
 
-		it("setValues should accept the output of getValues as a valid input", function () {
-			var myProp = PropertyFactory.create(
+		it("setValues should accept the output of getValues as a valid input", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			myProp.setValues({
@@ -202,16 +205,16 @@ describe("BaseProperty", function () {
 				},
 			});
 
-			var correctFn = function () {
+			const correctFn = function () {
 				myProp.setValues(myProp.getValues());
 			};
 			expect(correctFn).to.not.throw();
 		});
 	});
 
-	describe("setValues should work", function () {
-		it("should accept an object and set each values in that object", function () {
-			var myProp = PropertyFactory.create(
+	describe("setValues should work", () => {
+		it("should accept an object and set each values in that object", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			myProp.setValues({
@@ -227,11 +230,11 @@ describe("BaseProperty", function () {
 				"string2",
 			);
 		});
-		it("should throw if trying to insert in a non-exiting path", function () {
-			var myProp = PropertyFactory.create(
+		it("should throw if trying to insert in a non-exiting path", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
-			var invalidFunction = function () {
+			const invalidFunction = function () {
 				myProp.setValues({
 					"simple_property": "string1",
 					"test[property]": {
@@ -242,14 +245,14 @@ describe("BaseProperty", function () {
 				});
 			};
 			// TODO: move this to constants.js
-			expect(invalidFunction).to.throw(MSG.SET_VALUES_PATH_INVALID + "test123");
+			expect(invalidFunction).to.throw(`${MSG.SET_VALUES_PATH_INVALID}test123`);
 		});
 
-		it("should throw if trying to insert into a path that resolves to a property", function () {
-			var myProp = PropertyFactory.create(
+		it("should throw if trying to insert into a path that resolves to a property", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
-			var invalidFunction = function () {
+			const invalidFunction = function () {
 				myProp.setValues({
 					"simple_property": "string1",
 					"test[property]": {
@@ -257,14 +260,14 @@ describe("BaseProperty", function () {
 					},
 				});
 			};
-			expect(invalidFunction).to.throw(MSG.SET_VALUES_PATH_PROPERTY + ".property.");
+			expect(invalidFunction).to.throw(`${MSG.SET_VALUES_PATH_PROPERTY}.property.`);
 		});
 	});
 
-	describe("Path resolution should work", function () {
+	describe("Path resolution should work", () => {
 		// Test whether the right paths are returned
-		it("should work with getAbsolutePath", function () {
-			var myProp = PropertyFactory.create(
+		it("should work with getAbsolutePath", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 
@@ -280,11 +283,11 @@ describe("BaseProperty", function () {
 			).to.equal('/"test[property]".".property.".test');
 		});
 
-		it("should work with getRelativePath", function () {
-			var myProp = PropertyFactory.create(
+		it("should work with getRelativePath", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
-			var nested = myProp.get("test[property]");
+			const nested = myProp.get("test[property]");
 			expect(
 				myProp.get(["test[property]", ".property.", "test"]).getRelativePath(nested),
 			).to.equal('".property.".test');
@@ -299,8 +302,8 @@ describe("BaseProperty", function () {
 		});
 
 		// Test that path resolution works
-		it("should work with resolvePath", function () {
-			var myProp = PropertyFactory.create(
+		it("should work with resolvePath", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 
@@ -325,8 +328,8 @@ describe("BaseProperty", function () {
 			);
 		});
 
-		it("should return undefined for invalid paths", function () {
-			var myProp = PropertyFactory.create(
+		it("should return undefined for invalid paths", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 
@@ -335,9 +338,9 @@ describe("BaseProperty", function () {
 		});
 	});
 
-	describe("cleanDirty", function () {
-		it("should work for paths with special characters", function () {
-			var property = PropertyFactory.create(
+	describe("cleanDirty", () => {
+		it("should work for paths with special characters", () => {
+			const property = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			property.resolvePath('"test[property]".".property.".test').value = "test";
@@ -347,8 +350,8 @@ describe("BaseProperty", function () {
 		});
 	});
 
-	it("should clone the property set", function (done) {
-		var nodeProperty = PropertyFactory.create("NodeProperty");
+	it("should clone the property set", (done) => {
+		const nodeProperty = PropertyFactory.create("NodeProperty");
 
 		nodeProperty.deserialize({
 			insert: {
@@ -368,15 +371,15 @@ describe("BaseProperty", function () {
 			},
 		});
 
-		var clone = nodeProperty.clone();
+		const clone = nodeProperty.clone();
 
 		expect(nodeProperty._serialize(false)).to.eql(clone._serialize(false));
 
 		done();
 	});
 
-	it("should support reapplying dirty flags on non-identical changeSets", function (done) {
-		let nodeProperty = PropertyFactory.create("NodeProperty");
+	it("should support reapplying dirty flags on non-identical changeSets", (done) => {
+		const nodeProperty = PropertyFactory.create("NodeProperty");
 
 		nodeProperty.insert("result1", PropertyFactory.create("String"));
 		nodeProperty.insert("result2", PropertyFactory.create("String"));
@@ -402,8 +405,8 @@ describe("BaseProperty", function () {
 		done();
 	});
 
-	it("should be able to handle duplicate namespace", function () {
-		var ANumber = {
+	it("should be able to handle duplicate namespace", () => {
+		const ANumber = {
 			typeid: "autodesk.tests:ANumber-1.0.0",
 			properties: [
 				{
@@ -414,7 +417,7 @@ describe("BaseProperty", function () {
 		};
 		PropertyFactory.register(ANumber);
 
-		var SomeNumbers = {
+		const SomeNumbers = {
 			typeid: "autodesk.tests:SomeNumbers-1.0.0",
 			properties: [
 				{ id: "aValue", typeid: "autodesk.tests:ANumber-1.0.0" },
@@ -424,33 +427,33 @@ describe("BaseProperty", function () {
 		};
 		PropertyFactory.register(SomeNumbers);
 
-		var originalSomeNumbers = PropertyFactory.create(SomeNumbers.typeid);
+		const originalSomeNumbers = PropertyFactory.create(SomeNumbers.typeid);
 
-		let root = PropertyFactory.create("NodeProperty");
+		const root = PropertyFactory.create("NodeProperty");
 		root.insert("aValue", originalSomeNumbers);
 
-		var someNumbers = root.resolvePath("aValue");
+		const someNumbers = root.resolvePath("aValue");
 		expect(someNumbers).to.equal(originalSomeNumbers);
-		var aNumber = root.resolvePath("aValue.aValue");
+		const aNumber = root.resolvePath("aValue.aValue");
 		expect(aNumber).to.exist;
-		var aValue = root.resolvePath("aValue.aValue.aValue");
+		const aValue = root.resolvePath("aValue.aValue.aValue");
 		expect(aValue).to.exist;
 	});
 
-	describe("getContext", function () {
-		it("should work with context of single", function () {
-			var myProp = PropertyFactory.create(
+	describe("getContext", () => {
+		it("should work with context of single", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			expect(myProp.getContext()).to.equal("single");
 		});
-		it("should work with other contexts", function () {
-			var arrayProp = PropertyFactory.create(
+		it("should work with other contexts", () => {
+			const arrayProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 				"array",
 			);
 			expect(arrayProp.getContext()).to.equal("array");
-			var mapProp = PropertyFactory.create(
+			const mapProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 				"map",
 			);
@@ -458,9 +461,9 @@ describe("BaseProperty", function () {
 		});
 	});
 
-	describe("getFullTypeid", function () {
-		it("should return the typeid of the property", function () {
-			var myProp = PropertyFactory.create(
+	describe("getFullTypeid", () => {
+		it("should return the typeid of the property", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			expect(myProp.getFullTypeid()).to.equal(
@@ -469,9 +472,9 @@ describe("BaseProperty", function () {
 		});
 	});
 
-	describe("getTypeid", function () {
-		it("should return the typeid of the property", function () {
-			var myProp = PropertyFactory.create(
+	describe("getTypeid", () => {
+		it("should return the typeid of the property", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
 			expect(myProp.getTypeid()).to.equal(
@@ -480,33 +483,33 @@ describe("BaseProperty", function () {
 		});
 	});
 
-	describe("getId", function () {
-		it("should return the id of the property", function () {
-			var myProp = PropertyFactory.create(
+	describe("getId", () => {
+		it("should return the id of the property", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
-			var nested = myProp.get("test.property");
+			const nested = myProp.get("test.property");
 			expect(nested.getId()).to.equal("test.property");
 		});
 	});
 
-	describe("getParent", function () {
-		it("should return the parent property", function () {
-			var myProp = PropertyFactory.create(
+	describe("getParent", () => {
+		it("should return the parent property", () => {
+			const myProp = PropertyFactory.create(
 				"autodesk.tests:property.with.special.characters-1.0.0",
 			);
-			var nested = myProp.get("test.property");
+			const nested = myProp.get("test.property");
 			expect(nested.getParent()).to.deep.equal(myProp);
 		});
 	});
 
 	// Other aspects of traverseDown function are already tested. Missing BREAK_TRAVERSAL and paths only.
-	describe("traverseDown, hasPendingChanges and getPendingChanges", function () {
-		var BREAK_TRAVERSAL;
+	describe("traverseDown, hasPendingChanges and getPendingChanges", () => {
+		let BREAK_TRAVERSAL;
 
-		before(function () {
+		before(() => {
 			BREAK_TRAVERSAL = require("../..").BaseProperty.BREAK_TRAVERSAL;
-			var TestTraversalObject = {
+			const TestTraversalObject = {
 				typeid: "autodesk.tests:property.traversal-1.0.0",
 				properties: [
 					{ id: "p1", typeid: "String" },
@@ -550,11 +553,11 @@ describe("BaseProperty", function () {
 			PropertyFactory.register(TestTraversalObject);
 		});
 
-		it("should stop when callback returns BREAK_TRAVERSAL", function () {
-			var property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
+		it("should stop when callback returns BREAK_TRAVERSAL", () => {
+			const property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
 
-			var nbrCalls = 0;
-			var breakTrav = function (prop) {
+			let nbrCalls = 0;
+			const breakTrav = function (prop) {
 				if (++nbrCalls === 5) {
 					return BREAK_TRAVERSAL;
 				}
@@ -564,18 +567,18 @@ describe("BaseProperty", function () {
 			expect(nbrCalls).to.equal(5);
 		});
 
-		it("should provide path of each prop", function () {
-			var arrPaths = [];
-			var gatherPaths = function (prop, path) {
+		it("should provide path of each prop", () => {
+			const arrPaths = [];
+			const gatherPaths = function (prop, path) {
 				arrPaths.push(path);
 			};
-			var property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
+			const property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
 			property.resolvePath("p4").traverseDown(gatherPaths);
 			expect(arrPaths).to.deep.equal(["p4p1", "p4p1.p4p1p1", "p4p2", "p4p2.p4p2p1"]);
 		});
 
-		it("should return pending changes", function () {
-			var property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
+		it("should return pending changes", () => {
+			const property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
 			expect(property.resolvePath("p2").getPendingChanges()).to.deep.equal(new ChangeSet({}));
 			expect(property.resolvePath("p2").hasPendingChanges()).to.be.false;
 			property.resolvePath("p2.p2p1.p2p1p2").value = "Hi";
@@ -590,9 +593,9 @@ describe("BaseProperty", function () {
 			expect(property.resolvePath("p2").hasPendingChanges()).to.be.true;
 		});
 
-		it("should output a pretty string with prettyPrint()", function () {
-			var property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
-			var expectedPrettyStr =
+		it("should output a pretty string with prettyPrint()", () => {
+			const property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
+			const expectedPrettyStr =
 				"p2 (ContainerProperty):\n" +
 				"  p2p1 (ContainerProperty):\n" +
 				'    p2p1p1 (String): ""\n' +
@@ -602,14 +605,14 @@ describe("BaseProperty", function () {
 				'    p2p2p1 (String): ""\n' +
 				'    p2p2p2 (String): ""\n' +
 				"    p2p2p3 (Int32): 0\n";
-			var prettyStr = "";
-			property.resolvePath("p2").prettyPrint(function (str) {
-				prettyStr += str + "\n";
+			let prettyStr = "";
+			property.resolvePath("p2").prettyPrint((str) => {
+				prettyStr += `${str}\n`;
 			});
 			expect(prettyStr).to.equal(expectedPrettyStr);
 		});
 	});
-	describe("Ancestry relations should be resolved correctly", function () {
+	describe("Ancestry relations should be resolved correctly", () => {
 		/**
 		 * creates a workspace
 		 * @return {property-properties.Workspace} workspace
@@ -618,79 +621,79 @@ describe("BaseProperty", function () {
 			return Promise.resolve(PropertyFactory.create("NodeProperty"));
 		}
 
-		it("property should be ancestor of subproperty", function () {
-			return createRootProperty().then(function (workspace) {
-				var property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
-				var subproperty = property.resolvePath("p2.p2p1.p2p1p2");
+		it("property should be ancestor of subproperty", () => {
+			return createRootProperty().then((workspace) => {
+				const property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
+				const subproperty = property.resolvePath("p2.p2p1.p2p1p2");
 				workspace.insert("test", property);
 				expect(property.isAncestorOf(subproperty)).to.equal(true);
 			});
 		});
 
-		it("property should not be ancestor itself", function () {
-			return createRootProperty().then(function (workspace) {
-				var property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
+		it("property should not be ancestor itself", () => {
+			return createRootProperty().then((workspace) => {
+				const property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
 				expect(property.isAncestorOf(property)).to.equal(false);
 			});
 		});
 
-		it("property not in workspace should correctly resolve ancestry", function () {
-			var property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
-			var subproperty = property.resolvePath("p2.p2p1.p2p1p2");
+		it("property not in workspace should correctly resolve ancestry", () => {
+			const property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
+			const subproperty = property.resolvePath("p2.p2p1.p2p1p2");
 			expect(property.isAncestorOf(subproperty)).to.equal(true);
 			expect(subproperty.isDescendantOf(property)).to.equal(true);
 		});
 
-		it("property should be ancestor of subproperty", function () {
-			return createRootProperty().then(function (workspace) {
-				var property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
-				var subproperty = property.resolvePath("p2.p2p1.p2p1p2");
+		it("property should be ancestor of subproperty", () => {
+			return createRootProperty().then((workspace) => {
+				const property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
+				const subproperty = property.resolvePath("p2.p2p1.p2p1p2");
 				workspace.insert("test", property);
 				expect(property.isAncestorOf(subproperty)).to.equal(true);
 			});
 		});
 
-		it("subproperty should be descendant of property", function () {
-			return createRootProperty().then(function (workspace) {
-				var property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
-				var subproperty = property.resolvePath("p2.p2p1.p2p1p2");
+		it("subproperty should be descendant of property", () => {
+			return createRootProperty().then((workspace) => {
+				const property = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
+				const subproperty = property.resolvePath("p2.p2p1.p2p1p2");
 				workspace.insert("test", property);
 				expect(subproperty.isDescendantOf(property)).to.equal(true);
 			});
 		});
 
-		it("property in array property should be descendant of array", function () {
-			return createRootProperty().then(function (workspace) {
-				var property = PropertyFactory.create(
+		it("property in array property should be descendant of array", () => {
+			return createRootProperty().then((workspace) => {
+				const property = PropertyFactory.create(
 					"autodesk.tests:property.traversal-1.0.0",
 					"array",
 				);
-				var element = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
+				const element = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
 				property.push(element);
-				var subproperty = element.resolvePath("p2.p2p1.p2p1p2");
+				const subproperty = element.resolvePath("p2.p2p1.p2p1p2");
 				workspace.insert("test", property);
 				expect(subproperty.isDescendantOf(property)).to.equal(true);
 			});
 		});
 
-		it("array property should be ancestor of property in array", function () {
-			return createRootProperty().then(function (workspace) {
-				var property = PropertyFactory.create(
+		it("array property should be ancestor of property in array", () => {
+			return createRootProperty().then((workspace) => {
+				const property = PropertyFactory.create(
 					"autodesk.tests:property.traversal-1.0.0",
 					"array",
 				);
-				var element = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
+				const element = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
 				property.push(element);
-				var subproperty = element.resolvePath("p2.p2p1.p2p1p2");
+				const subproperty = element.resolvePath("p2.p2p1.p2p1p2");
 				workspace.insert("test", property);
 				expect(property.isAncestorOf(subproperty)).to.equal(true);
 			});
 		});
 
-		it("two different properties should not be related", function () {
-			return createRootProperty().then(function (workspace) {
-				var prop1 = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
-				var prop2 = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
+		it("two different properties should not be related", () => {
+			return createRootProperty().then((workspace) => {
+				const prop1 = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
+				const prop2 = PropertyFactory.create("autodesk.tests:property.traversal-1.0.0");
 				workspace.insert("test1", prop1);
 				workspace.insert("test2", prop2);
 				expect(prop2.isAncestorOf(prop1)).to.equal(false);

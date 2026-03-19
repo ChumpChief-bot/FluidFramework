@@ -8,30 +8,27 @@ import {
 	Utils as ChangeSetUtils,
 	rebaseToRemoteChanges,
 } from "@fluid-experimental/property-changeset";
-import {
-	BaseProperty,
-	NodeProperty,
-	PropertyFactory,
-} from "@fluid-experimental/property-properties";
-import { IsoBuffer, bufferToString, stringToBuffer } from "@fluid-internal/client-utils";
+import type { NodeProperty } from "@fluid-experimental/property-properties";
+import { BaseProperty, PropertyFactory } from "@fluid-experimental/property-properties";
+import type { IsoBuffer } from "@fluid-internal/client-utils";
+import { bufferToString, stringToBuffer } from "@fluid-internal/client-utils";
 import { AttachState } from "@fluidframework/container-definitions";
-import {
+import type {
 	IChannelAttributes,
 	IChannelFactory,
 	IFluidDataStoreRuntime,
 	IChannelStorageService,
 } from "@fluidframework/datastore-definitions/internal";
-import {
-	MessageType,
-	ISequencedDocumentMessage,
-} from "@fluidframework/driver-definitions/internal";
-import {
-	ISummaryTreeWithStats,
-	type IRuntimeMessageCollection,
-	type ISequencedMessageEnvelope,
+import type { ISequencedDocumentMessage } from "@fluidframework/driver-definitions/internal";
+import { MessageType } from "@fluidframework/driver-definitions/internal";
+import type { ISummaryTreeWithStats } from "@fluidframework/runtime-definitions/internal";
+import type {
+	IRuntimeMessageCollection,
+	ISequencedMessageEnvelope,
 } from "@fluidframework/runtime-definitions/internal";
 import { SummaryTreeBuilder } from "@fluidframework/runtime-utils/internal";
-import { SharedObject, IFluidSerializer } from "@fluidframework/shared-object-base/internal";
+import type { IFluidSerializer } from "@fluidframework/shared-object-base/internal";
+import { SharedObject } from "@fluidframework/shared-object-base/internal";
 import axios from "axios";
 import lodash from "lodash";
 import { Packr } from "msgpackr";
@@ -384,13 +381,15 @@ export class SharedPropertyTree extends SharedObject {
 				sequenceNumber: messageEnvelope.sequenceNumber,
 			};
 			switch (content.op) {
-				case OpKind.ChangeSet:
+				case OpKind.ChangeSet: {
 					// If the op originated locally from this client, we've already accounted for it
 					// by advancing the state.  Otherwise, advance the PRNG now.
 					this._applyRemoteChangeSet(cloneDeep(content));
 					break;
-				default:
+				}
+				default: {
 					break;
+				}
 			}
 		}
 	}
@@ -415,9 +414,9 @@ export class SharedPropertyTree extends SharedObject {
 	) {
 		// for faster lookup of remote change guids
 		const remoteChangeMap = new Map<string, number>();
-		remoteChanges.forEach((change, index) => {
+		for (const [index, change] of remoteChanges.entries()) {
 			remoteChangeMap.set(change.guid, index);
-		});
+		}
 
 		// we will track visited nodes
 		const visitedUnrebasedRemoteChanges = new Set<string>();
@@ -603,9 +602,9 @@ export class SharedPropertyTree extends SharedObject {
 
 		builder.addBlob(
 			"properties",
-			serializer !== undefined
-				? serializer.stringify(snapshot, this.handle)
-				: JSON.stringify(snapshot),
+			serializer === undefined
+				? JSON.stringify(snapshot)
+				: serializer.stringify(snapshot, this.handle),
 		);
 		return builder.getSummaryTree();
 	}
@@ -619,61 +618,7 @@ export class SharedPropertyTree extends SharedObject {
 		this.useMH = snapshot.useMH;
 
 		try {
-			if (!snapshot.useMH) {
-				// We load all chunks
-				const chunks: ArrayBufferLike[] = await Promise.all(
-					range(snapshot.numChunks).map(async (i) => {
-						return this.decodeSummaryBlob(await storage.readBlob(`summaryChunk_${i}`));
-					}),
-				);
-
-				const totalLength = chunks.reduce((a, b) => a + b.byteLength, 0);
-				const serializedSummary = new Uint8Array(totalLength);
-				chunks.reduce((offset, chunk) => {
-					serializedSummary.set(new Uint8Array(chunk), offset);
-					return offset + chunk.byteLength;
-				}, 0);
-				const snapshotSummary = this.decodeSummary(serializedSummary);
-				if (
-					snapshotSummary.remoteChanges === undefined ||
-					snapshotSummary.remoteTipView === undefined ||
-					snapshotSummary.unrebasedRemoteChanges === undefined
-				) {
-					throw new Error("Invalid Snapshot.");
-				}
-
-				// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional behavior
-				if (snapshotSummary.remoteHeadGuid === undefined) {
-					// The summary does not contain a remoteHeadGuid. This means the summary has
-					// been created by an old version of PropertyDDS, that did not yet have this patch.
-					snapshotSummary.remoteHeadGuid =
-						snapshotSummary.remoteChanges.length > 0
-							? // If there are remote changes in the
-								// summary we can deduce the head GUID from these changes.
-								snapshotSummary.remoteChanges[snapshotSummary.remoteChanges.length - 1].guid
-							: // If no remote head GUID is available, we will fall back to the old behaviour,
-								// where the head GUID was set to an empty string. However, this could lead to
-								// divergence between the clients, if there is still a client in the session
-								// that is using a version of this library without this patch and which
-								// has started the session at a different summary.
-								"";
-				}
-
-				this.remoteTipView = snapshotSummary.remoteTipView;
-				this.remoteChanges = snapshotSummary.remoteChanges;
-				this.unrebasedRemoteChanges = snapshotSummary.unrebasedRemoteChanges;
-				this.headCommitGuid = snapshotSummary.remoteHeadGuid;
-				const isPartialCheckoutActive = !!(this.options.clientFiltering && this.options.paths);
-				if (isPartialCheckoutActive && this.options.paths) {
-					this.remoteTipView = ChangeSetUtils.getFilteredChangeSetByPaths(
-						this.remoteTipView,
-						this.options.paths,
-					);
-				}
-				this.tipView = cloneDeep(this.remoteTipView);
-
-				this.skipSequenceNumber = 0;
-			} else {
+			if (snapshot.useMH) {
 				const { branchGuid, summaryMinimumSequenceNumber } = snapshot;
 				const branchResponse = await axios.get(`http://localhost:3000/branch/${branchGuid}`);
 				this.headCommitGuid = branchResponse.data.headCommitGuid;
@@ -753,8 +698,62 @@ export class SharedPropertyTree extends SharedObject {
 				}
 
 				this.skipSequenceNumber = lastDelta ?? -1;
+			} else {
+				// We load all chunks
+				const chunks: ArrayBufferLike[] = await Promise.all(
+					range(snapshot.numChunks).map(async (i) => {
+						return this.decodeSummaryBlob(await storage.readBlob(`summaryChunk_${i}`));
+					}),
+				);
+
+				const totalLength = chunks.reduce((a, b) => a + b.byteLength, 0);
+				const serializedSummary = new Uint8Array(totalLength);
+				chunks.reduce((offset, chunk) => {
+					serializedSummary.set(new Uint8Array(chunk), offset);
+					return offset + chunk.byteLength;
+				}, 0);
+				const snapshotSummary = this.decodeSummary(serializedSummary);
+				if (
+					snapshotSummary.remoteChanges === undefined ||
+					snapshotSummary.remoteTipView === undefined ||
+					snapshotSummary.unrebasedRemoteChanges === undefined
+				) {
+					throw new Error("Invalid Snapshot.");
+				}
+
+				// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional behavior
+				if (snapshotSummary.remoteHeadGuid === undefined) {
+					// The summary does not contain a remoteHeadGuid. This means the summary has
+					// been created by an old version of PropertyDDS, that did not yet have this patch.
+					snapshotSummary.remoteHeadGuid =
+						snapshotSummary.remoteChanges.length > 0
+							? // If there are remote changes in the
+								// summary we can deduce the head GUID from these changes.
+								snapshotSummary.remoteChanges[snapshotSummary.remoteChanges.length - 1].guid
+							: // If no remote head GUID is available, we will fall back to the old behaviour,
+								// where the head GUID was set to an empty string. However, this could lead to
+								// divergence between the clients, if there is still a client in the session
+								// that is using a version of this library without this patch and which
+								// has started the session at a different summary.
+								"";
+				}
+
+				this.remoteTipView = snapshotSummary.remoteTipView;
+				this.remoteChanges = snapshotSummary.remoteChanges;
+				this.unrebasedRemoteChanges = snapshotSummary.unrebasedRemoteChanges;
+				this.headCommitGuid = snapshotSummary.remoteHeadGuid;
+				const isPartialCheckoutActive = !!(this.options.clientFiltering && this.options.paths);
+				if (isPartialCheckoutActive && this.options.paths) {
+					this.remoteTipView = ChangeSetUtils.getFilteredChangeSetByPaths(
+						this.remoteTipView,
+						this.options.paths,
+					);
+				}
+				this.tipView = cloneDeep(this.remoteTipView);
+
+				this.skipSequenceNumber = 0;
 			}
-		} catch (e) {
+		} catch {
 			this.tipView = {};
 			this.remoteTipView = {};
 			this.remoteChanges = [];
@@ -786,7 +785,7 @@ export class SharedPropertyTree extends SharedObject {
 		this.unrebasedRemoteChanges[change.guid] = cloneDeep(change);
 
 		// This is the first message in the history of the document.
-		if (this.remoteChanges.length !== 0) {
+		if (this.remoteChanges.length > 0) {
 			rebaseToRemoteChanges(
 				change,
 				this.getUnrebasedChange.bind(this),
@@ -932,12 +931,12 @@ export class SharedPropertyTree extends SharedObject {
 		deltaToTipCS.applyChangeSet(rebaseBaseChangeSet);
 
 		// Update the tip view
-		if (!this.tipView) {
+		if (this.tipView) {
+			new ChangeSet(this.tipView).applyChangeSet(newTipDelta);
+		} else {
 			this.tipView = cloneDeep(this.remoteTipView);
 			const changeSet = new ChangeSet(this.tipView);
 			changeSet.applyChangeSet(accumulatedChanges);
-		} else {
-			new ChangeSet(this.tipView).applyChangeSet(newTipDelta);
 		}
 
 		return true;

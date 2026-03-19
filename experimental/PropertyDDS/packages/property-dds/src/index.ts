@@ -4,16 +4,16 @@
  */
 
 export {
-	IPropertyTreeConfig,
-	IPropertyTreeMessage,
-	IRemotePropertyTreeMessage,
-	ISharedPropertyTreeEncDec,
-	ISnapshotSummary,
-	Metadata,
+	type IPropertyTreeConfig,
+	type IPropertyTreeMessage,
+	type IRemotePropertyTreeMessage,
+	type ISharedPropertyTreeEncDec,
+	type ISnapshotSummary,
+	type Metadata,
 	OpKind,
-	SerializedChangeSet,
+	type SerializedChangeSet,
 	SharedPropertyTree,
-	SharedPropertyTreeOptions,
+	type SharedPropertyTreeOptions,
 } from "./propertyTree.js";
 export { DeflatedPropertyTree, LZ4PropertyTree } from "./propertyTreeExt.js";
 export {

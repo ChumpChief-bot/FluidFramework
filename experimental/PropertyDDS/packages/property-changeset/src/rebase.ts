@@ -178,9 +178,9 @@ export function rebaseToRemoteChanges(
 			) {
 				for (const remoteChange of remoteChanges) {
 					let applyAfterMetaInformation =
-						commitsOnOtherLocalBranch[remoteChange.guid] !== undefined
-							? remoteChange.rebaseMetaInformation
-							: undefined;
+						commitsOnOtherLocalBranch[remoteChange.guid] === undefined
+							? undefined
+							: remoteChange.rebaseMetaInformation;
 
 					let changeset = remoteChange.changeSet;
 					if (

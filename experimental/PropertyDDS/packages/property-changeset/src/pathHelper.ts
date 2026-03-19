@@ -69,15 +69,15 @@ export namespace PathHelper {
 				out_types.push(TOKEN_TYPES.PATH_ROOT_TOKEN);
 			}
 			path_start = 1;
-		} else if (in_path.substr(0, 3) === "../") {
+		} else if (in_path.startsWith("../")) {
 			// Handle relative paths by extracting the number steps above
-			var extractLevel = function (current_path) {
-				if (current_path.substr(0, 3) === "../") {
+			const extractLevel = function (current_path) {
+				if (current_path.slice(0, 3) === "../") {
 					if (out_types) {
 						out_types.push(TOKEN_TYPES.RAISE_LEVEL_TOKEN);
 					}
 					tokens.push("../");
-					extractLevel(current_path.substr(3));
+					extractLevel(current_path.slice(3));
 					path_start = path_start + 3;
 				}
 			};
@@ -85,12 +85,8 @@ export namespace PathHelper {
 		}
 
 		// Let's see if the path is simple enough to use a fast-track algorithm.
-		let hackedPath = in_path.substr(path_start);
-		if (
-			in_path.indexOf("\\") === -1 &&
-			in_path.indexOf('"') === -1 &&
-			in_path.indexOf("*") === -1
-		) {
+		let hackedPath = in_path.slice(path_start);
+		if (!in_path.includes("\\") && !in_path.includes('"') && !in_path.includes("*")) {
 			// Yes, we can do something faster than parsing each character one by one.
 			let additionalTokens: string[] = [];
 			const additionalTypes = [];
@@ -110,13 +106,13 @@ export namespace PathHelper {
 				} else if (token.startsWith("[")) {
 					if (token.length > 2 && token.endsWith("]")) {
 						additionalTypes.push(TOKEN_TYPES.ARRAY_TOKEN);
-						additionalTokens[i] = token.substr(1, token.length - 2);
+						additionalTokens[i] = token.slice(1, 1 + token.length - 2);
 					} else {
 						// There's an error somewhere. Let's abort the fast-track.
 						break;
 					}
 				} else {
-					if (token.indexOf("]") !== -1) {
+					if (token.includes("]")) {
 						// There's an error somewhere. Let's abort the fast-track.
 						break;
 					} else {
@@ -147,10 +143,10 @@ export namespace PathHelper {
 		const storeNextToken = function (tokenType) {
 			// Make sure, this is not an empty token (E.g. a .. or a [] )
 			if (!tokenStarted) {
-				if (!atStartToken) {
-					throw new Error(MSG.EMPTY_TOKEN + in_path);
-				} else {
+				if (atStartToken) {
 					return;
+				} else {
+					throw new Error(MSG.EMPTY_TOKEN + in_path);
 				}
 			}
 
@@ -167,13 +163,15 @@ export namespace PathHelper {
 			}
 		};
 
-		for (var i = path_start; i < in_path.length; i++) {
+		for (let i = path_start; i < in_path.length; i++) {
 			const character = in_path[i];
 
 			if (character === '"') {
 				// If we encounter a quotation mark, we start parsing the
 				// quoted section
-				if (!tokenStarted) {
+				if (tokenStarted) {
+					throw new Error(MSG.QUOTES_WITHIN_TOKEN + in_path);
+				} else {
 					let endFound = false;
 
 					// Read the quoted token
@@ -208,10 +206,50 @@ export namespace PathHelper {
 					}
 					lastTokenWasQuoted = true;
 					tokenStarted = true;
-				} else {
-					throw new Error(MSG.QUOTES_WITHIN_TOKEN + in_path);
 				}
-			} else if (!inSquareBrackets) {
+			} else if (inSquareBrackets) {
+				if (character === "]") {
+					// A closing square bracket starts a new token
+					storeNextToken(TOKEN_TYPES.ARRAY_TOKEN);
+
+					// We now have to check the next character,
+					// as only the combinations '][' and '].' are
+					// valid
+					if (in_path.length > i + 1) {
+						// We only have to check this at the end of the string
+						if (in_path[i + 1] === PROPERTY_PATH_DELIMITER) {
+							// We are no longer in square brackets
+							inSquareBrackets = false;
+							allowSegmentStart = true;
+							i++;
+						} else if (in_path[i + 1] === "[") {
+							// We remain in square brackets
+							// so inSquareBrackets remains true;
+							i++;
+						} else if (in_path[i + 1] === "*") {
+							// We leave the square brackets
+							inSquareBrackets = false;
+						} else {
+							throw new Error(MSG.INVALID_END_OF_SQUARE_BRACKETS + in_path);
+						}
+					} else {
+						inSquareBrackets = false;
+						tokenStarted = false;
+					}
+				} else if (character === PROPERTY_PATH_DELIMITER) {
+					throw new Error(MSG.DOTS_IN_SQUARE_BRACKETS + in_path);
+				} else {
+					currentToken += character;
+
+					// We have started parsing the token
+					tokenStarted = true;
+
+					// When a symbols appears after a closing quotation mark, we have an error
+					if (lastTokenWasQuoted) {
+						throw new Error(MSG.QUOTES_WITHIN_TOKEN + in_path);
+					}
+				}
+			} else {
 				switch (character) {
 					case PROPERTY_PATH_DELIMITER: {
 						// A dot symbols starts a new token
@@ -265,48 +303,6 @@ export namespace PathHelper {
 						if (lastTokenWasQuoted) {
 							throw new Error(MSG.QUOTES_WITHIN_TOKEN + in_path);
 						}
-					}
-				}
-			} else {
-				if (character === "]") {
-					// A closing square bracket starts a new token
-					storeNextToken(TOKEN_TYPES.ARRAY_TOKEN);
-
-					// We now have to check the next character,
-					// as only the combinations '][' and '].' are
-					// valid
-					if (in_path.length > i + 1) {
-						// We only have to check this at the end of the string
-						if (in_path[i + 1] === PROPERTY_PATH_DELIMITER) {
-							// We are no longer in square brackets
-							inSquareBrackets = false;
-							allowSegmentStart = true;
-							i++;
-						} else if (in_path[i + 1] === "[") {
-							// We remain in square brackets
-							// so inSquareBrackets remains true;
-							i++;
-						} else if (in_path[i + 1] === "*") {
-							// We leave the square brackets
-							inSquareBrackets = false;
-						} else {
-							throw new Error(MSG.INVALID_END_OF_SQUARE_BRACKETS + in_path);
-						}
-					} else {
-						inSquareBrackets = false;
-						tokenStarted = false;
-					}
-				} else if (character === PROPERTY_PATH_DELIMITER) {
-					throw new Error(MSG.DOTS_IN_SQUARE_BRACKETS + in_path);
-				} else {
-					currentToken += character;
-
-					// We have started parsing the token
-					tokenStarted = true;
-
-					// When a symbols appears after a closing quotation mark, we have an error
-					if (lastTokenWasQuoted) {
-						throw new Error(MSG.QUOTES_WITHIN_TOKEN + in_path);
 					}
 				}
 			}
@@ -364,7 +360,10 @@ export namespace PathHelper {
 
 		if (in_quotedPathSegment.startsWith('"') && in_quotedPathSegment.endsWith('"')) {
 			// We remove double quotes
-			in_quotedPathSegment = in_quotedPathSegment.substr(1, in_quotedPathSegment.length - 2);
+			in_quotedPathSegment = in_quotedPathSegment.slice(
+				1,
+				1 + in_quotedPathSegment.length - 2,
+			);
 
 			// Then we unescape escape symbols
 			in_quotedPathSegment = in_quotedPathSegment.replace(/\\\\/g, "\\");
@@ -385,13 +384,13 @@ export namespace PathHelper {
 	 * @internal
 	 */
 	export const quotePathSegmentIfNeeded = function (in_pathSegment: string): string {
-		return in_pathSegment.indexOf(PROPERTY_PATH_DELIMITER) !== -1 ||
-			in_pathSegment.indexOf('"') !== -1 ||
-			in_pathSegment.indexOf("\\") !== -1 ||
-			in_pathSegment.indexOf("/") !== -1 ||
-			in_pathSegment.indexOf("*") !== -1 ||
-			in_pathSegment.indexOf("[") !== -1 ||
-			in_pathSegment.indexOf("]") !== -1 ||
+		return in_pathSegment.includes(PROPERTY_PATH_DELIMITER) ||
+			in_pathSegment.includes('"') ||
+			in_pathSegment.includes("\\") ||
+			in_pathSegment.includes("/") ||
+			in_pathSegment.includes("*") ||
+			in_pathSegment.includes("[") ||
+			in_pathSegment.includes("]") ||
 			in_pathSegment.length === 0
 			? quotePathSegment(in_pathSegment)
 			: in_pathSegment;
@@ -431,28 +430,33 @@ export namespace PathHelper {
 		for (let i = 0; i < tokenTypes.length; i++) {
 			const tokenType = tokenTypes[i];
 			switch (tokenType) {
-				case TOKEN_TYPES.PATH_ROOT_TOKEN:
+				case TOKEN_TYPES.PATH_ROOT_TOKEN: {
 					// Skip the leading '/'
 					break;
-				case TOKEN_TYPES.RAISE_LEVEL_TOKEN:
+				}
+				case TOKEN_TYPES.RAISE_LEVEL_TOKEN: {
 					throw new Error(
 						`No level up ("../") is expected in an absolute path: ${in_absolutePath}`,
 					);
-				case TOKEN_TYPES.DEREFERENCE_TOKEN:
+				}
+				case TOKEN_TYPES.DEREFERENCE_TOKEN: {
 					throw new Error(
 						`Dereference ("*") is not supported in canonical paths: ${in_absolutePath}`,
 					);
+				}
 				case TOKEN_TYPES.ARRAY_TOKEN:
-				case TOKEN_TYPES.PATH_SEGMENT_TOKEN:
+				case TOKEN_TYPES.PATH_SEGMENT_TOKEN: {
 					path += PROPERTY_PATH_DELIMITER + quotePathSegmentIfNeeded(tokens[i]);
 					break;
-				default:
+				}
+				default: {
 					break;
+				}
 			}
 		}
 		// Removes the leading PROPERTY_PATH_DELIMITER.
 		if (path) {
-			path = path.substring(1);
+			path = path.slice(1);
 		}
 		return path;
 	};
@@ -530,7 +534,7 @@ export namespace PathHelper {
 				paths.push(in_paths[i]);
 			}
 		}
-		if (paths.length) {
+		if (paths.length > 0) {
 			// We found at least one path including parts of the base path.
 			return {
 				coverageExtent: CoverageExtent.PARTLY_COVERED,

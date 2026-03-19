@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
+import type {
 	IChannelAttributes,
 	IChannelFactory,
 	IFluidDataStoreRuntime,
@@ -11,7 +11,8 @@ import {
 } from "@fluidframework/datastore-definitions/internal";
 import { createSharedObjectKind } from "@fluidframework/shared-object-base/internal";
 
-import { SharedPropertyTree, SharedPropertyTreeOptions } from "./propertyTree.js";
+import type { SharedPropertyTreeOptions } from "./propertyTree.js";
+import { SharedPropertyTree } from "./propertyTree.js";
 
 /**
  * The factory for SharedPropertyTree.

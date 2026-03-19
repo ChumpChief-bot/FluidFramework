@@ -122,12 +122,12 @@ let impl:
 	| typeof implementations.date
 	| typeof implementations.node
 	| typeof implementations.performance;
-if (typeof process !== "undefined" && typeof process.hrtime !== "undefined") {
+if (process !== undefined && process.hrtime !== undefined) {
 	impl = implementations.node;
-} else if (typeof window?.performance?.now !== "undefined") {
-	impl = implementations.performance;
-} else {
+} else if (window?.performance?.now === undefined) {
 	impl = implementations.date;
+} else {
+	impl = implementations.performance;
 }
 
 /**

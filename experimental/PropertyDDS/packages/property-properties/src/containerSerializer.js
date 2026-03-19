@@ -14,7 +14,7 @@ const {
 } = require("./properties/abstractStaticCollectionProperty");
 const { LazyLoadedProperties: Property } = require("./properties/lazyLoadedProperties");
 
-var MSG = {
+const MSG = {
 	NOTHING_TO_DESERIALIZE: "Repository deserialize(), no input given",
 };
 
@@ -50,11 +50,11 @@ class ScopeProperty extends AbstractStaticCollectionProperty {
 	 * @protected
 	 */
 	_remove(in_id) {
-		if (this._staticChildren[in_id] !== undefined) {
+		if (this._staticChildren[in_id] === undefined) {
+			throw new Error(MSG.REMOVING_NON_EXISTING_ID + in_id);
+		} else {
 			this._staticChildren[in_id]._setParent(undefined);
 			delete this._staticChildren[in_id];
-		} else {
-			throw new Error(MSG.REMOVING_NON_EXISTING_ID + in_id);
 		}
 	}
 }
@@ -69,11 +69,11 @@ class ScopeProperty extends AbstractStaticCollectionProperty {
 export function serialize(in_psets, in_dirtyOnly) {
 	in_dirtyOnly = in_dirtyOnly || false;
 
-	var documentData = {};
-	var rootTypeid;
+	const documentData = {};
+	let rootTypeid;
 
-	var keys = Object.keys(in_psets);
-	for (var i = 0; i < keys.length; i++) {
+	const keys = Object.keys(in_psets);
+	for (let i = 0; i < keys.length; i++) {
 		rootTypeid = in_psets[keys[i]].getTypeid();
 		if (!documentData[rootTypeid]) {
 			documentData[rootTypeid] = {};
@@ -102,39 +102,45 @@ export function deserialize(in_data, in_scope, in_filteringOptions) {
 	// From the given filtering options, keep only what is relevant for this property.
 	let baseFilteringOptions;
 	if (in_filteringOptions) {
-		let pathCoverage = PathHelper.getPathCoverage(
+		const pathCoverage = PathHelper.getPathCoverage(
 			in_filteringOptions.basePath,
 			in_filteringOptions.paths,
 		);
 		switch (pathCoverage.coverageExtent) {
-			case PathHelper.CoverageExtent.FULLY_COVERED:
+			case PathHelper.CoverageExtent.FULLY_COVERED: {
 				// No need for filtering options anymore, keep them undefined.
 				break;
-			case PathHelper.CoverageExtent.PARTLY_COVERED:
+			}
+			case PathHelper.CoverageExtent.PARTLY_COVERED: {
 				baseFilteringOptions = {
 					basePath: in_filteringOptions.basePath,
 					paths: pathCoverage.pathList,
 				};
 				break;
-			case PathHelper.CoverageExtent.UNCOVERED:
+			}
+			case PathHelper.CoverageExtent.UNCOVERED: {
 				// No need to create anything, it is outside the paths.
 				return {};
-			default:
+			}
+			default: {
 				break;
+			}
 		}
 	}
 
-	var deserializedProperties = {};
-	var typeid, entity, classed;
+	const deserializedProperties = {};
+	let typeid;
+	let entity;
+	let classed;
 
-	var dataKeys = Object.keys(in_data);
-	for (var iData = 0; iData < dataKeys.length; iData++) {
+	const dataKeys = Object.keys(in_data);
+	for (let iData = 0; iData < dataKeys.length; iData++) {
 		typeid = dataKeys[iData];
 		classed = in_data[typeid];
-		var classKeys = Object.keys(classed);
-		for (var iClass = 0; iClass < classKeys.length; iClass++) {
+		const classKeys = Object.keys(classed);
+		for (let iClass = 0; iClass < classKeys.length; iClass++) {
 			// reconstruct entity
-			let filteringOptions = baseFilteringOptions && {
+			const filteringOptions = baseFilteringOptions && {
 				basePath: PathHelper.getChildAbsolutePathCanonical(
 					baseFilteringOptions.basePath,
 					classKeys[iClass],
@@ -152,11 +158,11 @@ export function deserialize(in_data, in_scope, in_filteringOptions) {
 			);
 
 			// Store the id prior to calling entity.deserialize() since it is subject to change afterwards
-			var id = entity.getId();
+			const id = entity.getId();
 
 			// Create a scope property which captures the scope that was passed in as arguments
 			// so that it can be picked up downstream by the respective deserialize functions
-			var scopeProperty = new ScopeProperty({ scope: in_scope });
+			const scopeProperty = new ScopeProperty({ scope: in_scope });
 
 			scopeProperty._append(entity, false);
 
@@ -186,21 +192,21 @@ export function deserializeNonPrimitiveArrayElements(in_data, in_scope) {
 		return [];
 	}
 
-	var insertedPropertyInstances = [];
-	for (var i = 0; i < in_data.length; ++i) {
+	const insertedPropertyInstances = [];
+	for (let i = 0; i < in_data.length; ++i) {
 		// reconstruct entity
-		var createdProperty = Property.PropertyFactory._createProperty(
+		const createdProperty = Property.PropertyFactory._createProperty(
 			in_data[i]["typeid"],
 			null,
 			undefined,
 			in_scope,
 		);
 
-		var id = createdProperty.getId();
+		const id = createdProperty.getId();
 
 		// Create a scope property which captures the scope that was passed in as argument
 		// so that it can be picked up downstream by the respective deserialize functions
-		var scopeProperty = new ScopeProperty({ scope: in_scope });
+		const scopeProperty = new ScopeProperty({ scope: in_scope });
 
 		scopeProperty._append(createdProperty, false);
 

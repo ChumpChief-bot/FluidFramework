@@ -15,7 +15,7 @@ import { expect } from "chai";
 import { TypeIdHelper } from "../../helpers/typeidHelper.js";
 
 (function () {
-	describe("Typeid helper", function () {
+	describe("Typeid helper", () => {
 		const MSG = constants.MSG;
 
 		it("getPrimitiveTypeId() should return all primitive typeids", () => {
@@ -51,7 +51,7 @@ import { TypeIdHelper } from "../../helpers/typeidHelper.js";
 			]);
 		});
 
-		describe("nativeInheritsFrom() method", function () {
+		describe("nativeInheritsFrom() method", () => {
 			it("should throw an error if the input is undefine", () => {
 				expect(() => {
 					TypeIdHelper.nativeInheritsFrom(undefined as unknown as string, "BaseProperty");
@@ -69,10 +69,10 @@ import { TypeIdHelper } from "../../helpers/typeidHelper.js";
 			it("should throw an error if the inputs are not native typeids", () => {
 				expect(() => {
 					TypeIdHelper.nativeInheritsFrom("template1", "BaseProperty");
-				}).to.throw(MSG.TYPEID_NOT_NATIVE + "template1");
+				}).to.throw(`${MSG.TYPEID_NOT_NATIVE}template1`);
 				expect(() => {
 					TypeIdHelper.nativeInheritsFrom("NodeProperty", "template1");
-				}).to.throw(MSG.TYPEID_NOT_NATIVE + "template1");
+				}).to.throw(`${MSG.TYPEID_NOT_NATIVE}template1`);
 			});
 
 			it("should recognize that all the native type inherit from BaseProperty", () => {
@@ -116,13 +116,13 @@ import { TypeIdHelper } from "../../helpers/typeidHelper.js";
 			it("should throw an error if in_typeid is enum<> ", () => {
 				expect(() => {
 					TypeIdHelper.nativeInheritsFrom("enum<NodeProperty>", "BaseProperty");
-				}).to.throw(MSG.TYPEID_NOT_NATIVE + "enum<NodeProperty>");
+				}).to.throw(`${MSG.TYPEID_NOT_NATIVE}enum<NodeProperty>`);
 			});
 
 			it("should throw an error if base_typeid is enum<> ", () => {
 				expect(() => {
 					TypeIdHelper.nativeInheritsFrom("NodeProperty", "enum<NodeProperty>");
-				}).to.throw(MSG.TYPEID_NOT_NATIVE + "enum<NodeProperty>");
+				}).to.throw(`${MSG.TYPEID_NOT_NATIVE}enum<NodeProperty>`);
 			});
 
 			it("should recognize that the Enum inherits from Int32", () => {

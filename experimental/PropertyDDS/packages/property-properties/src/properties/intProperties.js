@@ -112,15 +112,15 @@ export class Integer64Property extends ValueProperty {
 	 * @throws If in_value is a string that contains characters other than numbers
 	 */
 	_setValue(in_value, in_reportToView) {
-		var oldLowValue = this._data.getValueLow();
-		var oldHighValue = this._data.getValueHigh();
+		const oldLowValue = this._data.getValueLow();
+		const oldHighValue = this._data.getValueHigh();
 
 		in_value = this._castFunctor(in_value);
 
-		var newHighValue = in_value.getValueHigh();
-		var newLowValue = in_value.getValueLow();
+		const newHighValue = in_value.getValueHigh();
+		const newLowValue = in_value.getValueLow();
 
-		var changed = oldHighValue !== newHighValue || oldLowValue !== newLowValue;
+		const changed = oldHighValue !== newHighValue || oldLowValue !== newLowValue;
 
 		if (changed) {
 			this._data = in_value.clone();
@@ -150,10 +150,10 @@ export class Integer64Property extends ValueProperty {
 	 */
 	setValueHigh(in_high) {
 		ConsoleUtils.assert(_.isNumber(in_high), MSG.IN_HIGH_MUST_BE_NUMBER + in_high);
-		var changed = this._data.getValueHigh() !== in_high;
+		const changed = this._data.getValueHigh() !== in_high;
 
 		if (changed) {
-			var newData = new this.DataConstructor(this.getValueLow(), in_high);
+			const newData = new this.DataConstructor(this.getValueLow(), in_high);
 			this._data = newData;
 			this._setDirty();
 		}
@@ -167,10 +167,10 @@ export class Integer64Property extends ValueProperty {
 	 */
 	setValueLow(in_low) {
 		ConsoleUtils.assert(_.isNumber(in_low), MSG.IN_LOW_MUST_BE_NUMBER + in_low);
-		var changed = this._data.getValueLow() !== in_low;
+		const changed = this._data.getValueLow() !== in_low;
 
 		if (changed) {
-			var newData = new this.DataConstructor(in_low, this.getValueHigh());
+			const newData = new this.DataConstructor(in_low, this.getValueHigh());
 			this._data = newData;
 			this._setDirty();
 		}
@@ -188,8 +188,8 @@ export class Integer64Property extends ValueProperty {
 				_.isArray(in_serializedObj) && in_serializedObj.length === 2,
 				MSG.INVALID_INT64_CHANGESET,
 			);
-			var readValue = new this.DataConstructor(in_serializedObj[0], in_serializedObj[1]);
-			var changed = this._setValue(readValue, in_reportToView);
+			const readValue = new this.DataConstructor(in_serializedObj[0], in_serializedObj[1]);
+			const changed = this._setValue(readValue, in_reportToView);
 			return changed ? this.serialize() : undefined;
 		}
 	}
@@ -206,7 +206,7 @@ export class Integer64Property extends ValueProperty {
 				_.isArray(in_changeSet) && in_changeSet.length === 2,
 				MSG.INVALID_INT64_CHANGESET,
 			);
-			var newVal = new this.DataConstructor(in_changeSet[0], in_changeSet[1]);
+			const newVal = new this.DataConstructor(in_changeSet[0], in_changeSet[1]);
 			this._setValue(newVal, in_reportToView);
 		}
 	}
@@ -264,7 +264,7 @@ export class Integer64Property extends ValueProperty {
 	 */
 	fromString(in_string, in_radix) {
 		ConsoleUtils.assert(_.isString(in_string), MSG.IN_STRING_MUST_BE_STRING + in_string);
-		var int = this._castFunctor(in_string, in_radix);
+		const int = this._castFunctor(in_string, in_radix);
 
 		this.setValueHigh(int.getValueHigh());
 		this.setValueLow(int.getValueLow());

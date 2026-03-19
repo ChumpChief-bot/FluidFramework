@@ -16,7 +16,7 @@ const { BaseProperty } = require("./baseProperty");
 const { IndexedCollectionBaseProperty } = require("./indexedCollectionBaseProperty");
 const { LazyLoadedProperties: Property } = require("./lazyLoadedProperties");
 
-var PATH_TOKENS = BaseProperty.PATH_TOKENS;
+const PATH_TOKENS = BaseProperty.PATH_TOKENS;
 
 /**
  * A SetProperty is a collection class that can contain an unordered set of properties. These properties
@@ -71,10 +71,10 @@ export class SetProperty extends IndexedCollectionBaseProperty {
 	 * ```
 	 */
 	getValues() {
-		var ids = this.getIds();
-		var result = {};
-		for (var i = 0; i < ids.length; i++) {
-			var child = this.get(ids[i]);
+		const ids = this.getIds();
+		const result = {};
+		for (let i = 0; i < ids.length; i++) {
+			const child = this.get(ids[i]);
 			result[ids[i]] =
 				child instanceof Property.ValueProperty || child instanceof Property.StringProperty
 					? this.get(ids[i]).getValue()
@@ -103,7 +103,7 @@ export class SetProperty extends IndexedCollectionBaseProperty {
 	 * @protected
 	 */
 	_getPathSegmentForChildNode(in_childNode) {
-		return "[" + in_childNode.getGuid() + "]";
+		return `[${in_childNode.getGuid()}]`;
 	}
 
 	/**
@@ -136,7 +136,7 @@ export class SetProperty extends IndexedCollectionBaseProperty {
 	 */
 	insert(in_property) {
 		if (in_property instanceof AbstractStaticCollectionProperty && in_property.has("guid")) {
-			var guid = in_property.getGuid();
+			const guid = in_property.getGuid();
 			this._insert(guid, in_property, true);
 		} else {
 			throw new Error(MSG.CANT_INSERT_NON_NAMED_PROPERTIES);
@@ -157,7 +157,7 @@ export class SetProperty extends IndexedCollectionBaseProperty {
 		this._checkIsNotReadOnly(true);
 
 		if (in_property instanceof AbstractStaticCollectionProperty && in_property.has("guid")) {
-			var guid = in_property.getGuid();
+			const guid = in_property.getGuid();
 			if (this.has(guid)) {
 				this.remove(guid);
 			}
@@ -179,7 +179,7 @@ export class SetProperty extends IndexedCollectionBaseProperty {
 	 */
 	remove(in_entry) {
 		if (_.isString(in_entry)) {
-			var item = this.get(in_entry);
+			const item = this.get(in_entry);
 			this._removeByKey(in_entry, true);
 			return item;
 		} else {
@@ -229,7 +229,7 @@ export class SetProperty extends IndexedCollectionBaseProperty {
 			// Forward handling of arrays to the BaseProperty function
 			return AbstractStaticCollectionProperty.prototype.get.call(this, in_ids, in_options);
 		} else {
-			var prop = this;
+			let prop = this;
 			in_options = in_options || {};
 			in_options.referenceResolutionMode =
 				in_options.referenceResolutionMode === undefined
@@ -278,8 +278,8 @@ export class SetProperty extends IndexedCollectionBaseProperty {
 	_setValuesInternal(in_properties, in_typed) {
 		this._checkIsNotReadOnly(true);
 
-		var that = this;
-		_.each(in_properties, function (property) {
+		const that = this;
+		_.each(in_properties, (property) => {
 			if (property instanceof BaseProperty) {
 				that.set(property);
 			} else {
@@ -332,13 +332,13 @@ export class SetProperty extends IndexedCollectionBaseProperty {
 	 * @override
 	 */
 	setValues(in_properties) {
-		var checkoutView = this._getCheckoutView();
-		if (checkoutView !== undefined) {
+		const checkoutView = this._getCheckoutView();
+		if (checkoutView === undefined) {
+			SetProperty.prototype._setValues.call(this, in_properties, false, false);
+		} else {
 			checkoutView.pushNotificationDelayScope();
 			SetProperty.prototype._setValues.call(this, in_properties, false, false);
 			checkoutView.popNotificationDelayScope();
-		} else {
-			SetProperty.prototype._setValues.call(this, in_properties, false, false);
 		}
 	}
 
@@ -362,19 +362,19 @@ export class SetProperty extends IndexedCollectionBaseProperty {
 	 * @private
 	 */
 	_getScope() {
-		var scope = IndexedCollectionBaseProperty.prototype._getScope.call(this);
+		const scope = IndexedCollectionBaseProperty.prototype._getScope.call(this);
 
-		return scope !== undefined ? scope : this._scope;
+		return scope === undefined ? this._scope : scope;
 	}
 
 	/**
 	 * Delete all values from Set
 	 */
 	clear() {
-		var that = this;
-		this.getIds().forEach(function (id) {
+		const that = this;
+		for (const id of this.getIds()) {
 			that.remove(id);
-		});
+		}
 	}
 }
 

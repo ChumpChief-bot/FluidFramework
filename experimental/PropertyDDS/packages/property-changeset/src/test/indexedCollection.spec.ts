@@ -8,7 +8,7 @@ import cloneDeep from "lodash/cloneDeep.js";
 
 import { ChangeSet } from "../changeset.js";
 
-describe("Indexed Collection Operations", function () {
+describe("Indexed Collection Operations", () => {
 	it("modifications should rebase to a NOP for polymorphic collection, when the type of a primitive property changes in the base ChangeSet", () => {
 		// Modification to a float property
 		const modification = {
@@ -111,7 +111,7 @@ describe("Indexed Collection Operations", function () {
 			},
 		};
 
-		let originalCS = cloneDeep(modification);
+		const originalCS = cloneDeep(modification);
 		const conflicts = [];
 		new ChangeSet(base)._rebaseChangeSet(modification, conflicts);
 

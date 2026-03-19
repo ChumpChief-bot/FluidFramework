@@ -95,7 +95,7 @@ export class ReferenceProperty extends ValueProperty {
 		if (this.getParent() === undefined) {
 			return undefined;
 		}
-		var resolvedProperty = this.getParent().resolvePath(this.value, {
+		const resolvedProperty = this.getParent().resolvePath(this.value, {
 			referenceResolutionMode: BaseProperty.REFERENCE_RESOLUTION.ALWAYS,
 		});
 
@@ -152,7 +152,7 @@ export class ReferenceProperty extends ValueProperty {
 	 */
 	setValue(in_value) {
 		this._checkIsNotReadOnly(true);
-		var value = ReferenceProperty._convertInputToPath(in_value);
+		const value = ReferenceProperty._convertInputToPath(in_value);
 		// Forward the call to setValue
 		ValueProperty.prototype.setValue.call(this, value);
 	}
@@ -187,7 +187,7 @@ export class ReferenceProperty extends ValueProperty {
 
 	// Define a property to simplify accessing the referenced path
 	get ref() {
-		return this.get.apply(this, arguments);
+		return Reflect.apply(this.get, this, arguments);
 	}
 
 	set ref(val) {
@@ -204,7 +204,7 @@ export class ReferenceProperty extends ValueProperty {
 	 * @throws if in_value is defined, but is not a property or a string.
 	 */
 	static _convertInputToPath(in_value) {
-		var path;
+		let path;
 		if (typeof in_value === "string") {
 			path = in_value;
 		} else if (in_value === undefined) {
@@ -215,7 +215,7 @@ export class ReferenceProperty extends ValueProperty {
 		} else if (in_value instanceof String) {
 			path = String(in_value);
 		} else {
-			throw new TypeError(MSG.PROPERTY_OR_UNDEFINED + "(" + typeof in_value + ") " + in_value);
+			throw new TypeError(`${MSG.PROPERTY_OR_UNDEFINED}(${typeof in_value}) ${in_value}`);
 		}
 		return path;
 	}

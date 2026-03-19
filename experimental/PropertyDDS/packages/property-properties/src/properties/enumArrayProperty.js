@@ -47,16 +47,16 @@ export class EnumArrayProperty extends ValueArrayProperty {
 	_convertEnumToInternalValue(in_value) {
 		// check if we've got a string
 		if (_.isString(in_value)) {
-			var internalEnum = this._enumDictionary.enumEntriesById[in_value];
+			const internalEnum = this._enumDictionary.enumEntriesById[in_value];
 			if (!internalEnum) {
 				throw new Error(MSG.UNKNOWN_ENUM + in_value);
 			}
 			return internalEnum.value;
 		} else {
-			if (!this._enumDictionary.enumEntriesByValue[in_value]) {
-				throw new Error(MSG.UNKNOWN_ENUM + in_value);
-			} else {
+			if (this._enumDictionary.enumEntriesByValue[in_value]) {
 				return in_value;
+			} else {
+				throw new Error(MSG.UNKNOWN_ENUM + in_value);
 			}
 		}
 	}
@@ -73,16 +73,16 @@ export class EnumArrayProperty extends ValueArrayProperty {
 	insertRange(in_offset, in_array) {
 		if (!_.isNumber(in_offset)) {
 			throw new TypeError(
-				MSG.NOT_NUMBER + "in_offset, method: EnumArray.insertRange or .insert",
+				`${MSG.NOT_NUMBER}in_offset, method: EnumArray.insertRange or .insert`,
 			);
 		}
 		if (!_.isArray(in_array)) {
-			throw new TypeError(MSG.IN_ARRAY_NOT_ARRAY + "EnumArrayProperty.insertRange");
+			throw new TypeError(`${MSG.IN_ARRAY_NOT_ARRAY}EnumArrayProperty.insertRange`);
 		}
 
-		var internalValueArray = [];
-		var that = this;
-		_.each(in_array, function (element) {
+		const internalValueArray = [];
+		const that = this;
+		_.each(in_array, (element) => {
 			internalValueArray.push(that._convertEnumToInternalValue(element));
 		});
 		ValueArrayProperty.prototype.insertRange.call(this, in_offset, internalValueArray);
@@ -123,15 +123,15 @@ export class EnumArrayProperty extends ValueArrayProperty {
 	 */
 	setRange(in_offset, in_array) {
 		if (!_.isNumber(in_offset)) {
-			throw new TypeError(MSG.NOT_NUMBER + "in_offset, method: EnumArray.setRange or .set");
+			throw new TypeError(`${MSG.NOT_NUMBER}in_offset, method: EnumArray.setRange or .set`);
 		}
 		if (!_.isArray(in_array)) {
-			throw new TypeError(MSG.IN_ARRAY_NOT_ARRAY + "EnumArrayProperty.setRange");
+			throw new TypeError(`${MSG.IN_ARRAY_NOT_ARRAY}EnumArrayProperty.setRange`);
 		}
 
-		var internalValueArray = [];
-		var that = this;
-		_.each(in_array, function (element) {
+		const internalValueArray = [];
+		const that = this;
+		_.each(in_array, (element) => {
 			internalValueArray.push(that._convertEnumToInternalValue(element));
 		});
 		ValueArrayProperty.prototype.setRange.call(this, in_offset, internalValueArray);
@@ -144,12 +144,12 @@ export class EnumArrayProperty extends ValueArrayProperty {
 	 * @return {string} the enum string at that index
 	 */
 	getEnumString(in_position) {
-		var internalValue = this._dataArrayRef.getValue(in_position);
-		var resultEntry = this._enumDictionary.enumEntriesByValue[internalValue];
-		if (!resultEntry) {
-			throw new TypeError(MSG.UNKNOWN_ENUM + internalValue);
-		} else {
+		const internalValue = this._dataArrayRef.getValue(in_position);
+		const resultEntry = this._enumDictionary.enumEntriesByValue[internalValue];
+		if (resultEntry) {
 			return resultEntry.id;
+		} else {
+			throw new TypeError(MSG.UNKNOWN_ENUM + internalValue);
 		}
 	}
 
@@ -163,14 +163,14 @@ export class EnumArrayProperty extends ValueArrayProperty {
 	 */
 	getEnumStrings(in_offset, in_length) {
 		if (!_.isNumber(in_offset)) {
-			throw new TypeError(MSG.NOT_NUMBER + "in_offset, method: EnumArray.getEnumStrings");
+			throw new TypeError(`${MSG.NOT_NUMBER}in_offset, method: EnumArray.getEnumStrings`);
 		}
 		if (!_.isNumber(in_length)) {
-			throw new TypeError(MSG.NOT_NUMBER + "in_length, method: EnumArray.getEnumStrings");
+			throw new TypeError(`${MSG.NOT_NUMBER}in_length, method: EnumArray.getEnumStrings`);
 		}
 
-		var result = [];
-		for (var i = 0; i < in_length; i++) {
+		const result = [];
+		for (let i = 0; i < in_length; i++) {
 			result.push(this.getEnumString(i + in_offset));
 		}
 		return result;
@@ -191,9 +191,9 @@ export class EnumArrayProperty extends ValueArrayProperty {
 	 * @inheritdoc
 	 */
 	getValues() {
-		var result = [];
-		for (var i = 0; i < this._dataArrayRef.length; i++) {
-			var child = this._dataArrayRef.getValue(i);
+		const result = [];
+		for (let i = 0; i < this._dataArrayRef.length; i++) {
+			const child = this._dataArrayRef.getValue(i);
 			result.push(child);
 		}
 		return result;

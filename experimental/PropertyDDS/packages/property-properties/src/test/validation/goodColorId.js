@@ -13,7 +13,7 @@
  * @alias bad_nested_properties.js
  * Namespace containing all schema-related data for property set validation
  */
-var templateSchema100 = {
+const templateSchema100 = {
 	properties: [
 		{
 			id: "r",
@@ -34,7 +34,7 @@ var templateSchema100 = {
 	typeid: "TeamLeoValidation2:ColorID-1.0.0",
 };
 
-var templateSchema100Modified = {
+const templateSchema100Modified = {
 	properties: [
 		{
 			id: "r",
@@ -50,7 +50,7 @@ var templateSchema100Modified = {
 	typeid: "TeamLeoValidation2:ColorID-1.0.0",
 };
 
-var templateSchema101 = {
+const templateSchema101 = {
 	properties: [
 		{
 			id: "r",
@@ -72,7 +72,7 @@ var templateSchema101 = {
 	annotation: { description: "Color template" },
 };
 
-var templateSchema101BadSemver = {
+const templateSchema101BadSemver = {
 	properties: [
 		{
 			id: "r",
@@ -98,7 +98,7 @@ var templateSchema101BadSemver = {
 	typeid: "TeamLeoValidation2:ColorID-1.0.1",
 };
 
-var templateSchema110 = {
+const templateSchema110 = {
 	properties: [
 		{
 			id: "r",
@@ -124,7 +124,7 @@ var templateSchema110 = {
 	typeid: "TeamLeoValidation2:ColorID-1.1.0",
 };
 
-var templateSchema110BadSemver = {
+const templateSchema110BadSemver = {
 	properties: [
 		{
 			id: "r",
@@ -140,7 +140,7 @@ var templateSchema110BadSemver = {
 	typeid: "TeamLeoValidation2:ColorID-1.1.0",
 };
 
-var templateSchema110BadSemver2 = {
+const templateSchema110BadSemver2 = {
 	properties: [
 		{
 			id: "r",
@@ -156,7 +156,7 @@ var templateSchema110BadSemver2 = {
 	typeid: "TeamLeoValidation2:ColorID-1.0.1",
 };
 
-var templateSchema200 = {
+const templateSchema200 = {
 	properties: [
 		{
 			id: "r",

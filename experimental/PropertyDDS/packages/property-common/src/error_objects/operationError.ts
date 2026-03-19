@@ -38,7 +38,7 @@ export class OperationError extends Error {
 		super(message);
 		Object.setPrototypeOf(this, OperationError.prototype);
 		this.name = "OperationError";
-		this.stack = Error(message).stack;
+		this.stack = new Error(message).stack;
 	}
 
 	isQuiet() {
